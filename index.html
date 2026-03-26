@@ -19,7 +19,6 @@
             padding: 2rem 1rem;
         }
 
-        /* conteneur principal largeur max */
         .container {
             max-width: 1280px;
             margin: 0 auto;
@@ -29,7 +28,6 @@
             overflow: hidden;
         }
 
-        /* en-tête avec titre et sélecteur langue */
         .header {
             background: #003C71;
             padding: 1.5rem 2rem;
@@ -58,8 +56,13 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            cursor: default;
+            cursor: pointer;
             backdrop-filter: blur(2px);
+            transition: background 0.2s;
+        }
+
+        .lang-selector:hover {
+            background: rgba(255,255,255,0.25);
         }
 
         .lang-selector span {
@@ -71,7 +74,6 @@
             margin-left: 4px;
         }
 
-        /* navigation étapes */
         .steps-section {
             background: #f9fafc;
             padding: 1.2rem 2rem;
@@ -142,6 +144,7 @@
             text-decoration: none;
             font-weight: 500;
             transition: background 0.2s;
+            pointer-events: none;
         }
 
         .return-link:hover {
@@ -149,7 +152,6 @@
             text-decoration: underline;
         }
 
-        /* contenu principal deux colonnes */
         .two-columns {
             display: flex;
             flex-wrap: wrap;
@@ -168,7 +170,6 @@
             min-width: 240px;
         }
 
-        /* infraction description & modèle */
         .info-message {
             background: #F0F7FF;
             padding: 1.2rem 1.5rem;
@@ -191,7 +192,6 @@
             font-weight: 500;
         }
 
-        /* formulaire & sécurité */
         .security-box {
             background: #ffffff;
             border: 1px solid #e2edf2;
@@ -321,7 +321,6 @@
             position: relative;
         }
 
-        /* sidebar cards */
         .support-card, .client-card {
             background: #ffffff;
             border-radius: 24px;
@@ -406,7 +405,6 @@
             color: #2c4b6e;
         }
 
-        /* footer */
         .footer {
             background: #f2f5f8;
             padding: 1.2rem 2rem;
@@ -452,133 +450,238 @@
 </head>
 <body>
 <div class="container">
-    <!-- en-tête avec langue -->
     <div class="header">
-        <h1>⚖️ Constat d'infraction</h1>
-        <div class="lang-selector">
+        <h1 data-i18n="title">⚖️ Constat d'infraction</h1>
+        <div class="lang-selector" id="langSwitcher">
             <span>English</span>
             <span class="chevron">▼</span>
         </div>
     </div>
 
-    <!-- zone de progression paiement -->
     <div class="steps-section">
-        <div class="steps-label">Payer en ligne</div>
+        <div class="steps-label" data-i18n="payOnlineLabel">Payer en ligne</div>
         <div class="steps">
             <div class="step active">
                 <span class="step-number">1</span>
-                <span class="step-text">Rechercher</span>
+                <span class="step-text" data-i18n="step1">Rechercher</span>
             </div>
             <div class="step">
                 <span class="step-number">2</span>
-                <span class="step-text">Sélectionner</span>
+                <span class="step-text" data-i18n="step2">Sélectionner</span>
             </div>
             <div class="step">
                 <span class="step-number">3</span>
-                <span class="step-text">Approuver</span>
+                <span class="step-text" data-i18n="step3">Approuver</span>
             </div>
             <div class="step">
                 <span class="step-number">4</span>
-                <span class="step-text">Payer</span>
+                <span class="step-text" data-i18n="step4">Payer</span>
             </div>
-            <a href="#" class="return-link" style="pointer-events: none; text-decoration: none;">↺ Retour à l'étape Rechercher</a>
+            <a href="#" class="return-link" data-i18n="returnLink">↺ Retour à l'étape Rechercher</a>
         </div>
-        <div class="steps-label" style="margin-top: 10px; font-size: 0.75rem; text-transform: none; font-weight: normal;">
+        <div class="steps-label" style="margin-top: 10px; font-size: 0.75rem; text-transform: none; font-weight: normal;" data-i18n="anytimeMessage">
             En tout temps, vous pouvez retourner à l'étape Rechercher.
         </div>
     </div>
 
-    <!-- contenu principal -->
     <div class="two-columns">
-        <!-- colonne gauche : formulaire et informations -->
         <div class="main-content">
             <div class="info-message">
-                <p>✔ Vous avez choisi de payer en ligne votre constat d'infraction.</p>
-                <p>Pour vous aider à trouver les informations importantes sur votre constat, consultez les modèles suivants :</p>
-                <a href="#" class="model-link">📄 Constat d'infraction en matière de stationnement ou circulation →</a>
+                <p data-i18n="chosenOnline">✔ Vous avez choisi de payer en ligne votre constat d'infraction.</p>
+                <p data-i18n="helpModels">Pour vous aider à trouver les informations importantes sur votre constat, consultez les modèles suivants :</p>
+                <a href="#" class="model-link" data-i18n="modelLink">📄 Constat d'infraction en matière de stationnement ou circulation →</a>
             </div>
 
             <div class="security-box">
-                <div class="security-title">
+                <div class="security-title" data-i18n="securityTitle">
                     🔒 Par mesure de sécurité
                 </div>
-                <p style="margin-bottom: 0.5rem; font-weight: 500;">Veuillez reproduire le code suivant :</p>
+                <p style="margin-bottom: 0.5rem; font-weight: 500;" data-i18n="reproduceCode">Veuillez reproduire le code suivant :</p>
 
-                <!-- affichage captcha statique mais réaliste -->
                 <div class="captcha-area">
                     <div class="code-display">7 2 9 4</div>
                     <div class="captcha-input">
-                        <input type="text" placeholder="Saisissez le code affiché" autocomplete="off">
+                        <input type="text" placeholder="Saisissez le code affiché" autocomplete="off" data-i18n-placeholder="captchaPlaceholder">
                     </div>
                 </div>
 
-                <!-- section numéro de constat / dossier -->
                 <div class="form-group">
-                    <label>Numéro du constat d'infraction (9 chiffres)</label>
+                    <label data-i18n="ticketNumberLabel">Numéro du constat d'infraction (9 chiffres)</label>
                     <input type="text" maxlength="9" placeholder="ex: 123456789" pattern="\d*" inputmode="numeric">
-                    <div class="hint-text">Sans espace, 9 chiffres</div>
+                    <div class="hint-text" data-i18n="ticketHint">Sans espace, 9 chiffres</div>
                 </div>
 
-                <div class="separator-ou">—— ou ——</div>
+                <div class="separator-ou" data-i18n="orSeparator">—— ou ——</div>
 
                 <div class="form-group">
-                    <label>Numéro de dossier (9 chiffres)</label>
+                    <label data-i18n="caseNumberLabel">Numéro de dossier (9 chiffres)</label>
                     <input type="text" maxlength="9" placeholder="ex: 987654321" pattern="\d*" inputmode="numeric">
-                    <div class="hint-text">Saisissez le numéro à neuf chiffres</div>
+                    <div class="hint-text" data-i18n="caseHint">Saisissez le numéro à neuf chiffres</div>
                 </div>
 
-                <button class="btn-rechercher" onclick="alert('🔍 Démo : recherche simulée. Pour cloner l\'interface, cette fonction est illustrative.')">Rechercher</button>
-                <div class="hint-text" style="margin-top: 12px;">* Recherche par l’un ou l’autre des numéros + code sécurité</div>
+                <button class="btn-rechercher" data-i18n="searchButton" onclick="alert('🔍 Demo: search simulation.')">Rechercher</button>
+                <div class="hint-text" style="margin-top: 12px;" data-i18n="searchNote">* Recherche par l’un ou l’autre des numéros + code sécurité</div>
             </div>
         </div>
 
-        <!-- colonne droite : soutien technique + service client -->
         <div class="sidebar">
-            <!-- Soutien technique -->
             <div class="support-card">
-                <h3>🛠️ Soutien technique</h3>
+                <h3 data-i18n="techSupportTitle">🛠️ Soutien technique</h3>
                 <ul class="support-list">
-                    <li><a href="#">📘 Ce qu'il faut savoir sur le paiement d'un constat d'infraction</a></li>
-                    <li><a href="#">📑 Modèles de constats d'infraction</a></li>
-                    <li><a href="#">🔐 Sécurité et confidentialité</a></li>
-                    <li><a href="#">❓ Que faire en cas de problème technique?</a></li>
+                    <li><a href="#" data-i18n="faq1">📘 Ce qu'il faut savoir sur le paiement d'un constat d'infraction</a></li>
+                    <li><a href="#" data-i18n="faq2">📑 Modèles de constats d'infraction</a></li>
+                    <li><a href="#" data-i18n="faq3">🔐 Sécurité et confidentialité</a></li>
+                    <li><a href="#" data-i18n="faq4">❓ Que faire en cas de problème technique?</a></li>
                 </ul>
             </div>
 
-            <!-- Service à la clientèle -->
             <div class="client-card">
-                <h3>📞 Service à la clientèle</h3>
-                <p style="font-size: 0.9rem; margin-bottom: 1rem;">
+                <h3 data-i18n="customerServiceTitle">📞 Service à la clientèle</h3>
+                <p style="font-size: 0.9rem; margin-bottom: 1rem;" data-i18n="serviceDesc">
                     Pour toute information concernant les activités de la Cour municipale ou pour de l'information sur votre dossier, vous pouvez nous joindre aux heures régulières de bureau, du lundi au vendredi (à l'exception des jours fériés).
                 </p>
                 <div class="client-details">
                     <div class="contact-item">
-                        <span class="contact-label">📞 Par téléphone</span>
-                        <div class="contact-value">514 872-2964</div>
+                        <span class="contact-label" data-i18n="phoneLabel">📞 Par téléphone</span>
+                        <div class="contact-value" id="phoneNumber">+1 514-272-5369</div>
                     </div>
                     <div class="contact-item">
-                        <span class="contact-label">🏢 En personne</span>
-                        <div class="contact-value">À l'un de nos <a href="#">comptoirs de service</a> (sur rendez-vous)</div>
+                        <span class="contact-label" data-i18n="inPersonLabel">🏢 En personne</span>
+                        <div class="contact-value" data-i18n="inPersonValue">À l'un de nos <a href="#">comptoirs de service</a> (sur rendez-vous)</div>
                     </div>
-                    <div class="contact-item">
-                        <span class="contact-label">✉️ Par courriel</span>
-                        <div class="contact-value"><a href="mailto:cour-municipale@ville.montreal.qc.ca">cour-municipale@ville.montreal.qc.ca</a></div>
-                    </div>
+                    <!-- email section removed as requested -->
                 </div>
-                <div class="office-hours">
+                <div class="office-hours" data-i18n="officeHours">
                     🕒 Heures d'ouverture : Lundi au vendredi, 8h30 à 16h30 (sauf jours fériés)
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- footer avec droits réservés -->
     <div class="footer">
-        <p>© Tous droits réservés, Ville de Montréal</p>
-        <p style="margin-top: 6px; font-size: 0.7rem;">Paiement sécurisé · Cour municipale de Montréal</p>
+        <p data-i18n="copyright">© Tous droits réservés, Ville de Montréal</p>
+        <p style="margin-top: 6px; font-size: 0.7rem;" data-i18n="secureFooter">Paiement sécurisé · Cour municipale de Montréal</p>
     </div>
 </div>
 
-<!-- note supplémentaire : reproduction fidèle du design et du contenu textuel -->
+<script>
+    // Language data
+    const translations = {
+        fr: {
+            title: "⚖️ Constat d'infraction",
+            payOnlineLabel: "Payer en ligne",
+            step1: "Rechercher",
+            step2: "Sélectionner",
+            step3: "Approuver",
+            step4: "Payer",
+            returnLink: "↺ Retour à l'étape Rechercher",
+            anytimeMessage: "En tout temps, vous pouvez retourner à l'étape Rechercher.",
+            chosenOnline: "✔ Vous avez choisi de payer en ligne votre constat d'infraction.",
+            helpModels: "Pour vous aider à trouver les informations importantes sur votre constat, consultez les modèles suivants :",
+            modelLink: "📄 Constat d'infraction en matière de stationnement ou circulation →",
+            securityTitle: "🔒 Par mesure de sécurité",
+            reproduceCode: "Veuillez reproduire le code suivant :",
+            captchaPlaceholder: "Saisissez le code affiché",
+            ticketNumberLabel: "Numéro du constat d'infraction (9 chiffres)",
+            ticketHint: "Sans espace, 9 chiffres",
+            orSeparator: "—— ou ——",
+            caseNumberLabel: "Numéro de dossier (9 chiffres)",
+            caseHint: "Saisissez le numéro à neuf chiffres",
+            searchButton: "Rechercher",
+            searchNote: "* Recherche par l’un ou l’autre des numéros + code sécurité",
+            techSupportTitle: "🛠️ Soutien technique",
+            faq1: "📘 Ce qu'il faut savoir sur le paiement d'un constat d'infraction",
+            faq2: "📑 Modèles de constats d'infraction",
+            faq3: "🔐 Sécurité et confidentialité",
+            faq4: "❓ Que faire en cas de problème technique?",
+            customerServiceTitle: "📞 Service à la clientèle",
+            serviceDesc: "Pour toute information concernant les activités de la Cour municipale ou pour de l'information sur votre dossier, vous pouvez nous joindre aux heures régulières de bureau, du lundi au vendredi (à l'exception des jours fériés).",
+            phoneLabel: "📞 Par téléphone",
+            inPersonLabel: "🏢 En personne",
+            inPersonValue: "À l'un de nos <a href=\"#\">comptoirs de service</a> (sur rendez-vous)",
+            officeHours: "🕒 Heures d'ouverture : Lundi au vendredi, 8h30 à 16h30 (sauf jours fériés)",
+            copyright: "© Tous droits réservés, Ville de Montréal",
+            secureFooter: "Paiement sécurisé · Cour municipale de Montréal"
+        },
+        en: {
+            title: "⚖️ Offence Notice",
+            payOnlineLabel: "Pay online",
+            step1: "Search",
+            step2: "Select",
+            step3: "Approve",
+            step4: "Pay",
+            returnLink: "↺ Return to Search step",
+            anytimeMessage: "At any time, you can return to the Search step.",
+            chosenOnline: "✔ You have chosen to pay your offence notice online.",
+            helpModels: "To help you find the important information on your notice, see the following templates:",
+            modelLink: "📄 Parking or traffic offence notice →",
+            securityTitle: "🔒 Security measure",
+            reproduceCode: "Please enter the following code:",
+            captchaPlaceholder: "Enter the code shown",
+            ticketNumberLabel: "Offence notice number (9 digits)",
+            ticketHint: "No spaces, 9 digits",
+            orSeparator: "—— or ——",
+            caseNumberLabel: "File number (9 digits)",
+            caseHint: "Enter the nine-digit file number",
+            searchButton: "Search",
+            searchNote: "* Search by either number + security code",
+            techSupportTitle: "🛠️ Technical support",
+            faq1: "📘 What you need to know about paying an offence notice",
+            faq2: "📑 Offence notice templates",
+            faq3: "🔐 Security and privacy",
+            faq4: "❓ What to do if you have a technical issue?",
+            customerServiceTitle: "📞 Customer service",
+            serviceDesc: "For any information regarding the activities of the Municipal Court or information about your file, you can contact us during regular business hours, Monday to Friday (excluding holidays).",
+            phoneLabel: "📞 By phone",
+            inPersonLabel: "🏢 In person",
+            inPersonValue: "At one of our <a href=\"#\">service counters</a> (by appointment)",
+            officeHours: "🕒 Opening hours: Monday to Friday, 8:30 AM to 4:30 PM (except holidays)",
+            copyright: "© All rights reserved, City of Montreal",
+            secureFooter: "Secure payment · Municipal Court of Montreal"
+        }
+    };
+
+    let currentLang = 'fr';
+
+    function updateLanguage(lang) {
+        const elements = document.querySelectorAll('[data-i18n]');
+        elements.forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (translations[lang][key] !== undefined) {
+                if (el.tagName === 'INPUT' && el.hasAttribute('data-i18n-placeholder')) {
+                    el.placeholder = translations[lang][key];
+                } else {
+                    el.innerHTML = translations[lang][key];
+                }
+            }
+        });
+        // Special handling for placeholders that are not data-i18n but have explicit translation
+        const captchaInput = document.querySelector('.captcha-input input');
+        if (captchaInput && translations[lang].captchaPlaceholder) {
+            captchaInput.placeholder = translations[lang].captchaPlaceholder;
+        }
+        // Phone number is static but we ensure it's updated if needed (already replaced permanently)
+        // but we keep consistent with French/English version (same number)
+        const phoneSpan = document.getElementById('phoneNumber');
+        if (phoneSpan) phoneSpan.innerText = '+1 514-272-5369';
+        
+        // Update lang selector text
+        const langBtn = document.getElementById('langSwitcher');
+        if (langBtn) {
+            langBtn.innerHTML = lang === 'fr' ? '<span>English</span><span class="chevron">▼</span>' : '<span>Français</span><span class="chevron">▼</span>';
+        }
+        currentLang = lang;
+    }
+
+    // Toggle language
+    const switcher = document.getElementById('langSwitcher');
+    switcher.addEventListener('click', () => {
+        const newLang = currentLang === 'fr' ? 'en' : 'fr';
+        updateLanguage(newLang);
+    });
+
+    // Initialize French
+    updateLanguage('fr');
+</script>
 </body>
     </html>

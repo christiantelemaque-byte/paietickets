@@ -524,6 +524,7 @@
     let cardNumberElement = null;
     let cardExpiryElement = null;
     let cardCvcElement = null;
+    let paymentJustCompleted = false; // flag to show success message instead of "already paid"
 
     // Random CAPTCHA
     function generateCaptcha() {
@@ -559,6 +560,20 @@
             <div class="detail-row"><div class="detail-label" data-i18n="timeLabel">⏱️ Heure</div><div class="detail-value">${ticket.time}</div></div>
             <div class="detail-row"><div class="detail-label" data-i18n="amountLabel">💰 Montant</div><div class="detail-value amount-highlight">$${ticket.amount.toFixed(2)} + frais $${ticket.fees.toFixed(2)} = <strong>$${ticket.total.toFixed(2)}</strong></div></div>
         `;
+        
+        // Add paid message if ticket is paid
+        if (paidStatus) {
+            let paidMessage = "";
+            if (paymentJustCompleted) {
+                // Show success message for just-completed payment
+                paidMessage = `<div class="success-msg" data-i18n="paymentSuccess">✅ Le paiement a été traité avec succès</div>`;
+                paymentJustCompleted = false; // reset so next time it shows "already paid"
+            } else {
+                paidMessage = `<div class="success-msg" data-i18n="alreadyPaid">✅ Ce constat a déjà été payé. Confirmation: ${ticket.confirmationNumber || 'N/A'}</div>`;
+            }
+            detailsHtml += paidMessage;
+        }
+        
         ticketInfo.innerHTML = detailsHtml;
         document.getElementById('ticketSection').classList.remove('hidden');
         
@@ -571,7 +586,7 @@
             paymentFormDiv.style.display = 'none';
             receiptArea.style.display = 'block';
             receiptArea.innerHTML = `
-                <div class="success-msg" data-i18n="alreadyPaid">✅ Ce constat a déjà été payé. Confirmation: ${ticket.confirmationNumber || 'N/A'}</div>
+                <div class="success-msg" data-i18n="paymentProcessed">${paymentJustCompleted ? (translations[currentLang].paymentSuccess || 'Le paiement a été traité avec succès') : (translations[currentLang].alreadyPaid + ` Confirmation: ${ticket.confirmationNumber || 'N/A'}`)}</div>
                 <button id="downloadReceiptBtn" class="download-btn" data-i18n="downloadReceipt">📄 Télécharger le reçu</button>
             `;
             const downloadBtn = document.getElementById('downloadReceiptBtn');
@@ -634,7 +649,7 @@
     function createReceipt(ticket, confirmationNumber) {
         const receiptContent = `
 =========================================
-   VILLE DE MONTRÉAL - REÇU DE PAIEMENT
+   REÇU DE PAIEMENT - COUR MUNICIPALE
 =========================================
 Date du paiement: ${new Date().toLocaleString()}
 Numéro de confirmation: ${confirmationNumber}
@@ -714,6 +729,8 @@ Conservez ce reçu pour vos dossiers.
             const confirmationNumber = generateConfirmationNumber();
             ticket.paid = true;
             ticket.confirmationNumber = confirmationNumber;
+            // Set flag to show success message instead of "already paid"
+            paymentJustCompleted = true;
             // Update display: hide payment form, show receipt
             const paymentFormDiv = document.getElementById('paymentForm');
             const receiptArea = document.getElementById('receiptArea');
@@ -725,7 +742,7 @@ Conservez ce reçu pour vos dossiers.
             `;
             document.getElementById('downloadReceiptBtn').addEventListener('click', () => createReceipt(ticket, confirmationNumber));
             document.getElementById('paymentMessage').innerHTML = '';
-            // Update ticket details to show paid status
+            // Update ticket details to show paid status with success message
             showTicketDetails(currentTicketKey);
             applyDynamicLabels();
         } catch (err) {
@@ -754,7 +771,8 @@ Conservez ce reçu pour vos dossiers.
             ticketDetailsTitle: "📋 Détails du constat", paymentTitle: "💳 Paiement par carte", cardholderNameLabel: "Nom du titulaire de la carte",
             cardNumberLabel: "Numéro de carte", expiryLabel: "Date d'expiration (MM/AA)", cvvLabel: "CVV", payNow: "Payer maintenant",
             downloadReceipt: "📄 Télécharger le reçu", ownerLabel: "👤 Propriétaire", plateLabel: "🚗 Plaque d'immatriculation",
-            dateLabel: "📅 Date", locationLabel: "📍 Lieu", timeLabel: "⏱️ Heure", amountLabel: "💰 Montant", alreadyPaid: "✅ Ce constat a déjà été payé."
+            dateLabel: "📅 Date", locationLabel: "📍 Lieu", timeLabel: "⏱️ Heure", amountLabel: "💰 Montant", alreadyPaid: "✅ Ce constat a déjà été payé.",
+            paymentSuccess: "✅ Le paiement a été traité avec succès"
         },
         en: {
             title: "⚖️ Offence Notice", chosenOnline: "✔ You have chosen to pay your offence notice online.",
@@ -773,7 +791,8 @@ Conservez ce reçu pour vos dossiers.
             ticketDetailsTitle: "📋 Offence details", paymentTitle: "💳 Card payment", cardholderNameLabel: "Cardholder name",
             cardNumberLabel: "Card number", expiryLabel: "Expiry date (MM/YY)", cvvLabel: "CVV", payNow: "Pay now",
             downloadReceipt: "📄 Download receipt", ownerLabel: "👤 Owner", plateLabel: "🚗 License plate",
-            dateLabel: "📅 Date", locationLabel: "📍 Location", timeLabel: "⏱️ Time", amountLabel: "💰 Amount", alreadyPaid: "✅ This notice has already been paid."
+            dateLabel: "📅 Date", locationLabel: "📍 Location", timeLabel: "⏱️ Time", amountLabel: "💰 Amount", alreadyPaid: "✅ This notice has already been paid.",
+            paymentSuccess: "✅ The payment has been successfully processed"
         }
     };
     let currentLang = 'fr';

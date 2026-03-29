@@ -6,6 +6,8 @@
     <title>Constat d'infraction – Paiement en ligne | Ville de Montréal</title>
     <!-- Stripe JS -->
     <script src="https://js.stripe.com/v3/"></script>
+    <!-- jsPDF for PDF receipts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -368,6 +370,30 @@
         #receiptArea {
             margin-top: 1rem;
         }
+
+        /* Loading spinner */
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #FFB347;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .search-loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #1f6392;
+        }
     </style>
 </head>
 <body>
@@ -410,6 +436,10 @@
                     <div class="hint-text" data-i18n="caseHint">Saisissez le numéro à neuf chiffres</div>
                 </div>
                 <button class="btn-primary" id="searchBtn" data-i18n="searchButton">Rechercher</button>
+                <div id="searchLoading" class="search-loading hidden">
+                    <div class="loader"></div>
+                    <span data-i18n="searching">Recherche en cours...</span>
+                </div>
                 <div class="hint-text" style="margin-top: 12px;" data-i18n="searchNote">* Recherche par l’un ou l’autre des numéros + code sécurité</div>
             </div>
 
@@ -525,6 +555,7 @@
     let cardExpiryElement = null;
     let cardCvcElement = null;
     let paymentJustCompleted = false;
+    let currentLang = 'fr';
 
     // Random CAPTCHA
     function generateCaptcha() {
@@ -544,7 +575,8 @@
         });
     }
 
-    function showTicketDetails(ticketKey) {
+    // Render ticket details (without causing recursion)
+    function renderTicketDetails(ticketKey) {
         const ticket = ticketsDB[ticketKey];
         if (!ticket) return false;
         currentTicketKey = ticketKey;
@@ -553,22 +585,21 @@
         const paidStatus = ticket.paid;
         
         let detailsHtml = `
-            <div class="detail-row"><div class="detail-label" data-i18n="ownerLabel">👤 Propriétaire</div><div class="detail-value">${escapeHtml(ticket.owner)}</div></div>
-            <div class="detail-row"><div class="detail-label" data-i18n="plateLabel">🚗 Plaque d'immatriculation</div><div class="detail-value">${escapeHtml(ticket.license_plate)}</div></div>
-            <div class="detail-row"><div class="detail-label" data-i18n="dateLabel">📅 Date</div><div class="detail-value">${ticket.date}</div></div>
-            <div class="detail-row"><div class="detail-label" data-i18n="locationLabel">📍 Lieu</div><div class="detail-value">${escapeHtml(ticket.location)}</div></div>
-            <div class="detail-row"><div class="detail-label" data-i18n="timeLabel">⏱️ Heure</div><div class="detail-value">${ticket.time}</div></div>
-            <div class="detail-row"><div class="detail-label" data-i18n="amountLabel">💰 Montant</div><div class="detail-value amount-highlight">$${ticket.amount.toFixed(2)} + frais $${ticket.fees.toFixed(2)} = <strong>$${ticket.total.toFixed(2)}</strong></div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="ownerLabel">👤 ${translations[currentLang].ownerLabel}</div><div class="detail-value">${escapeHtml(ticket.owner)}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="plateLabel">🚗 ${translations[currentLang].plateLabel}</div><div class="detail-value">${escapeHtml(ticket.license_plate)}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="dateLabel">📅 ${translations[currentLang].dateLabel}</div><div class="detail-value">${ticket.date}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="locationLabel">📍 ${translations[currentLang].locationLabel}</div><div class="detail-value">${escapeHtml(ticket.location)}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="timeLabel">⏱️ ${translations[currentLang].timeLabel}</div><div class="detail-value">${ticket.time}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="amountLabel">💰 ${translations[currentLang].amountLabel}</div><div class="detail-value amount-highlight">$${ticket.amount.toFixed(2)} + frais $${ticket.fees.toFixed(2)} = <strong>$${ticket.total.toFixed(2)}</strong></div></div>
         `;
         
         // Add status message
         if (paidStatus) {
             if (paymentJustCompleted) {
-                detailsHtml += `<div class="success-msg" data-i18n="paymentSuccess">✅ Le paiement a été traité avec succès</div>`;
-                // Reset flag after displaying it once
+                detailsHtml += `<div class="success-msg" data-i18n="paymentSuccess">✅ ${translations[currentLang].paymentSuccess}</div>`;
                 paymentJustCompleted = false;
             } else {
-                detailsHtml += `<div class="success-msg" data-i18n="alreadyPaid">✅ Ce constat a déjà été payé. Confirmation: ${ticket.confirmationNumber || 'N/A'}</div>`;
+                detailsHtml += `<div class="success-msg" data-i18n="alreadyPaid">✅ ${translations[currentLang].alreadyPaid} Confirmation: ${ticket.confirmationNumber || 'N/A'}</div>`;
             }
         }
         
@@ -583,14 +614,13 @@
             paymentFormDiv.style.display = 'none';
             receiptArea.style.display = 'block';
             receiptArea.innerHTML = `
-                <button id="downloadReceiptBtn" class="download-btn" data-i18n="downloadReceipt">📄 Télécharger le reçu</button>
+                <button id="downloadReceiptBtn" class="download-btn" data-i18n="downloadReceipt">📄 ${translations[currentLang].downloadReceipt}</button>
             `;
             const downloadBtn = document.getElementById('downloadReceiptBtn');
             if (downloadBtn) {
-                // Remove any existing listener to avoid duplicates
                 downloadBtn.replaceWith(downloadBtn.cloneNode(true));
                 const newBtn = document.getElementById('downloadReceiptBtn');
-                newBtn.addEventListener('click', () => createReceipt(ticket, ticket.confirmationNumber));
+                newBtn.addEventListener('click', () => createPDFReceipt(ticket, ticket.confirmationNumber));
             }
         } else {
             document.getElementById('paymentSection').classList.remove('hidden');
@@ -614,9 +644,6 @@
             payBtn.style.display = 'block';
             payBtn.innerText = translations[currentLang].payNow;
         }
-        
-        // Apply dynamic labels after DOM changes
-        updatePageTexts();
         return true;
     }
 
@@ -646,46 +673,61 @@
         return 'MTR-' + Math.random().toString(36).substring(2, 10).toUpperCase();
     }
 
-    function createReceipt(ticket, confirmationNumber) {
-        const receiptContent = `
-=========================================
-   REÇU DE PAIEMENT - COUR MUNICIPALE
-=========================================
-Date du paiement: ${new Date().toLocaleString()}
-Numéro de confirmation: ${confirmationNumber}
-
-DÉTAILS DU CONSTAT
-Numéro: ${currentTicketKey}
-Propriétaire: ${ticket.owner}
-Plaque: ${ticket.license_plate}
-Date de l'infraction: ${ticket.date}
-Heure: ${ticket.time}
-Lieu: ${ticket.location}
-Montant total payé: $${ticket.total.toFixed(2)}
-
-Ce paiement est confirmé et le constat est réglé.
-Conservez ce reçu pour vos dossiers.
-=========================================
-        `;
-        const blob = new Blob([receiptContent], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `recu_${confirmationNumber}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+    function createPDFReceipt(ticket, confirmationNumber) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const lang = currentLang;
+        const t = translations[lang];
+        
+        // Title
+        doc.setFontSize(18);
+        doc.text(t.receiptTitle, 105, 20, { align: 'center' });
+        doc.setFontSize(10);
+        doc.text(t.receiptSubtitle, 105, 28, { align: 'center' });
+        
+        // Payment info
+        doc.setFontSize(11);
+        doc.text(`${t.paymentDate}: ${new Date().toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}`, 20, 45);
+        doc.text(`${t.confirmationLabel}: ${confirmationNumber}`, 20, 52);
+        
+        // Ticket details
+        doc.setFontSize(12);
+        doc.text(t.ticketDetailsTitle, 20, 65);
+        doc.setFontSize(10);
+        doc.text(`${t.ticketNumberLabel}: ${currentTicketKey}`, 20, 73);
+        doc.text(`${t.ownerLabel}: ${ticket.owner}`, 20, 80);
+        doc.text(`${t.plateLabel}: ${ticket.license_plate}`, 20, 87);
+        doc.text(`${t.dateLabel}: ${ticket.date}`, 20, 94);
+        doc.text(`${t.timeLabel}: ${ticket.time}`, 20, 101);
+        doc.text(`${t.locationLabel}: ${ticket.location}`, 20, 108);
+        doc.text(`${t.amountLabel}: $${ticket.total.toFixed(2)}`, 20, 115);
+        
+        // Footer
+        doc.setFontSize(9);
+        doc.text(t.receiptFooter, 105, 270, { align: 'center' });
+        
+        doc.save(`recu_${confirmationNumber}.pdf`);
     }
 
-    // Search
-    document.getElementById('searchBtn').addEventListener('click', () => {
+    // Search with loading animation
+    document.getElementById('searchBtn').addEventListener('click', async () => {
+        const searchBtn = document.getElementById('searchBtn');
+        const loadingDiv = document.getElementById('searchLoading');
+        // Show loading
+        searchBtn.disabled = true;
+        loadingDiv.classList.remove('hidden');
+        
+        // Simulate minimal delay to show animation (but search is instant, we'll keep visible briefly)
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
         const captchaInput = document.getElementById('captchaInput').value.trim();
         const expectedCaptcha = currentCaptcha;
         if (captchaInput !== expectedCaptcha) {
             alert("Code de sécurité incorrect. Veuillez saisir le code affiché.");
             currentCaptcha = generateCaptcha();
             document.getElementById('captchaInput').value = '';
+            searchBtn.disabled = false;
+            loadingDiv.classList.add('hidden');
             return;
         }
         const ticketNum = document.getElementById('ticketNumber').value.trim();
@@ -693,13 +735,16 @@ Conservez ce reçu pour vos dossiers.
         let foundKey = null;
         if (ticketNum && ticketsDB[ticketNum]) foundKey = ticketNum;
         else if (fileNum && ticketsDB[fileNum]) foundKey = fileNum;
+        
         if (foundKey) {
-            showTicketDetails(foundKey);
+            renderTicketDetails(foundKey);
         } else {
             alert("Aucun constat trouvé avec ces informations. Vérifiez le numéro (exemples valides: 123456789 ou 987654321).");
             document.getElementById('ticketSection').classList.add('hidden');
             document.getElementById('paymentSection').classList.add('hidden');
         }
+        searchBtn.disabled = false;
+        loadingDiv.classList.add('hidden');
     });
 
     // Payment
@@ -730,8 +775,7 @@ Conservez ce reçu pour vos dossiers.
             ticket.paid = true;
             ticket.confirmationNumber = confirmationNumber;
             paymentJustCompleted = true;
-            // Update display to show receipt
-            showTicketDetails(currentTicketKey);
+            renderTicketDetails(currentTicketKey);
         } catch (err) {
             document.getElementById('paymentMessage').innerHTML = `<div class="error-msg">Erreur: ${err.message}. Utilisez une carte de test (4242 4242 4242 4242).</div>`;
             payBtn.disabled = false;
@@ -739,7 +783,7 @@ Conservez ce reçu pour vos dossiers.
         }
     });
 
-    // Language data
+    // Language translations
     const translations = {
         fr: {
             title: "⚖️ Constat d'infraction",
@@ -755,6 +799,7 @@ Conservez ce reçu pour vos dossiers.
             caseNumberLabel: "Numéro de dossier (9 chiffres)",
             caseHint: "Saisissez le numéro à neuf chiffres",
             searchButton: "Rechercher",
+            searching: "Recherche en cours...",
             searchNote: "* Recherche par l’un ou l’autre des numéros + code sécurité",
             techSupportTitle: "🛠️ Soutien technique",
             faq1: "📘 Ce qu'il faut savoir sur le paiement d'un constat d'infraction",
@@ -776,7 +821,7 @@ Conservez ce reçu pour vos dossiers.
             expiryLabel: "Date d'expiration (MM/AA)",
             cvvLabel: "CVV",
             payNow: "Payer maintenant",
-            downloadReceipt: "📄 Télécharger le reçu",
+            downloadReceipt: "📄 Télécharger le reçu (PDF)",
             ownerLabel: "👤 Propriétaire",
             plateLabel: "🚗 Plaque d'immatriculation",
             dateLabel: "📅 Date",
@@ -784,7 +829,14 @@ Conservez ce reçu pour vos dossiers.
             timeLabel: "⏱️ Heure",
             amountLabel: "💰 Montant",
             alreadyPaid: "✅ Ce constat a déjà été payé.",
-            paymentSuccess: "✅ Le paiement a été traité avec succès"
+            paymentSuccess: "✅ Le paiement a été traité avec succès",
+            // Receipt PDF translations
+            receiptTitle: "REÇU DE PAIEMENT",
+            receiptSubtitle: "Cour municipale de Montréal",
+            paymentDate: "Date du paiement",
+            confirmationLabel: "Numéro de confirmation",
+            ticketDetailsTitle: "DÉTAILS DU CONSTAT",
+            receiptFooter: "Ce reçu atteste du paiement de l'infraction. Conservez-le pour vos dossiers."
         },
         en: {
             title: "⚖️ Offence Notice",
@@ -800,6 +852,7 @@ Conservez ce reçu pour vos dossiers.
             caseNumberLabel: "File number (9 digits)",
             caseHint: "Enter the nine-digit file number",
             searchButton: "Search",
+            searching: "Searching...",
             searchNote: "* Search by either number + security code",
             techSupportTitle: "🛠️ Technical support",
             faq1: "📘 What you need to know about paying an offence notice",
@@ -821,7 +874,7 @@ Conservez ce reçu pour vos dossiers.
             expiryLabel: "Expiry date (MM/YY)",
             cvvLabel: "CVV",
             payNow: "Pay now",
-            downloadReceipt: "📄 Download receipt",
+            downloadReceipt: "📄 Download receipt (PDF)",
             ownerLabel: "👤 Owner",
             plateLabel: "🚗 License plate",
             dateLabel: "📅 Date",
@@ -829,14 +882,18 @@ Conservez ce reçu pour vos dossiers.
             timeLabel: "⏱️ Time",
             amountLabel: "💰 Amount",
             alreadyPaid: "✅ This notice has already been paid.",
-            paymentSuccess: "✅ The payment has been successfully processed"
+            paymentSuccess: "✅ The payment has been successfully processed",
+            // Receipt PDF translations
+            receiptTitle: "PAYMENT RECEIPT",
+            receiptSubtitle: "Municipal Court of Montreal",
+            paymentDate: "Payment date",
+            confirmationLabel: "Confirmation number",
+            ticketDetailsTitle: "OFFENCE DETAILS",
+            receiptFooter: "This receipt confirms payment of the offence. Please keep for your records."
         }
     };
 
-    let currentLang = 'fr';
-
-    function updatePageTexts() {
-        // Update all elements with data-i18n attribute
+    function updateUILabels() {
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
             if (translations[currentLang][key]) {
@@ -847,36 +904,34 @@ Conservez ce reçu pour vos dossiers.
                 }
             }
         });
-        // Update captcha placeholder
         document.getElementById('captchaInput').placeholder = translations[currentLang].captchaPlaceholder;
-        // Update payment button text if visible
+        // Update payment button if visible
         const payBtn = document.getElementById('payButton');
         if (payBtn && payBtn.style.display !== 'none') {
             payBtn.innerText = translations[currentLang].payNow;
         }
-        // Update download button text if present
+        // Update download button if present
         const downloadBtn = document.getElementById('downloadReceiptBtn');
         if (downloadBtn) {
             downloadBtn.innerText = translations[currentLang].downloadReceipt;
         }
-        // If ticket details are visible, re-render them to update labels
+        // Re-render ticket details to update labels in the ticket section
         if (currentTicketKey && document.getElementById('ticketSection').classList.contains('hidden') === false) {
-            // Store the current state of paymentJustCompleted to avoid resetting it
             const tempFlag = paymentJustCompleted;
-            showTicketDetails(currentTicketKey);
+            renderTicketDetails(currentTicketKey);
             paymentJustCompleted = tempFlag;
         }
     }
 
     document.getElementById('langSwitcher').addEventListener('click', () => {
         currentLang = currentLang === 'fr' ? 'en' : 'fr';
-        updatePageTexts();
+        updateUILabels();
         const langBtn = document.getElementById('langSwitcher');
         langBtn.innerHTML = currentLang === 'fr' ? '<span>English</span><span class="chevron">▼</span>' : '<span>Français</span><span class="chevron">▼</span>';
     });
 
-    // Initial page text load
-    updatePageTexts();
+    // Initial render
+    updateUILabels();
 </script>
 </body>
 </html>

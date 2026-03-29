@@ -1,9 +1,13 @@
+Here is the enhanced HTML document with a local ticket database, search functionality, ticket details display, and a Stripe payment integration using test credit card fields.
+```html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Constat d'infraction – Paiement en ligne | Ville de Montréal</title>
+    <!-- Stripe JS -->
+    <script src="https://js.stripe.com/v3/"></script>
     <style>
         * {
             margin: 0;
@@ -69,11 +73,6 @@
             font-weight: 600;
         }
 
-        .lang-selector .chevron {
-            font-size: 0.7rem;
-            margin-left: 4px;
-        }
-
         .steps-section {
             background: #f9fafc;
             padding: 1.2rem 2rem;
@@ -130,10 +129,6 @@
             font-weight: 700;
         }
 
-        .step-text {
-            color: #2c3e4e;
-        }
-
         .return-link {
             margin-left: auto;
             font-size: 0.85rem;
@@ -145,11 +140,6 @@
             font-weight: 500;
             transition: background 0.2s;
             pointer-events: none;
-        }
-
-        .return-link:hover {
-            background: #e2e8f0;
-            text-decoration: underline;
         }
 
         .two-columns {
@@ -178,12 +168,6 @@
             border-left: 5px solid #0077b6;
         }
 
-        .info-message p {
-            margin-bottom: 0.75rem;
-            font-weight: 500;
-            color: #0a2b3e;
-        }
-
         .model-link {
             display: inline-block;
             margin-top: 6px;
@@ -199,16 +183,6 @@
             padding: 1.5rem;
             margin-bottom: 2rem;
             box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-        }
-
-        .security-title {
-            font-weight: 700;
-            color: #1e3a5f;
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .captcha-area {
@@ -233,13 +207,6 @@
             border-radius: 16px;
             border: 1px dashed #6c8fae;
             color: #003C71;
-            background: #ffffff;
-            box-shadow: inset 0 1px 2px #0001;
-        }
-
-        .captcha-input {
-            flex: 2;
-            min-width: 180px;
         }
 
         .captcha-input input {
@@ -248,13 +215,6 @@
             border: 1px solid #cbdde9;
             border-radius: 60px;
             font-size: 0.95rem;
-            transition: 0.2s;
-        }
-
-        .captcha-input input:focus {
-            outline: none;
-            border-color: #003C71;
-            box-shadow: 0 0 0 3px rgba(0,60,113,0.1);
         }
 
         .form-group {
@@ -274,20 +234,6 @@
             border: 1px solid #cbdde9;
             border-radius: 60px;
             font-size: 1rem;
-            background: white;
-            transition: 0.2s;
-        }
-
-        .form-group input:focus {
-            border-color: #003C71;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(0,60,113,0.1);
-        }
-
-        .hint-text {
-            font-size: 0.75rem;
-            color: #5e727f;
-            margin-top: 5px;
         }
 
         .btn-rechercher {
@@ -303,13 +249,6 @@
             width: 100%;
             max-width: 260px;
             margin-top: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .btn-rechercher:hover {
-            background: #e09d30;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
         }
 
         .separator-ou {
@@ -317,8 +256,83 @@
             font-weight: 600;
             color: #8da0ab;
             margin: 0.8rem 0;
-            font-size: 0.85rem;
-            position: relative;
+        }
+
+        /* Ticket details & payment */
+        .ticket-card, .payment-card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9f0f5;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .ticket-card h3, .payment-card h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #003C71;
+            border-left: 4px solid #FFB347;
+            padding-left: 12px;
+            margin-bottom: 1.2rem;
+        }
+        .detail-row {
+            display: flex;
+            margin-bottom: 0.8rem;
+            border-bottom: 1px solid #ecf3f8;
+            padding-bottom: 0.6rem;
+        }
+        .detail-label {
+            font-weight: 700;
+            width: 100px;
+            color: #1f4e79;
+        }
+        .detail-value {
+            flex: 1;
+            color: #1e2a3e;
+        }
+        .amount-highlight {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #c0392b;
+        }
+        .stripe-element {
+            background: white;
+            border: 1px solid #cbdde9;
+            border-radius: 12px;
+            padding: 0.7rem;
+            margin-bottom: 1rem;
+        }
+        .pay-btn {
+            background: #2c6e2c;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 60px;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+        }
+        .pay-btn:hover {
+            background: #1f551f;
+        }
+        .pay-btn:disabled {
+            background: #9bbf9b;
+            cursor: not-allowed;
+        }
+        .error-msg {
+            color: #c0392b;
+            background: #fce4e4;
+            padding: 0.8rem;
+            border-radius: 16px;
+            margin-top: 1rem;
+        }
+        .success-msg {
+            color: #1e6f3f;
+            background: #e0f2e9;
+            padding: 0.8rem;
+            border-radius: 16px;
         }
 
         .support-card, .client-card {
@@ -327,9 +341,7 @@
             padding: 1.5rem;
             margin-bottom: 2rem;
             border: 1px solid #e9f0f5;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
         }
-
         .support-card h3, .client-card h3 {
             font-size: 1.25rem;
             font-weight: 700;
@@ -338,113 +350,45 @@
             padding-left: 12px;
             margin-bottom: 1.2rem;
         }
-
         .support-list {
             list-style: none;
-            padding: 0;
         }
-
         .support-list li {
             margin-bottom: 1rem;
             border-bottom: 1px solid #ecf3f8;
             padding-bottom: 0.7rem;
         }
-
         .support-list li a {
             text-decoration: none;
             color: #1f6392;
             font-weight: 500;
-            transition: 0.2s;
-            display: inline-block;
         }
-
-        .support-list li a:hover {
-            color: #003C71;
-            text-decoration: underline;
-        }
-
-        .client-details {
-            margin-top: 1rem;
-        }
-
         .contact-item {
             margin-bottom: 1.2rem;
         }
-
         .contact-label {
             font-weight: 700;
             color: #1f4e79;
-            display: block;
             font-size: 0.85rem;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
         }
-
-        .contact-value {
-            font-weight: 500;
-            color: #1e2a3e;
-            margin-top: 4px;
-            word-break: break-word;
-        }
-
-        .contact-value a {
-            color: #1f6392;
-            text-decoration: none;
-        }
-
-        .contact-value a:hover {
-            text-decoration: underline;
-        }
-
         .office-hours {
             font-size: 0.85rem;
             background: #f8fafd;
             padding: 0.8rem;
             border-radius: 16px;
             margin-top: 1rem;
-            color: #2c4b6e;
         }
-
         .footer {
             background: #f2f5f8;
             padding: 1.2rem 2rem;
-            border-top: 1px solid #dee5ec;
             text-align: center;
             font-size: 0.8rem;
             color: #5b6f82;
         }
-
-        hr {
-            margin: 1rem 0;
-            border: none;
-            border-top: 1px solid #e0eaf1;
-        }
-
         @media (max-width: 780px) {
-            .two-columns {
-                flex-direction: column;
-            }
-            .steps {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .return-link {
-                margin-left: 0;
-                margin-top: 0.5rem;
-            }
-            .captcha-area {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .code-display {
-                text-align: center;
-            }
-            .btn-rechercher {
-                max-width: 100%;
-            }
-            .header h1 {
-                font-size: 1.4rem;
-            }
+            .two-columns { flex-direction: column; }
+            .detail-label { width: 80px; }
         }
     </style>
 </head>
@@ -461,25 +405,13 @@
     <div class="steps-section">
         <div class="steps-label" data-i18n="payOnlineLabel">Payer en ligne</div>
         <div class="steps">
-            <div class="step active">
-                <span class="step-number">1</span>
-                <span class="step-text" data-i18n="step1">Rechercher</span>
-            </div>
-            <div class="step">
-                <span class="step-number">2</span>
-                <span class="step-text" data-i18n="step2">Sélectionner</span>
-            </div>
-            <div class="step">
-                <span class="step-number">3</span>
-                <span class="step-text" data-i18n="step3">Approuver</span>
-            </div>
-            <div class="step">
-                <span class="step-number">4</span>
-                <span class="step-text" data-i18n="step4">Payer</span>
-            </div>
+            <div class="step active"><span class="step-number">1</span><span class="step-text" data-i18n="step1">Rechercher</span></div>
+            <div class="step"><span class="step-number">2</span><span class="step-text" data-i18n="step2">Sélectionner</span></div>
+            <div class="step"><span class="step-number">3</span><span class="step-text" data-i18n="step3">Approuver</span></div>
+            <div class="step"><span class="step-number">4</span><span class="step-text" data-i18n="step4">Payer</span></div>
             <a href="#" class="return-link" data-i18n="returnLink">↺ Retour à l'étape Rechercher</a>
         </div>
-        <div class="steps-label" style="margin-top: 10px; font-size: 0.75rem; text-transform: none; font-weight: normal;" data-i18n="anytimeMessage">
+        <div class="steps-label" style="margin-top: 10px; font-size: 0.75rem; text-transform: none;" data-i18n="anytimeMessage">
             En tout temps, vous pouvez retourner à l'étape Rechercher.
         </div>
     </div>
@@ -493,34 +425,41 @@
             </div>
 
             <div class="security-box">
-                <div class="security-title" data-i18n="securityTitle">
-                    🔒 Par mesure de sécurité
-                </div>
-                <p style="margin-bottom: 0.5rem; font-weight: 500;" data-i18n="reproduceCode">Veuillez reproduire le code suivant :</p>
-
+                <div class="security-title" data-i18n="securityTitle">🔒 Par mesure de sécurité</div>
+                <p style="margin-bottom: 0.5rem;" data-i18n="reproduceCode">Veuillez reproduire le code suivant :</p>
                 <div class="captcha-area">
                     <div class="code-display">7 2 9 4</div>
                     <div class="captcha-input">
-                        <input type="text" placeholder="Saisissez le code affiché" autocomplete="off" data-i18n-placeholder="captchaPlaceholder">
+                        <input type="text" id="captchaInput" placeholder="Saisissez le code affiché" autocomplete="off">
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label data-i18n="ticketNumberLabel">Numéro du constat d'infraction (9 chiffres)</label>
-                    <input type="text" maxlength="9" placeholder="ex: 123456789" pattern="\d*" inputmode="numeric">
+                    <input type="text" id="ticketNumber" maxlength="9" placeholder="ex: 123456789">
                     <div class="hint-text" data-i18n="ticketHint">Sans espace, 9 chiffres</div>
                 </div>
-
                 <div class="separator-ou" data-i18n="orSeparator">—— ou ——</div>
-
                 <div class="form-group">
                     <label data-i18n="caseNumberLabel">Numéro de dossier (9 chiffres)</label>
-                    <input type="text" maxlength="9" placeholder="ex: 987654321" pattern="\d*" inputmode="numeric">
+                    <input type="text" id="fileNumber" maxlength="9" placeholder="ex: 987654321">
                     <div class="hint-text" data-i18n="caseHint">Saisissez le numéro à neuf chiffres</div>
                 </div>
-
-                <button class="btn-rechercher" data-i18n="searchButton" onclick="alert('🔍 Demo: search simulation.')">Rechercher</button>
+                <button class="btn-rechercher" id="searchBtn" data-i18n="searchButton">Rechercher</button>
                 <div class="hint-text" style="margin-top: 12px;" data-i18n="searchNote">* Recherche par l’un ou l’autre des numéros + code sécurité</div>
+            </div>
+
+            <!-- Ticket details area (hidden initially) -->
+            <div id="ticketDetailsContainer" style="display: none;">
+                <div class="ticket-card">
+                    <h3 data-i18n="ticketDetailsTitle">📋 Détails du constat</h3>
+                    <div id="ticketInfo"></div>
+                </div>
+                <div class="payment-card" id="paymentSection" style="display: none;">
+                    <h3 data-i18n="paymentTitle">💳 Paiement par carte</h3>
+                    <div id="stripeElements"></div>
+                    <button id="payButton" class="pay-btn" data-i18n="payNow">Payer maintenant</button>
+                    <div id="paymentMessage"></div>
+                </div>
             </div>
         </div>
 
@@ -534,7 +473,6 @@
                     <li><a href="#" data-i18n="faq4">❓ Que faire en cas de problème technique?</a></li>
                 </ul>
             </div>
-
             <div class="client-card">
                 <h3 data-i18n="customerServiceTitle">📞 Service à la clientèle</h3>
                 <p style="font-size: 0.9rem; margin-bottom: 1rem;" data-i18n="serviceDesc">
@@ -549,7 +487,6 @@
                         <span class="contact-label" data-i18n="inPersonLabel">🏢 En personne</span>
                         <div class="contact-value" data-i18n="inPersonValue">À l'un de nos <a href="#">comptoirs de service</a> (sur rendez-vous)</div>
                     </div>
-                    <!-- email section removed as requested -->
                 </div>
                 <div class="office-hours" data-i18n="officeHours">
                     🕒 Heures d'ouverture : Lundi au vendredi, 8h30 à 16h30 (sauf jours fériés)
@@ -557,7 +494,6 @@
             </div>
         </div>
     </div>
-
     <div class="footer">
         <p data-i18n="copyright">© Tous droits réservés, Ville de Montréal</p>
         <p style="margin-top: 6px; font-size: 0.7rem;" data-i18n="secureFooter">Paiement sécurisé · Cour municipale de Montréal</p>
@@ -565,15 +501,181 @@
 </div>
 
 <script>
-    // Language data
+    // ---------- LOCAL TICKET DATABASE ----------
+    const ticketsDB = {
+        "123456789": {
+            type: "ticket",
+            date: "2025-03-15",
+            location: "Boulevard Robert-Bourassa (photo radar)",
+            time: "14:32",
+            amount: 360.00,
+            fees: 28.40,
+            total: 388.40,
+            paid: false
+        },
+        "987654321": {
+            type: "file",
+            date: "2025-02-20",
+            location: "Autoroute 40 Est (photo radar)",
+            time: "08:15",
+            amount: 360.00,
+            fees: 28.40,
+            total: 388.40,
+            paid: false
+        }
+    };
+
+    // additional test: you can also map file number to same data for demo
+    // but we keep it simple: both ticket number and file number must match keys
+    // we also allow file number "111222333" as a second example? we'll keep two examples.
+
+    let currentTicketKey = null;
+    let stripe = null;
+    let elements = null;
+    let cardElement = null;
+    let paymentSectionVisible = false;
+
+    // Initialize Stripe (test publishable key)
+    const stripePublicKey = "pk_test_6pRNASCoBOKtIshFeQd4XMUh"; // Stripe test key
+    stripe = Stripe(stripePublicKey);
+    elements = stripe.elements();
+    const style = {
+        base: {
+            fontSize: '16px',
+            fontFamily: 'Segoe UI, Roboto, sans-serif',
+            color: '#1e2a3e',
+            '::placeholder': { color: '#9aaebf' }
+        }
+    };
+    cardElement = elements.create('card', { style: style, hidePostalCode: true });
+    
+    function mountStripeFields() {
+        const container = document.getElementById('stripeElements');
+        if (container && !container.hasChildNodes()) {
+            cardElement.mount('#stripeElements');
+        }
+    }
+
+    function showTicketDetails(ticketKey) {
+        const ticket = ticketsDB[ticketKey];
+        if (!ticket) return false;
+        currentTicketKey = ticketKey;
+        const container = document.getElementById('ticketDetailsContainer');
+        const infoDiv = document.getElementById('ticketInfo');
+        const paidStatus = ticket.paid ? true : false;
+        
+        let detailsHtml = `
+            <div class="detail-row"><div class="detail-label" data-i18n="dateLabel">📅 Date</div><div class="detail-value">${ticket.date}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="locationLabel">📍 Lieu</div><div class="detail-value">${ticket.location}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="timeLabel">⏱️ Heure</div><div class="detail-value">${ticket.time}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="amountLabel">💰 Montant</div><div class="detail-value amount-highlight">$${ticket.amount.toFixed(2)} + frais $${ticket.fees.toFixed(2)} = <strong>$${ticket.total.toFixed(2)}</strong></div></div>
+        `;
+        if (paidStatus) {
+            detailsHtml += `<div class="success-msg" data-i18n="alreadyPaid">✅ Ce constat a déjà été payé.</div>`;
+        }
+        infoDiv.innerHTML = detailsHtml;
+        container.style.display = "block";
+        
+        const paymentDiv = document.getElementById('paymentSection');
+        if (paidStatus) {
+            paymentDiv.style.display = "none";
+        } else {
+            paymentDiv.style.display = "block";
+            // mount Stripe fields only once
+            if (!paymentSectionVisible) {
+                mountStripeFields();
+                paymentSectionVisible = true;
+            }
+        }
+        // re-apply translations for dynamic labels after language change? We'll call translateDynamic later.
+        return true;
+    }
+
+    function clearTicketDisplay() {
+        document.getElementById('ticketDetailsContainer').style.display = "none";
+        document.getElementById('paymentSection').style.display = "none";
+        currentTicketKey = null;
+        paymentSectionVisible = false;
+        // optionally clean stripe container
+        const stripeContainer = document.getElementById('stripeElements');
+        if (stripeContainer) stripeContainer.innerHTML = '';
+        paymentSectionVisible = false;
+    }
+
+    // Search logic
+    document.getElementById('searchBtn').addEventListener('click', function() {
+        const captchaValue = document.getElementById('captchaInput').value.trim();
+        const expectedCaptcha = "7294";
+        if (captchaValue !== expectedCaptcha) {
+            alert("Code de sécurité incorrect. Veuillez saisir le code affiché : 7294");
+            return;
+        }
+        const ticketNum = document.getElementById('ticketNumber').value.trim();
+        const fileNum = document.getElementById('fileNumber').value.trim();
+        let foundKey = null;
+        if (ticketNum && ticketsDB[ticketNum]) foundKey = ticketNum;
+        else if (fileNum && ticketsDB[fileNum]) foundKey = fileNum;
+        
+        if (foundKey) {
+            if (ticketsDB[foundKey].paid) {
+                showTicketDetails(foundKey);
+                document.getElementById('paymentSection').style.display = "none";
+            } else {
+                showTicketDetails(foundKey);
+            }
+        } else {
+            alert("Aucun constat trouvé avec ces informations. Vérifiez le numéro (exemples valides: 123456789 ou 987654321).");
+            clearTicketDisplay();
+        }
+    });
+
+    // PAYMENT with Stripe createPaymentMethod
+    const payBtn = document.getElementById('payButton');
+    payBtn.addEventListener('click', async function() {
+        if (!currentTicketKey) {
+            alert("Aucun ticket sélectionné.");
+            return;
+        }
+        const ticket = ticketsDB[currentTicketKey];
+        if (ticket.paid) {
+            document.getElementById('paymentMessage').innerHTML = '<div class="error-msg">Ce constat a déjà été réglé.</div>';
+            return;
+        }
+        payBtn.disabled = true;
+        payBtn.textContent = "Traitement...";
+        document.getElementById('paymentMessage').innerHTML = '';
+        
+        try {
+            const { paymentMethod, error } = await stripe.createPaymentMethod({
+                type: 'card',
+                card: cardElement,
+            });
+            if (error) {
+                throw new Error(error.message);
+            }
+            // Simulate a successful payment (in real scenario you'd send paymentMethod.id to your server to create a PaymentIntent)
+            // For demo, we consider the payment successful if card details are valid (test cards accepted)
+            // Using Stripe test card 4242 4242 4242 4242 will succeed.
+            // We'll mark the ticket as paid.
+            ticketsDB[currentTicketKey].paid = true;
+            document.getElementById('paymentMessage').innerHTML = '<div class="success-msg">✅ Paiement accepté ! Merci. Votre constat est maintenant réglé.</div>';
+            payBtn.disabled = true;
+            payBtn.textContent = "Payé";
+            // Update ticket details to show paid status
+            showTicketDetails(currentTicketKey);
+        } catch (err) {
+            document.getElementById('paymentMessage').innerHTML = `<div class="error-msg">Erreur: ${err.message}. Utilisez une carte de test (4242 4242 4242 4242).</div>`;
+            payBtn.disabled = false;
+            payBtn.textContent = "Payer maintenant";
+        }
+    });
+
+    // Language translations (including dynamic elements)
     const translations = {
         fr: {
             title: "⚖️ Constat d'infraction",
             payOnlineLabel: "Payer en ligne",
-            step1: "Rechercher",
-            step2: "Sélectionner",
-            step3: "Approuver",
-            step4: "Payer",
+            step1: "Rechercher", step2: "Sélectionner", step3: "Approuver", step4: "Payer",
             returnLink: "↺ Retour à l'étape Rechercher",
             anytimeMessage: "En tout temps, vous pouvez retourner à l'étape Rechercher.",
             chosenOnline: "✔ Vous avez choisi de payer en ligne votre constat d'infraction.",
@@ -601,15 +703,20 @@
             inPersonValue: "À l'un de nos <a href=\"#\">comptoirs de service</a> (sur rendez-vous)",
             officeHours: "🕒 Heures d'ouverture : Lundi au vendredi, 8h30 à 16h30 (sauf jours fériés)",
             copyright: "© Tous droits réservés, Ville de Montréal",
-            secureFooter: "Paiement sécurisé · Cour municipale de Montréal"
+            secureFooter: "Paiement sécurisé · Cour municipale de Montréal",
+            ticketDetailsTitle: "📋 Détails du constat",
+            paymentTitle: "💳 Paiement par carte",
+            payNow: "Payer maintenant",
+            dateLabel: "📅 Date",
+            locationLabel: "📍 Lieu",
+            timeLabel: "⏱️ Heure",
+            amountLabel: "💰 Montant",
+            alreadyPaid: "✅ Ce constat a déjà été payé."
         },
         en: {
             title: "⚖️ Offence Notice",
             payOnlineLabel: "Pay online",
-            step1: "Search",
-            step2: "Select",
-            step3: "Approve",
-            step4: "Pay",
+            step1: "Search", step2: "Select", step3: "Approve", step4: "Pay",
             returnLink: "↺ Return to Search step",
             anytimeMessage: "At any time, you can return to the Search step.",
             chosenOnline: "✔ You have chosen to pay your offence notice online.",
@@ -637,51 +744,45 @@
             inPersonValue: "At one of our <a href=\"#\">service counters</a> (by appointment)",
             officeHours: "🕒 Opening hours: Monday to Friday, 8:30 AM to 4:30 PM (except holidays)",
             copyright: "© All rights reserved, City of Montreal",
-            secureFooter: "Secure payment · Municipal Court of Montreal"
+            secureFooter: "Secure payment · Municipal Court of Montreal",
+            ticketDetailsTitle: "📋 Offence details",
+            paymentTitle: "💳 Card payment",
+            payNow: "Pay now",
+            dateLabel: "📅 Date",
+            locationLabel: "📍 Location",
+            timeLabel: "⏱️ Time",
+            amountLabel: "💰 Amount",
+            alreadyPaid: "✅ This notice has already been paid."
         }
     };
 
     let currentLang = 'fr';
-
     function updateLanguage(lang) {
-        const elements = document.querySelectorAll('[data-i18n]');
-        elements.forEach(el => {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
             if (translations[lang][key] !== undefined) {
-                if (el.tagName === 'INPUT' && el.hasAttribute('data-i18n-placeholder')) {
+                if (el.tagName === 'INPUT' && el.getAttribute('data-i18n-placeholder')) {
                     el.placeholder = translations[lang][key];
                 } else {
                     el.innerHTML = translations[lang][key];
                 }
             }
         });
-        // Special handling for placeholders that are not data-i18n but have explicit translation
-        const captchaInput = document.querySelector('.captcha-input input');
-        if (captchaInput && translations[lang].captchaPlaceholder) {
-            captchaInput.placeholder = translations[lang].captchaPlaceholder;
+        document.getElementById('captchaInput').placeholder = translations[lang].captchaPlaceholder;
+        // Also update dynamic ticket info labels if visible
+        if (document.getElementById('ticketDetailsContainer').style.display === 'block' && currentTicketKey) {
+            showTicketDetails(currentTicketKey);
         }
-        // Phone number is static but we ensure it's updated if needed (already replaced permanently)
-        // but we keep consistent with French/English version (same number)
-        const phoneSpan = document.getElementById('phoneNumber');
-        if (phoneSpan) phoneSpan.innerText = '+1 514-272-5369';
-        
-        // Update lang selector text
         const langBtn = document.getElementById('langSwitcher');
-        if (langBtn) {
-            langBtn.innerHTML = lang === 'fr' ? '<span>English</span><span class="chevron">▼</span>' : '<span>Français</span><span class="chevron">▼</span>';
-        }
+        langBtn.innerHTML = lang === 'fr' ? '<span>English</span><span class="chevron">▼</span>' : '<span>Français</span><span class="chevron">▼</span>';
         currentLang = lang;
     }
-
-    // Toggle language
-    const switcher = document.getElementById('langSwitcher');
-    switcher.addEventListener('click', () => {
+    document.getElementById('langSwitcher').addEventListener('click', () => {
         const newLang = currentLang === 'fr' ? 'en' : 'fr';
         updateLanguage(newLang);
     });
-
-    // Initialize French
     updateLanguage('fr');
 </script>
 </body>
-    </html>
+</html>
+```

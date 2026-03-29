@@ -199,10 +199,6 @@
             min-width: 180px;
         }
 
-        .captcha-input input {
-            margin: 0;
-        }
-
         .btn-primary {
             background: #FFB347;
             border: none;
@@ -236,7 +232,7 @@
             box-shadow: 0 0 0 3px rgba(0,60,113,0.1);
         }
 
-        .pay-btn {
+        .pay-btn, .download-btn {
             background: #2c6e2c;
             color: white;
             border: none;
@@ -247,13 +243,14 @@
             cursor: pointer;
             width: 100%;
             transition: 0.2s;
+            margin-top: 0.5rem;
         }
 
-        .pay-btn:hover {
+        .pay-btn:hover, .download-btn:hover {
             background: #1f551f;
         }
 
-        .pay-btn:disabled {
+        .pay-btn:disabled, .download-btn:disabled {
             background: #9bbf9b;
             cursor: not-allowed;
         }
@@ -272,19 +269,6 @@
             padding: 0.8rem;
             border-radius: 16px;
             margin-top: 1rem;
-        }
-
-        .download-btn {
-            background: #2c6e2c;
-            color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 60px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 0.5rem;
         }
 
         .support-card, .client-card {
@@ -380,6 +364,10 @@
             margin: 0.8rem 0;
             font-size: 0.85rem;
         }
+
+        #receiptArea {
+            margin-top: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -437,27 +425,29 @@
             <div id="paymentSection" class="hidden">
                 <div class="payment-card">
                     <h3 data-i18n="paymentTitle">💳 Paiement par carte</h3>
-                    <div class="form-group">
-                        <label data-i18n="cardholderNameLabel">Nom du titulaire de la carte</label>
-                        <input type="text" id="cardholderName" placeholder="Jean Tremblay" autocomplete="cc-name">
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="cardNumberLabel">Numéro de carte</label>
-                        <div id="cardNumberElement" class="stripe-element"></div>
-                    </div>
-                    <div style="display: flex; gap: 1rem;">
-                        <div class="form-group" style="flex: 1;">
-                            <label data-i18n="expiryLabel">Date d'expiration (MM/AA)</label>
-                            <div id="cardExpiryElement" class="stripe-element"></div>
+                    <div id="paymentForm">
+                        <div class="form-group">
+                            <label data-i18n="cardholderNameLabel">Nom du titulaire de la carte</label>
+                            <input type="text" id="cardholderName" placeholder="Jean Tremblay" autocomplete="cc-name">
                         </div>
-                        <div class="form-group" style="flex: 1;">
-                            <label data-i18n="cvvLabel">CVV</label>
-                            <div id="cardCvcElement" class="stripe-element"></div>
+                        <div class="form-group">
+                            <label data-i18n="cardNumberLabel">Numéro de carte</label>
+                            <div id="cardNumberElement" class="stripe-element"></div>
                         </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <div class="form-group" style="flex: 1;">
+                                <label data-i18n="expiryLabel">Date d'expiration (MM/AA)</label>
+                                <div id="cardExpiryElement" class="stripe-element"></div>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label data-i18n="cvvLabel">CVV</label>
+                                <div id="cardCvcElement" class="stripe-element"></div>
+                            </div>
+                        </div>
+                        <button id="payButton" class="pay-btn" data-i18n="payNow">Payer maintenant</button>
                     </div>
-                    <button id="payButton" class="pay-btn" data-i18n="payNow">Payer maintenant</button>
+                    <div id="receiptArea" style="display: none;"></div>
                     <div id="paymentMessage"></div>
-                    <div id="receiptButtonContainer" style="display: none; margin-top: 1rem;"></div>
                 </div>
             </div>
         </div>
@@ -569,31 +559,48 @@
             <div class="detail-row"><div class="detail-label" data-i18n="timeLabel">⏱️ Heure</div><div class="detail-value">${ticket.time}</div></div>
             <div class="detail-row"><div class="detail-label" data-i18n="amountLabel">💰 Montant</div><div class="detail-value amount-highlight">$${ticket.amount.toFixed(2)} + frais $${ticket.fees.toFixed(2)} = <strong>$${ticket.total.toFixed(2)}</strong></div></div>
         `;
+        ticketInfo.innerHTML = detailsHtml;
+        document.getElementById('ticketSection').classList.remove('hidden');
+        
+        // Handle payment section based on paid status
         if (paidStatus) {
-            detailsHtml += `<div class="success-msg" data-i18n="alreadyPaid">✅ Ce constat a déjà été payé. Confirmation: ${ticket.confirmationNumber || 'N/A'}</div>`;
-            document.getElementById('paymentSection').classList.add('hidden');
-        } else {
+            // Ticket already paid: hide payment form, show receipt if available
             document.getElementById('paymentSection').classList.remove('hidden');
+            const paymentFormDiv = document.getElementById('paymentForm');
+            const receiptArea = document.getElementById('receiptArea');
+            paymentFormDiv.style.display = 'none';
+            receiptArea.style.display = 'block';
+            receiptArea.innerHTML = `
+                <div class="success-msg" data-i18n="alreadyPaid">✅ Ce constat a déjà été payé. Confirmation: ${ticket.confirmationNumber || 'N/A'}</div>
+                <button id="downloadReceiptBtn" class="download-btn" data-i18n="downloadReceipt">📄 Télécharger le reçu</button>
+            `;
+            const downloadBtn = document.getElementById('downloadReceiptBtn');
+            if (downloadBtn) {
+                downloadBtn.addEventListener('click', () => createReceipt(ticket, ticket.confirmationNumber));
+            }
+        } else {
+            // Ticket not paid: show payment form
+            document.getElementById('paymentSection').classList.remove('hidden');
+            const paymentFormDiv = document.getElementById('paymentForm');
+            const receiptArea = document.getElementById('receiptArea');
+            paymentFormDiv.style.display = 'block';
+            receiptArea.style.display = 'none';
+            receiptArea.innerHTML = '';
+            document.getElementById('paymentMessage').innerHTML = '';
             // mount Stripe if not already
             if (!cardNumberElement) {
                 mountStripeElements();
             } else {
-                // clear previous values
                 cardNumberElement.clear();
                 cardExpiryElement.clear();
                 cardCvcElement.clear();
                 document.getElementById('cardholderName').value = '';
             }
-            document.getElementById('receiptButtonContainer').style.display = 'none';
-            document.getElementById('receiptButtonContainer').innerHTML = '';
-            document.getElementById('paymentMessage').innerHTML = '';
             const payBtn = document.getElementById('payButton');
             payBtn.disabled = false;
             payBtn.style.display = 'block';
             payBtn.innerText = translations[currentLang].payNow;
         }
-        ticketInfo.innerHTML = detailsHtml;
-        document.getElementById('ticketSection').classList.remove('hidden');
         applyDynamicLabels();
         return true;
     }
@@ -675,7 +682,6 @@ Conservez ce reçu pour vos dossiers.
             showTicketDetails(foundKey);
         } else {
             alert("Aucun constat trouvé avec ces informations. Vérifiez le numéro (exemples valides: 123456789 ou 987654321).");
-            // Optionally reset the display
             document.getElementById('ticketSection').classList.add('hidden');
             document.getElementById('paymentSection').classList.add('hidden');
         }
@@ -708,16 +714,18 @@ Conservez ce reçu pour vos dossiers.
             const confirmationNumber = generateConfirmationNumber();
             ticket.paid = true;
             ticket.confirmationNumber = confirmationNumber;
-            const receiptContainer = document.getElementById('receiptButtonContainer');
-            receiptContainer.style.display = 'block';
-            receiptContainer.innerHTML = `
-                <button id="downloadReceiptBtn" class="download-btn" data-i18n="downloadReceipt">📄 Télécharger le reçu</button>
+            // Update display: hide payment form, show receipt
+            const paymentFormDiv = document.getElementById('paymentForm');
+            const receiptArea = document.getElementById('receiptArea');
+            paymentFormDiv.style.display = 'none';
+            receiptArea.style.display = 'block';
+            receiptArea.innerHTML = `
                 <div class="success-msg">✅ Paiement accepté ! Confirmation: ${confirmationNumber}</div>
+                <button id="downloadReceiptBtn" class="download-btn" data-i18n="downloadReceipt">📄 Télécharger le reçu</button>
             `;
             document.getElementById('downloadReceiptBtn').addEventListener('click', () => createReceipt(ticket, confirmationNumber));
             document.getElementById('paymentMessage').innerHTML = '';
-            payBtn.style.display = 'none';
-            // Update ticket display to show paid status
+            // Update ticket details to show paid status
             showTicketDetails(currentTicketKey);
             applyDynamicLabels();
         } catch (err) {

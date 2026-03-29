@@ -67,10 +67,6 @@
             background: rgba(255,255,255,0.25);
         }
 
-        .lang-selector span {
-            font-weight: 600;
-        }
-
         .steps-section {
             background: #f9fafc;
             padding: 1.2rem 2rem;
@@ -101,6 +97,13 @@
             font-size: 1rem;
             font-weight: 500;
             color: #2c3e4e;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .step.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .step-number {
@@ -127,6 +130,16 @@
             font-weight: 700;
         }
 
+        .step.completed .step-number {
+            background: #2c6e2c;
+            border-color: #2c6e2c;
+            color: white;
+        }
+
+        .step.completed .step-text {
+            color: #2c6e2c;
+        }
+
         .return-link {
             margin-left: auto;
             font-size: 0.85rem;
@@ -137,7 +150,11 @@
             text-decoration: none;
             font-weight: 500;
             transition: background 0.2s;
-            pointer-events: none;
+            cursor: pointer;
+        }
+
+        .return-link:hover {
+            background: #e2e8f0;
         }
 
         .two-columns {
@@ -174,13 +191,73 @@
             font-weight: 500;
         }
 
-        .security-box {
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active-step {
+            display: block;
+        }
+
+        .security-box, .ticket-card, .payment-card {
             background: #ffffff;
-            border: 1px solid #e2edf2;
             border-radius: 24px;
             padding: 1.5rem;
             margin-bottom: 2rem;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            border: 1px solid #e9f0f5;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .ticket-card h3, .payment-card h3, .security-box h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #003C71;
+            border-left: 4px solid #FFB347;
+            padding-left: 12px;
+            margin-bottom: 1.2rem;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 0.8rem;
+            border-bottom: 1px solid #ecf3f8;
+            padding-bottom: 0.6rem;
+        }
+
+        .detail-label {
+            font-weight: 700;
+            width: 130px;
+            color: #1f4e79;
+        }
+
+        .detail-value {
+            flex: 1;
+            color: #1e2a3e;
+        }
+
+        .amount-highlight {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #c0392b;
+        }
+
+        .form-group {
+            margin-bottom: 1.4rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #1e4663;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #cbdde9;
+            border-radius: 60px;
+            font-size: 1rem;
         }
 
         .captcha-area {
@@ -207,34 +284,7 @@
             color: #003C71;
         }
 
-        .captcha-input input {
-            width: 100%;
-            padding: 0.7rem 1rem;
-            border: 1px solid #cbdde9;
-            border-radius: 60px;
-            font-size: 0.95rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.4rem;
-        }
-
-        .form-group label {
-            font-weight: 600;
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #1e4663;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            border: 1px solid #cbdde9;
-            border-radius: 60px;
-            font-size: 1rem;
-        }
-
-        .btn-rechercher {
+        .btn-primary, .btn-secondary {
             background: #FFB347;
             border: none;
             padding: 0.9rem 1.8rem;
@@ -249,50 +299,23 @@
             margin-top: 0.5rem;
         }
 
-        .separator-ou {
-            text-align: center;
-            font-weight: 600;
-            color: #8da0ab;
-            margin: 0.8rem 0;
+        .btn-primary {
+            background: #FFB347;
         }
 
-        /* Ticket details & payment */
-        .ticket-card, .payment-card {
-            background: #ffffff;
-            border-radius: 24px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid #e9f0f5;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        .btn-primary:hover {
+            background: #e09d30;
         }
-        .ticket-card h3, .payment-card h3 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #003C71;
-            border-left: 4px solid #FFB347;
-            padding-left: 12px;
-            margin-bottom: 1.2rem;
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #1e4663;
         }
-        .detail-row {
-            display: flex;
-            margin-bottom: 0.8rem;
-            border-bottom: 1px solid #ecf3f8;
-            padding-bottom: 0.6rem;
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
         }
-        .detail-label {
-            font-weight: 700;
-            width: 130px;
-            color: #1f4e79;
-        }
-        .detail-value {
-            flex: 1;
-            color: #1e2a3e;
-        }
-        .amount-highlight {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: #c0392b;
-        }
+
         .stripe-element {
             background: white;
             border: 1px solid #cbdde9;
@@ -301,11 +324,8 @@
             margin-bottom: 1rem;
             transition: 0.2s;
         }
-        .stripe-element:focus-within {
-            border-color: #003C71;
-            box-shadow: 0 0 0 3px rgba(0,60,113,0.1);
-        }
-        .pay-btn, .download-btn {
+
+        .pay-btn {
             background: #2c6e2c;
             color: white;
             border: none;
@@ -316,15 +336,17 @@
             cursor: pointer;
             width: 100%;
             transition: 0.2s;
-            margin-top: 0.5rem;
         }
-        .pay-btn:hover, .download-btn:hover {
+
+        .pay-btn:hover {
             background: #1f551f;
         }
-        .pay-btn:disabled, .download-btn:disabled {
+
+        .pay-btn:disabled {
             background: #9bbf9b;
             cursor: not-allowed;
         }
+
         .error-msg {
             color: #c0392b;
             background: #fce4e4;
@@ -332,6 +354,7 @@
             border-radius: 16px;
             margin-top: 1rem;
         }
+
         .success-msg {
             color: #1e6f3f;
             background: #e0f2e9;
@@ -339,6 +362,20 @@
             border-radius: 16px;
             margin-top: 1rem;
         }
+
+        .download-btn {
+            background: #2c6e2c;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 60px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
         .support-card, .client-card {
             background: #ffffff;
             border-radius: 24px;
@@ -346,6 +383,7 @@
             margin-bottom: 2rem;
             border: 1px solid #e9f0f5;
         }
+
         .support-card h3, .client-card h3 {
             font-size: 1.25rem;
             font-weight: 700;
@@ -354,28 +392,34 @@
             padding-left: 12px;
             margin-bottom: 1.2rem;
         }
+
         .support-list {
             list-style: none;
         }
+
         .support-list li {
             margin-bottom: 1rem;
             border-bottom: 1px solid #ecf3f8;
             padding-bottom: 0.7rem;
         }
+
         .support-list li a {
             text-decoration: none;
             color: #1f6392;
             font-weight: 500;
         }
+
         .contact-item {
             margin-bottom: 1.2rem;
         }
+
         .contact-label {
             font-weight: 700;
             color: #1f4e79;
             font-size: 0.85rem;
             text-transform: uppercase;
         }
+
         .office-hours {
             font-size: 0.85rem;
             background: #f8fafd;
@@ -383,6 +427,7 @@
             border-radius: 16px;
             margin-top: 1rem;
         }
+
         .footer {
             background: #f2f5f8;
             padding: 1.2rem 2rem;
@@ -390,9 +435,15 @@
             font-size: 0.8rem;
             color: #5b6f82;
         }
+
         @media (max-width: 780px) {
-            .two-columns { flex-direction: column; }
-            .detail-label { width: 100px; }
+            .two-columns {
+                flex-direction: column;
+            }
+
+            .detail-label {
+                width: 100px;
+            }
         }
     </style>
 </head>
@@ -408,12 +459,24 @@
 
     <div class="steps-section">
         <div class="steps-label" data-i18n="payOnlineLabel">Payer en ligne</div>
-        <div class="steps">
-            <div class="step active"><span class="step-number">1</span><span class="step-text" data-i18n="step1">Rechercher</span></div>
-            <div class="step"><span class="step-number">2</span><span class="step-text" data-i18n="step2">Sélectionner</span></div>
-            <div class="step"><span class="step-number">3</span><span class="step-text" data-i18n="step3">Approuver</span></div>
-            <div class="step"><span class="step-number">4</span><span class="step-text" data-i18n="step4">Payer</span></div>
-            <a href="#" class="return-link" data-i18n="returnLink">↺ Retour à l'étape Rechercher</a>
+        <div class="steps" id="stepIndicators">
+            <div class="step" data-step="1">
+                <span class="step-number">1</span>
+                <span class="step-text" data-i18n="step1">Rechercher</span>
+            </div>
+            <div class="step" data-step="2">
+                <span class="step-number">2</span>
+                <span class="step-text" data-i18n="step2">Sélectionner</span>
+            </div>
+            <div class="step" data-step="3">
+                <span class="step-number">3</span>
+                <span class="step-text" data-i18n="step3">Approuver</span>
+            </div>
+            <div class="step" data-step="4">
+                <span class="step-number">4</span>
+                <span class="step-text" data-i18n="step4">Payer</span>
+            </div>
+            <div class="return-link" id="resetBtn" data-i18n="returnLink">↺ Retour à l'étape Rechercher</div>
         </div>
         <div class="steps-label" style="margin-top: 10px; font-size: 0.75rem; text-transform: none;" data-i18n="anytimeMessage">
             En tout temps, vous pouvez retourner à l'étape Rechercher.
@@ -428,37 +491,59 @@
                 <a href="#" class="model-link" data-i18n="modelLink">📄 Constat d'infraction en matière de stationnement ou circulation →</a>
             </div>
 
-            <div class="security-box">
-                <div class="security-title" data-i18n="securityTitle">🔒 Par mesure de sécurité</div>
-                <p style="margin-bottom: 0.5rem;" data-i18n="reproduceCode">Veuillez reproduire le code suivant :</p>
-                <div class="captcha-area">
-                    <div class="code-display">7 2 9 4</div>
-                    <div class="captcha-input">
-                        <input type="text" id="captchaInput" placeholder="Saisissez le code affiché" autocomplete="off">
+            <!-- Step 1: Search -->
+            <div id="step1Content" class="step-content active-step">
+                <div class="security-box">
+                    <h3 data-i18n="securityTitle">🔒 Par mesure de sécurité</h3>
+                    <p style="margin-bottom: 0.5rem;" data-i18n="reproduceCode">Veuillez reproduire le code suivant :</p>
+                    <div class="captcha-area">
+                        <div class="code-display" id="captchaCode"></div>
+                        <div class="captcha-input">
+                            <input type="text" id="captchaInput" placeholder="Saisissez le code affiché" autocomplete="off">
+                        </div>
                     </div>
+                    <div class="form-group">
+                        <label data-i18n="ticketNumberLabel">Numéro du constat d'infraction (9 chiffres)</label>
+                        <input type="text" id="ticketNumber" maxlength="9" placeholder="ex: 123456789">
+                        <div class="hint-text" data-i18n="ticketHint">Sans espace, 9 chiffres</div>
+                    </div>
+                    <div class="separator-ou" data-i18n="orSeparator">—— ou ——</div>
+                    <div class="form-group">
+                        <label data-i18n="caseNumberLabel">Numéro de dossier (9 chiffres)</label>
+                        <input type="text" id="fileNumber" maxlength="9" placeholder="ex: 987654321">
+                        <div class="hint-text" data-i18n="caseHint">Saisissez le numéro à neuf chiffres</div>
+                    </div>
+                    <button class="btn-primary" id="searchBtn" data-i18n="searchButton">Rechercher</button>
+                    <div class="hint-text" style="margin-top: 12px;" data-i18n="searchNote">* Recherche par l’un ou l’autre des numéros + code sécurité</div>
                 </div>
-                <div class="form-group">
-                    <label data-i18n="ticketNumberLabel">Numéro du constat d'infraction (9 chiffres)</label>
-                    <input type="text" id="ticketNumber" maxlength="9" placeholder="ex: 123456789">
-                    <div class="hint-text" data-i18n="ticketHint">Sans espace, 9 chiffres</div>
-                </div>
-                <div class="separator-ou" data-i18n="orSeparator">—— ou ——</div>
-                <div class="form-group">
-                    <label data-i18n="caseNumberLabel">Numéro de dossier (9 chiffres)</label>
-                    <input type="text" id="fileNumber" maxlength="9" placeholder="ex: 987654321">
-                    <div class="hint-text" data-i18n="caseHint">Saisissez le numéro à neuf chiffres</div>
-                </div>
-                <button class="btn-rechercher" id="searchBtn" data-i18n="searchButton">Rechercher</button>
-                <div class="hint-text" style="margin-top: 12px;" data-i18n="searchNote">* Recherche par l’un ou l’autre des numéros + code sécurité</div>
             </div>
 
-            <!-- Ticket details area (hidden initially) -->
-            <div id="ticketDetailsContainer" style="display: none;">
+            <!-- Step 2: Select -->
+            <div id="step2Content" class="step-content">
                 <div class="ticket-card">
-                    <h3 data-i18n="ticketDetailsTitle">📋 Détails du constat</h3>
-                    <div id="ticketInfo"></div>
+                    <h3 data-i18n="selectTicketTitle">🔍 Sélection du constat</h3>
+                    <div id="selectTicketInfo"></div>
+                    <button class="btn-primary" id="selectBtn" data-i18n="selectButton">Sélectionner ce constat</button>
                 </div>
-                <div class="payment-card" id="paymentSection" style="display: none;">
+            </div>
+
+            <!-- Step 3: Approve -->
+            <div id="step3Content" class="step-content">
+                <div class="ticket-card">
+                    <h3 data-i18n="approveTitle">✅ Approuver le paiement</h3>
+                    <div id="approveTicketInfo"></div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>
+                            <input type="checkbox" id="confirmCheckbox"> <span data-i18n="confirmCheckbox">Je confirme que les informations sont exactes et j’approuve le paiement.</span>
+                        </label>
+                    </div>
+                    <button class="btn-primary" id="approveBtn" disabled data-i18n="approveButton">Approuver et continuer</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Pay -->
+            <div id="step4Content" class="step-content">
+                <div class="payment-card">
                     <h3 data-i18n="paymentTitle">💳 Paiement par carte</h3>
                     <div class="form-group">
                         <label data-i18n="cardholderNameLabel">Nom du titulaire de la carte</label>
@@ -503,7 +588,7 @@
                 <div class="client-details">
                     <div class="contact-item">
                         <span class="contact-label" data-i18n="phoneLabel">📞 Par téléphone</span>
-                        <div class="contact-value" id="phoneNumber">+1 514-272-5369</div>
+                        <div class="contact-value">+1 514-272-5369</div>
                     </div>
                     <div class="contact-item">
                         <span class="contact-label" data-i18n="inPersonLabel">🏢 En personne</span>
@@ -523,10 +608,9 @@
 </div>
 
 <script>
-    // ---------- LOCAL TICKET DATABASE (with owner name and license plate) ----------
+    // ---------- LOCAL TICKET DATABASE ----------
     const ticketsDB = {
         "123456789": {
-            type: "ticket",
             owner: "Jean Tremblay",
             license_plate: "X42 ABC",
             date: "2025-03-15",
@@ -539,7 +623,6 @@
             confirmationNumber: null
         },
         "987654321": {
-            type: "file",
             owner: "Marie-Claude Gagnon",
             license_plate: "M99 XYZ",
             date: "2025-02-20",
@@ -554,80 +637,76 @@
     };
 
     let currentTicketKey = null;
+    let currentStep = 1;
     let stripe = null;
     let elements = null;
     let cardNumberElement = null;
     let cardExpiryElement = null;
     let cardCvcElement = null;
-    let paymentSectionVisible = false;
 
-    // Initialize Stripe (test publishable key)
-    const stripePublicKey = "pk_test_6pRNASCoBOKtIshFeQd4XMUh";
-    stripe = Stripe(stripePublicKey);
-    elements = stripe.elements();
+    // Random CAPTCHA
+    function generateCaptcha() {
+        const code = Math.floor(1000 + Math.random() * 9000).toString();
+        document.getElementById('captchaCode').innerText = code.split('').join(' ');
+        return code;
+    }
+    let currentCaptcha = generateCaptcha();
 
-    const style = {
-        base: {
-            fontSize: '16px',
-            fontFamily: 'Segoe UI, Roboto, sans-serif',
-            color: '#1e2a3e',
-            '::placeholder': { color: '#9aaebf' },
-            padding: '10px 0px'
-        },
-        invalid: {
-            color: '#c0392b'
+    // Step management
+    function setStep(step) {
+        currentStep = step;
+        // Update step indicators
+        document.querySelectorAll('.step').forEach((el, idx) => {
+            const stepNum = parseInt(el.getAttribute('data-step'));
+            el.classList.remove('active', 'completed');
+            if (stepNum < step) el.classList.add('completed');
+            else if (stepNum === step) el.classList.add('active');
+        });
+        // Show correct content
+        for (let i = 1; i <= 4; i++) {
+            const content = document.getElementById(`step${i}Content`);
+            if (content) content.classList.toggle('active-step', i === step);
         }
-    };
-
-    function mountStripeElements() {
-        if (!cardNumberElement) {
-            cardNumberElement = elements.create('cardNumber', { style: style, showIcon: false });
-            cardNumberElement.mount('#cardNumberElement');
-            cardExpiryElement = elements.create('cardExpiry', { style: style });
-            cardExpiryElement.mount('#cardExpiryElement');
-            cardCvcElement = elements.create('cardCvc', { style: style });
-            cardCvcElement.mount('#cardCvcElement');
+        // If moving to step 4 and Stripe not mounted, mount
+        if (step === 4 && !cardNumberElement) {
+            mountStripeElements();
         }
     }
 
-    function showTicketDetails(ticketKey) {
-        const ticket = ticketsDB[ticketKey];
-        if (!ticket) return false;
-        currentTicketKey = ticketKey;
-        const container = document.getElementById('ticketDetailsContainer');
-        const infoDiv = document.getElementById('ticketInfo');
-        const paidStatus = ticket.paid ? true : false;
-        
-        let detailsHtml = `
+    function resetToStep1() {
+        setStep(1);
+        currentTicketKey = null;
+        currentCaptcha = generateCaptcha();
+        document.getElementById('captchaInput').value = '';
+        document.getElementById('ticketNumber').value = '';
+        document.getElementById('fileNumber').value = '';
+        document.getElementById('confirmCheckbox').checked = false;
+        document.getElementById('approveBtn').disabled = true;
+        document.getElementById('paymentMessage').innerHTML = '';
+        document.getElementById('receiptButtonContainer').style.display = 'none';
+        document.getElementById('receiptButtonContainer').innerHTML = '';
+        // Reset payment form
+        if (cardNumberElement) {
+            cardNumberElement.clear();
+            cardExpiryElement.clear();
+            cardCvcElement.clear();
+        }
+        document.getElementById('cardholderName').value = '';
+    }
+
+    // Display ticket details in step 2 and 3
+    function displayTicketForStep(ticket, step) {
+        const container = step === 2 ? document.getElementById('selectTicketInfo') : document.getElementById('approveTicketInfo');
+        const details = `
             <div class="detail-row"><div class="detail-label" data-i18n="ownerLabel">👤 Propriétaire</div><div class="detail-value">${escapeHtml(ticket.owner)}</div></div>
-            <div class="detail-row"><div class="detail-label" data-i18n="plateLabel">🚗 Plaque d'immatriculation</div><div class="detail-value">${escapeHtml(ticket.license_plate)}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="plateLabel">🚗 Plaque</div><div class="detail-value">${escapeHtml(ticket.license_plate)}</div></div>
             <div class="detail-row"><div class="detail-label" data-i18n="dateLabel">📅 Date</div><div class="detail-value">${ticket.date}</div></div>
             <div class="detail-row"><div class="detail-label" data-i18n="locationLabel">📍 Lieu</div><div class="detail-value">${escapeHtml(ticket.location)}</div></div>
             <div class="detail-row"><div class="detail-label" data-i18n="timeLabel">⏱️ Heure</div><div class="detail-value">${ticket.time}</div></div>
             <div class="detail-row"><div class="detail-label" data-i18n="amountLabel">💰 Montant</div><div class="detail-value amount-highlight">$${ticket.amount.toFixed(2)} + frais $${ticket.fees.toFixed(2)} = <strong>$${ticket.total.toFixed(2)}</strong></div></div>
         `;
-        if (paidStatus) {
-            detailsHtml += `<div class="success-msg" data-i18n="alreadyPaid">✅ Ce constat a déjà été payé. Confirmation: ${ticket.confirmationNumber || 'N/A'}</div>`;
-        }
-        infoDiv.innerHTML = detailsHtml;
-        container.style.display = "block";
-        
-        const paymentDiv = document.getElementById('paymentSection');
-        if (paidStatus) {
-            paymentDiv.style.display = "none";
-        } else {
-            paymentDiv.style.display = "block";
-            if (!paymentSectionVisible) {
-                mountStripeElements();
-                paymentSectionVisible = true;
-            }
-            // Reset receipt button container
-            document.getElementById('receiptButtonContainer').style.display = 'none';
-            document.getElementById('receiptButtonContainer').innerHTML = '';
-            document.getElementById('paymentMessage').innerHTML = '';
-        }
+        container.innerHTML = details;
         applyDynamicLabels();
-        return true;
     }
 
     function escapeHtml(str) {
@@ -640,67 +719,55 @@
         });
     }
 
-    function clearTicketDisplay() {
-        document.getElementById('ticketDetailsContainer').style.display = "none";
-        document.getElementById('paymentSection').style.display = "none";
-        currentTicketKey = null;
-        paymentSectionVisible = false;
-        // Stripe elements will be recreated next time
+    // Stripe
+    function mountStripeElements() {
+        const stripePublicKey = "pk_test_6pRNASCoBOKtIshFeQd4XMUh";
+        stripe = Stripe(stripePublicKey);
+        elements = stripe.elements();
+        const style = {
+            base: {
+                fontSize: '16px',
+                fontFamily: 'Segoe UI, Roboto, sans-serif',
+                color: '#1e2a3e',
+                '::placeholder': { color: '#9aaebf' },
+                padding: '10px 0px'
+            },
+            invalid: { color: '#c0392b' }
+        };
+        cardNumberElement = elements.create('cardNumber', { style: style, showIcon: false });
+        cardNumberElement.mount('#cardNumberElement');
+        cardExpiryElement = elements.create('cardExpiry', { style: style });
+        cardExpiryElement.mount('#cardExpiryElement');
+        cardCvcElement = elements.create('cardCvc', { style: style });
+        cardCvcElement.mount('#cardCvcElement');
     }
-
-    // Search logic
-    document.getElementById('searchBtn').addEventListener('click', function() {
-        const captchaValue = document.getElementById('captchaInput').value.trim();
-        const expectedCaptcha = "7294";
-        if (captchaValue !== expectedCaptcha) {
-            alert("Code de sécurité incorrect. Veuillez saisir le code affiché : 7294");
-            return;
-        }
-        const ticketNum = document.getElementById('ticketNumber').value.trim();
-        const fileNum = document.getElementById('fileNumber').value.trim();
-        let foundKey = null;
-        if (ticketNum && ticketsDB[ticketNum]) foundKey = ticketNum;
-        else if (fileNum && ticketsDB[fileNum]) foundKey = fileNum;
-        
-        if (foundKey) {
-            if (ticketsDB[foundKey].paid) {
-                showTicketDetails(foundKey);
-                document.getElementById('paymentSection').style.display = "none";
-            } else {
-                showTicketDetails(foundKey);
-            }
-        } else {
-            alert("Aucun constat trouvé avec ces informations. Vérifiez le numéro (exemples valides: 123456789 ou 987654321).");
-            clearTicketDisplay();
-        }
-    });
 
     // Generate random confirmation number
     function generateConfirmationNumber() {
         return 'MTR-' + Math.random().toString(36).substring(2, 10).toUpperCase();
     }
 
-    // Create receipt download
+    // Create receipt download (only receipt)
     function createReceipt(ticket, confirmationNumber) {
         const receiptContent = `
-            =========================================
-               VILLE DE MONTRÉAL - REÇU DE PAIEMENT
-            =========================================
-            Date du paiement: ${new Date().toLocaleString()}
-            Numéro de confirmation: ${confirmationNumber}
-            
-            DÉTAILS DU CONSTAT
-            Numéro: ${currentTicketKey}
-            Propriétaire: ${ticket.owner}
-            Plaque: ${ticket.license_plate}
-            Date de l'infraction: ${ticket.date}
-            Heure: ${ticket.time}
-            Lieu: ${ticket.location}
-            Montant total payé: $${ticket.total.toFixed(2)}
-            
-            Ce paiement est confirmé et le constat est réglé.
-            Conservez ce reçu pour vos dossiers.
-            =========================================
+=========================================
+   VILLE DE MONTRÉAL - REÇU DE PAIEMENT
+=========================================
+Date du paiement: ${new Date().toLocaleString()}
+Numéro de confirmation: ${confirmationNumber}
+
+DÉTAILS DU CONSTAT
+Numéro: ${currentTicketKey}
+Propriétaire: ${ticket.owner}
+Plaque: ${ticket.license_plate}
+Date de l'infraction: ${ticket.date}
+Heure: ${ticket.time}
+Lieu: ${ticket.location}
+Montant total payé: $${ticket.total.toFixed(2)}
+
+Ce paiement est confirmé et le constat est réglé.
+Conservez ce reçu pour vos dossiers.
+=========================================
         `;
         const blob = new Blob([receiptContent], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
@@ -713,66 +780,86 @@
         URL.revokeObjectURL(url);
     }
 
-    // PAYMENT with Stripe createPaymentMethod
-    const payBtn = document.getElementById('payButton');
-    payBtn.addEventListener('click', async function() {
-        if (!currentTicketKey) {
-            alert("Aucun ticket sélectionné.");
+    // Event handlers
+    document.getElementById('searchBtn').addEventListener('click', () => {
+        const captchaInput = document.getElementById('captchaInput').value.trim();
+        const expectedCaptcha = currentCaptcha;
+        if (captchaInput !== expectedCaptcha) {
+            alert("Code de sécurité incorrect. Veuillez saisir le code affiché.");
+            currentCaptcha = generateCaptcha();
             return;
         }
+        const ticketNum = document.getElementById('ticketNumber').value.trim();
+        const fileNum = document.getElementById('fileNumber').value.trim();
+        let foundKey = null;
+        if (ticketNum && ticketsDB[ticketNum]) foundKey = ticketNum;
+        else if (fileNum && ticketsDB[fileNum]) foundKey = fileNum;
+        if (foundKey) {
+            if (ticketsDB[foundKey].paid) {
+                alert("Ce constat a déjà été payé.");
+                return;
+            }
+            currentTicketKey = foundKey;
+            const ticket = ticketsDB[currentTicketKey];
+            displayTicketForStep(ticket, 2);
+            setStep(2);
+        } else {
+            alert("Aucun constat trouvé. Essayez 123456789 ou 987654321.");
+        }
+    });
+
+    document.getElementById('selectBtn').addEventListener('click', () => {
+        if (currentTicketKey) {
+            const ticket = ticketsDB[currentTicketKey];
+            displayTicketForStep(ticket, 3);
+            setStep(3);
+        }
+    });
+
+    document.getElementById('confirmCheckbox').addEventListener('change', (e) => {
+        document.getElementById('approveBtn').disabled = !e.target.checked;
+    });
+
+    document.getElementById('approveBtn').addEventListener('click', () => {
+        setStep(4);
+    });
+
+    document.getElementById('payButton').addEventListener('click', async () => {
+        if (!currentTicketKey) return;
         const ticket = ticketsDB[currentTicketKey];
         if (ticket.paid) {
             document.getElementById('paymentMessage').innerHTML = '<div class="error-msg">Ce constat a déjà été réglé.</div>';
             return;
         }
-        
         const cardholderName = document.getElementById('cardholderName').value.trim();
         if (!cardholderName) {
             document.getElementById('paymentMessage').innerHTML = '<div class="error-msg">Veuillez saisir le nom du titulaire de la carte.</div>';
             return;
         }
-        
+        const payBtn = document.getElementById('payButton');
         payBtn.disabled = true;
         payBtn.textContent = "Traitement...";
         document.getElementById('paymentMessage').innerHTML = '';
-        
         try {
             const { paymentMethod, error } = await stripe.createPaymentMethod({
                 type: 'card',
                 card: cardNumberElement,
-                billing_details: {
-                    name: cardholderName,
-                },
+                billing_details: { name: cardholderName }
             });
-            if (error) {
-                throw new Error(error.message);
-            }
-            
-            // Simulate successful payment
+            if (error) throw new Error(error.message);
             const confirmationNumber = generateConfirmationNumber();
             ticket.paid = true;
             ticket.confirmationNumber = confirmationNumber;
-            
-            // Update ticket display to show paid status
-            showTicketDetails(currentTicketKey);
-            
-            // Hide payment form and show receipt download button
-            const paymentDiv = document.getElementById('paymentSection');
-            paymentDiv.style.display = 'none';
             const receiptContainer = document.getElementById('receiptButtonContainer');
             receiptContainer.style.display = 'block';
             receiptContainer.innerHTML = `
                 <button id="downloadReceiptBtn" class="download-btn" data-i18n="downloadReceipt">📄 Télécharger le reçu</button>
-                <div class="success-msg" style="margin-top: 0.5rem;">✅ Paiement accepté ! Votre constat est réglé. Confirmation : ${confirmationNumber}</div>
+                <div class="success-msg">✅ Paiement accepté ! Confirmation: ${confirmationNumber}</div>
             `;
-            document.getElementById('downloadReceiptBtn').addEventListener('click', () => {
-                createReceipt(ticket, confirmationNumber);
-            });
-            // Reapply translations for the new button
-            const downloadBtn = document.getElementById('downloadReceiptBtn');
-            if (downloadBtn && translations[currentLang].downloadReceipt) {
-                downloadBtn.innerText = translations[currentLang].downloadReceipt;
-            }
+            document.getElementById('downloadReceiptBtn').addEventListener('click', () => createReceipt(ticket, confirmationNumber));
+            document.getElementById('paymentMessage').innerHTML = '';
+            payBtn.style.display = 'none';
+            applyDynamicLabels();
         } catch (err) {
             document.getElementById('paymentMessage').innerHTML = `<div class="error-msg">Erreur: ${err.message}. Utilisez une carte de test (4242 4242 4242 4242).</div>`;
             payBtn.disabled = false;
@@ -780,173 +867,81 @@
         }
     });
 
-    // Language translations
+    document.getElementById('resetBtn').addEventListener('click', () => resetToStep1());
+
+    // Language support
     const translations = {
         fr: {
-            title: "⚖️ Constat d'infraction",
-            payOnlineLabel: "Payer en ligne",
-            step1: "Rechercher", step2: "Sélectionner", step3: "Approuver", step4: "Payer",
-            returnLink: "↺ Retour à l'étape Rechercher",
-            anytimeMessage: "En tout temps, vous pouvez retourner à l'étape Rechercher.",
+            title: "⚖️ Constat d'infraction", payOnlineLabel: "Payer en ligne", step1: "Rechercher", step2: "Sélectionner", step3: "Approuver", step4: "Payer",
+            returnLink: "↺ Retour à l'étape Rechercher", anytimeMessage: "En tout temps, vous pouvez retourner à l'étape Rechercher.",
             chosenOnline: "✔ Vous avez choisi de payer en ligne votre constat d'infraction.",
             helpModels: "Pour vous aider à trouver les informations importantes sur votre constat, consultez les modèles suivants :",
             modelLink: "📄 Constat d'infraction en matière de stationnement ou circulation →",
-            securityTitle: "🔒 Par mesure de sécurité",
-            reproduceCode: "Veuillez reproduire le code suivant :",
-            captchaPlaceholder: "Saisissez le code affiché",
-            ticketNumberLabel: "Numéro du constat d'infraction (9 chiffres)",
-            ticketHint: "Sans espace, 9 chiffres",
-            orSeparator: "—— ou ——",
-            caseNumberLabel: "Numéro de dossier (9 chiffres)",
-            caseHint: "Saisissez le numéro à neuf chiffres",
-            searchButton: "Rechercher",
-            searchNote: "* Recherche par l’un ou l’autre des numéros + code sécurité",
-            techSupportTitle: "🛠️ Soutien technique",
-            faq1: "📘 Ce qu'il faut savoir sur le paiement d'un constat d'infraction",
-            faq2: "📑 Modèles de constats d'infraction",
-            faq3: "🔐 Sécurité et confidentialité",
-            faq4: "❓ Que faire en cas de problème technique?",
-            customerServiceTitle: "📞 Service à la clientèle",
-            serviceDesc: "Pour toute information concernant les activités de la Cour municipale ou pour de l'information sur votre dossier, vous pouvez nous joindre aux heures régulières de bureau, du lundi au vendredi (à l'exception des jours fériés).",
-            phoneLabel: "📞 Par téléphone",
-            inPersonLabel: "🏢 En personne",
-            inPersonValue: "À l'un de nos <a href=\"#\">comptoirs de service</a> (sur rendez-vous)",
+            securityTitle: "🔒 Par mesure de sécurité", reproduceCode: "Veuillez reproduire le code suivant :",
+            captchaPlaceholder: "Saisissez le code affiché", ticketNumberLabel: "Numéro du constat d'infraction (9 chiffres)",
+            ticketHint: "Sans espace, 9 chiffres", orSeparator: "—— ou ——", caseNumberLabel: "Numéro de dossier (9 chiffres)",
+            caseHint: "Saisissez le numéro à neuf chiffres", searchButton: "Rechercher", searchNote: "* Recherche par l’un ou l’autre des numéros + code sécurité",
+            techSupportTitle: "🛠️ Soutien technique", faq1: "📘 Ce qu'il faut savoir sur le paiement d'un constat d'infraction",
+            faq2: "📑 Modèles de constats d'infraction", faq3: "🔐 Sécurité et confidentialité", faq4: "❓ Que faire en cas de problème technique?",
+            customerServiceTitle: "📞 Service à la clientèle", serviceDesc: "Pour toute information concernant les activités de la Cour municipale ou pour de l'information sur votre dossier, vous pouvez nous joindre aux heures régulières de bureau, du lundi au vendredi (à l'exception des jours fériés).",
+            phoneLabel: "📞 Par téléphone", inPersonLabel: "🏢 En personne", inPersonValue: "À l'un de nos <a href=\"#\">comptoirs de service</a> (sur rendez-vous)",
             officeHours: "🕒 Heures d'ouverture : Lundi au vendredi, 8h30 à 16h30 (sauf jours fériés)",
-            copyright: "© Tous droits réservés, Ville de Montréal",
-            secureFooter: "Paiement sécurisé · Cour municipale de Montréal",
-            ticketDetailsTitle: "📋 Détails du constat",
-            paymentTitle: "💳 Paiement par carte",
-            payNow: "Payer maintenant",
-            cardholderNameLabel: "Nom du titulaire de la carte",
-            cardNumberLabel: "Numéro de carte",
-            expiryLabel: "Date d'expiration (MM/AA)",
-            cvvLabel: "CVV",
-            downloadReceipt: "📄 Télécharger le reçu",
-            ownerLabel: "👤 Propriétaire",
-            plateLabel: "🚗 Plaque d'immatriculation",
-            dateLabel: "📅 Date",
-            locationLabel: "📍 Lieu",
-            timeLabel: "⏱️ Heure",
-            amountLabel: "💰 Montant",
-            alreadyPaid: "✅ Ce constat a déjà été payé."
+            copyright: "© Tous droits réservés, Ville de Montréal", secureFooter: "Paiement sécurisé · Cour municipale de Montréal",
+            selectTicketTitle: "🔍 Sélection du constat", selectButton: "Sélectionner ce constat", approveTitle: "✅ Approuver le paiement",
+            confirmCheckbox: "Je confirme que les informations sont exactes et j’approuve le paiement.", approveButton: "Approuver et continuer",
+            paymentTitle: "💳 Paiement par carte", cardholderNameLabel: "Nom du titulaire de la carte", cardNumberLabel: "Numéro de carte",
+            expiryLabel: "Date d'expiration (MM/AA)", cvvLabel: "CVV", payNow: "Payer maintenant", downloadReceipt: "📄 Télécharger le reçu",
+            ownerLabel: "👤 Propriétaire", plateLabel: "🚗 Plaque", dateLabel: "📅 Date", locationLabel: "📍 Lieu", timeLabel: "⏱️ Heure", amountLabel: "💰 Montant"
         },
         en: {
-            title: "⚖️ Offence Notice",
-            payOnlineLabel: "Pay online",
-            step1: "Search", step2: "Select", step3: "Approve", step4: "Pay",
-            returnLink: "↺ Return to Search step",
-            anytimeMessage: "At any time, you can return to the Search step.",
+            title: "⚖️ Offence Notice", payOnlineLabel: "Pay online", step1: "Search", step2: "Select", step3: "Approve", step4: "Pay",
+            returnLink: "↺ Return to Search step", anytimeMessage: "At any time, you can return to the Search step.",
             chosenOnline: "✔ You have chosen to pay your offence notice online.",
             helpModels: "To help you find the important information on your notice, see the following templates:",
             modelLink: "📄 Parking or traffic offence notice →",
-            securityTitle: "🔒 Security measure",
-            reproduceCode: "Please enter the following code:",
-            captchaPlaceholder: "Enter the code shown",
-            ticketNumberLabel: "Offence notice number (9 digits)",
-            ticketHint: "No spaces, 9 digits",
-            orSeparator: "—— or ——",
-            caseNumberLabel: "File number (9 digits)",
-            caseHint: "Enter the nine-digit file number",
-            searchButton: "Search",
-            searchNote: "* Search by either number + security code",
-            techSupportTitle: "🛠️ Technical support",
-            faq1: "📘 What you need to know about paying an offence notice",
-            faq2: "📑 Offence notice templates",
-            faq3: "🔐 Security and privacy",
-            faq4: "❓ What to do if you have a technical issue?",
-            customerServiceTitle: "📞 Customer service",
-            serviceDesc: "For any information regarding the activities of the Municipal Court or information about your file, you can contact us during regular business hours, Monday to Friday (excluding holidays).",
-            phoneLabel: "📞 By phone",
-            inPersonLabel: "🏢 In person",
-            inPersonValue: "At one of our <a href=\"#\">service counters</a> (by appointment)",
+            securityTitle: "🔒 Security measure", reproduceCode: "Please enter the following code:",
+            captchaPlaceholder: "Enter the code shown", ticketNumberLabel: "Offence notice number (9 digits)",
+            ticketHint: "No spaces, 9 digits", orSeparator: "—— or ——", caseNumberLabel: "File number (9 digits)",
+            caseHint: "Enter the nine-digit file number", searchButton: "Search", searchNote: "* Search by either number + security code",
+            techSupportTitle: "🛠️ Technical support", faq1: "📘 What you need to know about paying an offence notice",
+            faq2: "📑 Offence notice templates", faq3: "🔐 Security and privacy", faq4: "❓ What to do if you have a technical issue?",
+            customerServiceTitle: "📞 Customer service", serviceDesc: "For any information regarding the activities of the Municipal Court or information about your file, you can contact us during regular business hours, Monday to Friday (excluding holidays).",
+            phoneLabel: "📞 By phone", inPersonLabel: "🏢 In person", inPersonValue: "At one of our <a href=\"#\">service counters</a> (by appointment)",
             officeHours: "🕒 Opening hours: Monday to Friday, 8:30 AM to 4:30 PM (except holidays)",
-            copyright: "© All rights reserved, City of Montreal",
-            secureFooter: "Secure payment · Municipal Court of Montreal",
-            ticketDetailsTitle: "📋 Offence details",
-            paymentTitle: "💳 Card payment",
-            payNow: "Pay now",
-            cardholderNameLabel: "Cardholder name",
-            cardNumberLabel: "Card number",
-            expiryLabel: "Expiry date (MM/YY)",
-            cvvLabel: "CVV",
-            downloadReceipt: "📄 Download receipt",
-            ownerLabel: "👤 Owner",
-            plateLabel: "🚗 License plate",
-            dateLabel: "📅 Date",
-            locationLabel: "📍 Location",
-            timeLabel: "⏱️ Time",
-            amountLabel: "💰 Amount",
-            alreadyPaid: "✅ This notice has already been paid."
+            copyright: "© All rights reserved, City of Montreal", secureFooter: "Secure payment · Municipal Court of Montreal",
+            selectTicketTitle: "🔍 Select offence", selectButton: "Select this notice", approveTitle: "✅ Approve payment",
+            confirmCheckbox: "I confirm that the information is correct and I approve the payment.", approveButton: "Approve and continue",
+            paymentTitle: "💳 Card payment", cardholderNameLabel: "Cardholder name", cardNumberLabel: "Card number",
+            expiryLabel: "Expiry date (MM/YY)", cvvLabel: "CVV", payNow: "Pay now", downloadReceipt: "📄 Download receipt",
+            ownerLabel: "👤 Owner", plateLabel: "🚗 License plate", dateLabel: "📅 Date", locationLabel: "📍 Location", timeLabel: "⏱️ Time", amountLabel: "💰 Amount"
         }
     };
-
     let currentLang = 'fr';
     function updateLanguage(lang) {
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
-            if (translations[lang][key] !== undefined) {
-                if (el.tagName === 'INPUT' && el.getAttribute('data-i18n-placeholder')) {
-                    el.placeholder = translations[lang][key];
-                } else {
-                    el.innerHTML = translations[lang][key];
-                }
+            if (translations[lang][key]) {
+                if (el.tagName === 'INPUT' && el.getAttribute('data-i18n-placeholder')) el.placeholder = translations[lang][key];
+                else el.innerHTML = translations[lang][key];
             }
         });
         document.getElementById('captchaInput').placeholder = translations[lang].captchaPlaceholder;
-        const cardholderNameLabel = document.querySelector('label[data-i18n="cardholderNameLabel"]');
-        if (cardholderNameLabel) cardholderNameLabel.innerHTML = translations[lang].cardholderNameLabel;
-        const cardNumberLabel = document.querySelector('label[data-i18n="cardNumberLabel"]');
-        if (cardNumberLabel) cardNumberLabel.innerHTML = translations[lang].cardNumberLabel;
-        const expiryLabel = document.querySelector('label[data-i18n="expiryLabel"]');
-        if (expiryLabel) expiryLabel.innerHTML = translations[lang].expiryLabel;
-        const cvvLabel = document.querySelector('label[data-i18n="cvvLabel"]');
-        if (cvvLabel) cvvLabel.innerHTML = translations[lang].cvvLabel;
-        // Update dynamic ticket info if visible
-        if (document.getElementById('ticketDetailsContainer').style.display === 'block' && currentTicketKey) {
-            showTicketDetails(currentTicketKey);
+        if (currentTicketKey) {
+            if (currentStep === 2) displayTicketForStep(ticketsDB[currentTicketKey], 2);
+            if (currentStep === 3) displayTicketForStep(ticketsDB[currentTicketKey], 3);
         }
         const langBtn = document.getElementById('langSwitcher');
         langBtn.innerHTML = lang === 'fr' ? '<span>English</span><span class="chevron">▼</span>' : '<span>Français</span><span class="chevron">▼</span>';
         currentLang = lang;
     }
-    
     function applyDynamicLabels() {
-        if (currentTicketKey && document.getElementById('ticketDetailsContainer').style.display === 'block') {
-            const labels = document.querySelectorAll('#ticketInfo .detail-label');
-            if (labels.length) {
-                const mapping = {
-                    'ownerLabel': translations[currentLang].ownerLabel,
-                    'plateLabel': translations[currentLang].plateLabel,
-                    'dateLabel': translations[currentLang].dateLabel,
-                    'locationLabel': translations[currentLang].locationLabel,
-                    'timeLabel': translations[currentLang].timeLabel,
-                    'amountLabel': translations[currentLang].amountLabel
-                };
-                labels.forEach(label => {
-                    const key = label.getAttribute('data-i18n');
-                    if (key && mapping[key]) {
-                        label.innerHTML = mapping[key];
-                    }
-                });
-                const paidMsg = document.querySelector('#ticketInfo .success-msg');
-                if (paidMsg && paidMsg.getAttribute('data-i18n') === 'alreadyPaid') {
-                    paidMsg.innerHTML = translations[currentLang].alreadyPaid + (ticketsDB[currentTicketKey]?.confirmationNumber ? ` Confirmation: ${ticketsDB[currentTicketKey].confirmationNumber}` : '');
-                }
-            }
-        }
-        const downloadBtn = document.getElementById('downloadReceiptBtn');
-        if (downloadBtn && translations[currentLang].downloadReceipt) {
-            downloadBtn.innerText = translations[currentLang].downloadReceipt;
-        }
-        const payButton = document.getElementById('payButton');
-        if (payButton) payButton.innerText = translations[currentLang].payNow;
+        updateLanguage(currentLang);
     }
-    
     document.getElementById('langSwitcher').addEventListener('click', () => {
-        const newLang = currentLang === 'fr' ? 'en' : 'fr';
-        updateLanguage(newLang);
+        updateLanguage(currentLang === 'fr' ? 'en' : 'fr');
     });
     updateLanguage('fr');
+    setStep(1);
 </script>
 </body>
 </html>

@@ -299,8 +299,13 @@
             border-radius: 12px;
             padding: 0.7rem;
             margin-bottom: 1rem;
+            transition: 0.2s;
         }
-        .pay-btn {
+        .stripe-element:focus-within {
+            border-color: #003C71;
+            box-shadow: 0 0 0 3px rgba(0,60,113,0.1);
+        }
+        .pay-btn, .download-btn {
             background: #2c6e2c;
             color: white;
             border: none;
@@ -311,11 +316,12 @@
             cursor: pointer;
             width: 100%;
             transition: 0.2s;
+            margin-top: 0.5rem;
         }
-        .pay-btn:hover {
+        .pay-btn:hover, .download-btn:hover {
             background: #1f551f;
         }
-        .pay-btn:disabled {
+        .pay-btn:disabled, .download-btn:disabled {
             background: #9bbf9b;
             cursor: not-allowed;
         }
@@ -331,8 +337,8 @@
             background: #e0f2e9;
             padding: 0.8rem;
             border-radius: 16px;
+            margin-top: 1rem;
         }
-
         .support-card, .client-card {
             background: #ffffff;
             border-radius: 24px;
@@ -454,9 +460,27 @@
                 </div>
                 <div class="payment-card" id="paymentSection" style="display: none;">
                     <h3 data-i18n="paymentTitle">💳 Paiement par carte</h3>
-                    <div id="stripeElements"></div>
+                    <div class="form-group">
+                        <label data-i18n="cardholderNameLabel">Nom du titulaire de la carte</label>
+                        <input type="text" id="cardholderName" placeholder="Jean Tremblay" autocomplete="cc-name">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="cardNumberLabel">Numéro de carte</label>
+                        <div id="cardNumberElement" class="stripe-element"></div>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <div class="form-group" style="flex: 1;">
+                            <label data-i18n="expiryLabel">Date d'expiration (MM/AA)</label>
+                            <div id="cardExpiryElement" class="stripe-element"></div>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label data-i18n="cvvLabel">CVV</label>
+                            <div id="cardCvcElement" class="stripe-element"></div>
+                        </div>
+                    </div>
                     <button id="payButton" class="pay-btn" data-i18n="payNow">Payer maintenant</button>
                     <div id="paymentMessage"></div>
+                    <div id="receiptButtonContainer" style="display: none; margin-top: 1rem;"></div>
                 </div>
             </div>
         </div>
@@ -511,7 +535,8 @@
             amount: 360.00,
             fees: 28.40,
             total: 388.40,
-            paid: false
+            paid: false,
+            confirmationNumber: null
         },
         "987654321": {
             type: "file",
@@ -523,34 +548,45 @@
             amount: 360.00,
             fees: 28.40,
             total: 388.40,
-            paid: false
+            paid: false,
+            confirmationNumber: null
         }
     };
 
     let currentTicketKey = null;
     let stripe = null;
     let elements = null;
-    let cardElement = null;
+    let cardNumberElement = null;
+    let cardExpiryElement = null;
+    let cardCvcElement = null;
     let paymentSectionVisible = false;
 
     // Initialize Stripe (test publishable key)
     const stripePublicKey = "pk_test_6pRNASCoBOKtIshFeQd4XMUh";
     stripe = Stripe(stripePublicKey);
     elements = stripe.elements();
+
     const style = {
         base: {
             fontSize: '16px',
             fontFamily: 'Segoe UI, Roboto, sans-serif',
             color: '#1e2a3e',
-            '::placeholder': { color: '#9aaebf' }
+            '::placeholder': { color: '#9aaebf' },
+            padding: '10px 0px'
+        },
+        invalid: {
+            color: '#c0392b'
         }
     };
-    cardElement = elements.create('card', { style: style, hidePostalCode: true });
-    
-    function mountStripeFields() {
-        const container = document.getElementById('stripeElements');
-        if (container && !container.hasChildNodes()) {
-            cardElement.mount('#stripeElements');
+
+    function mountStripeElements() {
+        if (!cardNumberElement) {
+            cardNumberElement = elements.create('cardNumber', { style: style, showIcon: false });
+            cardNumberElement.mount('#cardNumberElement');
+            cardExpiryElement = elements.create('cardExpiry', { style: style });
+            cardExpiryElement.mount('#cardExpiryElement');
+            cardCvcElement = elements.create('cardCvc', { style: style });
+            cardCvcElement.mount('#cardCvcElement');
         }
     }
 
@@ -571,7 +607,7 @@
             <div class="detail-row"><div class="detail-label" data-i18n="amountLabel">💰 Montant</div><div class="detail-value amount-highlight">$${ticket.amount.toFixed(2)} + frais $${ticket.fees.toFixed(2)} = <strong>$${ticket.total.toFixed(2)}</strong></div></div>
         `;
         if (paidStatus) {
-            detailsHtml += `<div class="success-msg" data-i18n="alreadyPaid">✅ Ce constat a déjà été payé.</div>`;
+            detailsHtml += `<div class="success-msg" data-i18n="alreadyPaid">✅ Ce constat a déjà été payé. Confirmation: ${ticket.confirmationNumber || 'N/A'}</div>`;
         }
         infoDiv.innerHTML = detailsHtml;
         container.style.display = "block";
@@ -582,11 +618,14 @@
         } else {
             paymentDiv.style.display = "block";
             if (!paymentSectionVisible) {
-                mountStripeFields();
+                mountStripeElements();
                 paymentSectionVisible = true;
             }
+            // Reset receipt button container
+            document.getElementById('receiptButtonContainer').style.display = 'none';
+            document.getElementById('receiptButtonContainer').innerHTML = '';
+            document.getElementById('paymentMessage').innerHTML = '';
         }
-        // Re-apply translations for dynamic labels (ownerLabel, plateLabel, etc.)
         applyDynamicLabels();
         return true;
     }
@@ -598,8 +637,6 @@
             if (m === '<') return '&lt;';
             if (m === '>') return '&gt;';
             return m;
-        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-            return c;
         });
     }
 
@@ -608,9 +645,7 @@
         document.getElementById('paymentSection').style.display = "none";
         currentTicketKey = null;
         paymentSectionVisible = false;
-        const stripeContainer = document.getElementById('stripeElements');
-        if (stripeContainer) stripeContainer.innerHTML = '';
-        paymentSectionVisible = false;
+        // Stripe elements will be recreated next time
     }
 
     // Search logic
@@ -640,6 +675,44 @@
         }
     });
 
+    // Generate random confirmation number
+    function generateConfirmationNumber() {
+        return 'MTR-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+    }
+
+    // Create receipt download
+    function createReceipt(ticket, confirmationNumber) {
+        const receiptContent = `
+            =========================================
+               VILLE DE MONTRÉAL - REÇU DE PAIEMENT
+            =========================================
+            Date du paiement: ${new Date().toLocaleString()}
+            Numéro de confirmation: ${confirmationNumber}
+            
+            DÉTAILS DU CONSTAT
+            Numéro: ${currentTicketKey}
+            Propriétaire: ${ticket.owner}
+            Plaque: ${ticket.license_plate}
+            Date de l'infraction: ${ticket.date}
+            Heure: ${ticket.time}
+            Lieu: ${ticket.location}
+            Montant total payé: $${ticket.total.toFixed(2)}
+            
+            Ce paiement est confirmé et le constat est réglé.
+            Conservez ce reçu pour vos dossiers.
+            =========================================
+        `;
+        const blob = new Blob([receiptContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `recu_${confirmationNumber}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
     // PAYMENT with Stripe createPaymentMethod
     const payBtn = document.getElementById('payButton');
     payBtn.addEventListener('click', async function() {
@@ -652,6 +725,13 @@
             document.getElementById('paymentMessage').innerHTML = '<div class="error-msg">Ce constat a déjà été réglé.</div>';
             return;
         }
+        
+        const cardholderName = document.getElementById('cardholderName').value.trim();
+        if (!cardholderName) {
+            document.getElementById('paymentMessage').innerHTML = '<div class="error-msg">Veuillez saisir le nom du titulaire de la carte.</div>';
+            return;
+        }
+        
         payBtn.disabled = true;
         payBtn.textContent = "Traitement...";
         document.getElementById('paymentMessage').innerHTML = '';
@@ -659,18 +739,40 @@
         try {
             const { paymentMethod, error } = await stripe.createPaymentMethod({
                 type: 'card',
-                card: cardElement,
+                card: cardNumberElement,
+                billing_details: {
+                    name: cardholderName,
+                },
             });
             if (error) {
                 throw new Error(error.message);
             }
-            // Simulate a successful payment (in real scenario you'd send paymentMethod.id to your server)
-            ticketsDB[currentTicketKey].paid = true;
-            document.getElementById('paymentMessage').innerHTML = '<div class="success-msg">✅ Paiement accepté ! Merci. Votre constat est maintenant réglé.</div>';
-            payBtn.disabled = true;
-            payBtn.textContent = "Payé";
-            // Update ticket details to show paid status
+            
+            // Simulate successful payment
+            const confirmationNumber = generateConfirmationNumber();
+            ticket.paid = true;
+            ticket.confirmationNumber = confirmationNumber;
+            
+            // Update ticket display to show paid status
             showTicketDetails(currentTicketKey);
+            
+            // Hide payment form and show receipt download button
+            const paymentDiv = document.getElementById('paymentSection');
+            paymentDiv.style.display = 'none';
+            const receiptContainer = document.getElementById('receiptButtonContainer');
+            receiptContainer.style.display = 'block';
+            receiptContainer.innerHTML = `
+                <button id="downloadReceiptBtn" class="download-btn" data-i18n="downloadReceipt">📄 Télécharger le reçu</button>
+                <div class="success-msg" style="margin-top: 0.5rem;">✅ Paiement accepté ! Votre constat est réglé. Confirmation : ${confirmationNumber}</div>
+            `;
+            document.getElementById('downloadReceiptBtn').addEventListener('click', () => {
+                createReceipt(ticket, confirmationNumber);
+            });
+            // Reapply translations for the new button
+            const downloadBtn = document.getElementById('downloadReceiptBtn');
+            if (downloadBtn && translations[currentLang].downloadReceipt) {
+                downloadBtn.innerText = translations[currentLang].downloadReceipt;
+            }
         } catch (err) {
             document.getElementById('paymentMessage').innerHTML = `<div class="error-msg">Erreur: ${err.message}. Utilisez une carte de test (4242 4242 4242 4242).</div>`;
             payBtn.disabled = false;
@@ -678,7 +780,7 @@
         }
     });
 
-    // Language translations (including new fields)
+    // Language translations
     const translations = {
         fr: {
             title: "⚖️ Constat d'infraction",
@@ -715,6 +817,11 @@
             ticketDetailsTitle: "📋 Détails du constat",
             paymentTitle: "💳 Paiement par carte",
             payNow: "Payer maintenant",
+            cardholderNameLabel: "Nom du titulaire de la carte",
+            cardNumberLabel: "Numéro de carte",
+            expiryLabel: "Date d'expiration (MM/AA)",
+            cvvLabel: "CVV",
+            downloadReceipt: "📄 Télécharger le reçu",
             ownerLabel: "👤 Propriétaire",
             plateLabel: "🚗 Plaque d'immatriculation",
             dateLabel: "📅 Date",
@@ -758,6 +865,11 @@
             ticketDetailsTitle: "📋 Offence details",
             paymentTitle: "💳 Card payment",
             payNow: "Pay now",
+            cardholderNameLabel: "Cardholder name",
+            cardNumberLabel: "Card number",
+            expiryLabel: "Expiry date (MM/YY)",
+            cvvLabel: "CVV",
+            downloadReceipt: "📄 Download receipt",
             ownerLabel: "👤 Owner",
             plateLabel: "🚗 License plate",
             dateLabel: "📅 Date",
@@ -781,6 +893,14 @@
             }
         });
         document.getElementById('captchaInput').placeholder = translations[lang].captchaPlaceholder;
+        const cardholderNameLabel = document.querySelector('label[data-i18n="cardholderNameLabel"]');
+        if (cardholderNameLabel) cardholderNameLabel.innerHTML = translations[lang].cardholderNameLabel;
+        const cardNumberLabel = document.querySelector('label[data-i18n="cardNumberLabel"]');
+        if (cardNumberLabel) cardNumberLabel.innerHTML = translations[lang].cardNumberLabel;
+        const expiryLabel = document.querySelector('label[data-i18n="expiryLabel"]');
+        if (expiryLabel) expiryLabel.innerHTML = translations[lang].expiryLabel;
+        const cvvLabel = document.querySelector('label[data-i18n="cvvLabel"]');
+        if (cvvLabel) cvvLabel.innerHTML = translations[lang].cvvLabel;
         // Update dynamic ticket info if visible
         if (document.getElementById('ticketDetailsContainer').style.display === 'block' && currentTicketKey) {
             showTicketDetails(currentTicketKey);
@@ -792,7 +912,6 @@
     
     function applyDynamicLabels() {
         if (currentTicketKey && document.getElementById('ticketDetailsContainer').style.display === 'block') {
-            // The details are already populated with static text; we need to update the label texts inside .detail-label
             const labels = document.querySelectorAll('#ticketInfo .detail-label');
             if (labels.length) {
                 const mapping = {
@@ -809,13 +928,18 @@
                         label.innerHTML = mapping[key];
                     }
                 });
-                // also update the "already paid" message if present
                 const paidMsg = document.querySelector('#ticketInfo .success-msg');
                 if (paidMsg && paidMsg.getAttribute('data-i18n') === 'alreadyPaid') {
-                    paidMsg.innerHTML = translations[currentLang].alreadyPaid;
+                    paidMsg.innerHTML = translations[currentLang].alreadyPaid + (ticketsDB[currentTicketKey]?.confirmationNumber ? ` Confirmation: ${ticketsDB[currentTicketKey].confirmationNumber}` : '');
                 }
             }
         }
+        const downloadBtn = document.getElementById('downloadReceiptBtn');
+        if (downloadBtn && translations[currentLang].downloadReceipt) {
+            downloadBtn.innerText = translations[currentLang].downloadReceipt;
+        }
+        const payButton = document.getElementById('payButton');
+        if (payButton) payButton.innerText = translations[currentLang].payNow;
     }
     
     document.getElementById('langSwitcher').addEventListener('click', () => {

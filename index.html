@@ -350,7 +350,7 @@
         }
 
         .hidden {
-            display: none;
+            display: none !important;
         }
 
         .hint-text {
@@ -437,7 +437,7 @@
                     <div class="hint-text" data-i18n="caseHint">Saisissez le numéro à neuf chiffres</div>
                 </div>
                 <button class="btn-primary" id="searchBtn" data-i18n="searchButton">Rechercher</button>
-                <div id="searchLoading" class="search-loading hidden">
+                <div id="searchLoading" class="search-loading hidden" style="display: none !important;">
                     <div class="loader"></div>
                     <span data-i18n="searching">Recherche en cours...</span>
                 </div>
@@ -687,19 +687,20 @@
         const lang = currentLang;
         const t = translations[lang];
         
-        // Use clean text for PDF (remove emojis, ensure proper encoding)
+        // Clean labels (remove emojis for PDF)
+        const clean = (str) => str.replace(/[^\w\sÀ-ÿ-]/g, '').trim();
         const title = t.receiptPDFTitle;
         const subtitle = t.receiptPDFSubtitle;
         const paymentDateLabel = t.paymentDate;
         const confirmationLabel = t.confirmationLabel;
         const ticketDetailsLabel = t.ticketDetailsTitle;
         const ticketNumberLabel = t.ticketNumberLabel;
-        const ownerLabel = t.ownerLabel.replace('👤 ', '');
-        const plateLabel = t.plateLabel.replace('🚗 ', '');
-        const dateLabel = t.dateLabel.replace('📅 ', '');
-        const locationLabel = t.locationLabel.replace('📍 ', '');
-        const timeLabel = t.timeLabel.replace('⏱️ ', '');
-        const amountLabel = t.amountLabel.replace('💰 ', '');
+        const ownerLabel = clean(t.ownerLabel);
+        const plateLabel = clean(t.plateLabel);
+        const dateLabel = clean(t.dateLabel);
+        const locationLabel = clean(t.locationLabel);
+        const timeLabel = clean(t.timeLabel);
+        const amountLabel = clean(t.amountLabel);
         const footer = t.receiptFooter;
         
         const now = new Date();
@@ -712,7 +713,7 @@
             second: '2-digit'
         });
         
-        // Set font to support accented characters (helvetica does basic Latin)
+        // Set font
         doc.setFont('helvetica');
         
         // Title
@@ -745,16 +746,17 @@
         doc.save(`recu_${confirmationNumber}.pdf`);
     }
 
-    // Search with loading animation - ensure loading shows only while searching and hides after result
+    // Search with loading animation - hidden initially, shows only when searching
     document.getElementById('searchBtn').addEventListener('click', async () => {
         const searchBtn = document.getElementById('searchBtn');
         const loadingDiv = document.getElementById('searchLoading');
         
-        // Show loading immediately
+        // Disable button and show loading
         searchBtn.disabled = true;
+        loadingDiv.style.display = 'flex';
         loadingDiv.classList.remove('hidden');
         
-        // Small delay to ensure animation shows (even if result is instant)
+        // Minimal delay to show animation
         await new Promise(resolve => setTimeout(resolve, 100));
         
         const captchaInput = document.getElementById('captchaInput').value.trim();
@@ -763,7 +765,8 @@
             alert("Code de sécurité incorrect. Veuillez saisir le code affiché.");
             currentCaptcha = generateCaptcha();
             document.getElementById('captchaInput').value = '';
-            // Hide loading and enable button
+            // Hide loading and re-enable button
+            loadingDiv.style.display = 'none';
             loadingDiv.classList.add('hidden');
             searchBtn.disabled = false;
             return;
@@ -784,7 +787,8 @@
             document.getElementById('receiptSection').classList.add('hidden');
         }
         
-        // Hide loading and enable button after search completes
+        // Hide loading and re-enable button
+        loadingDiv.style.display = 'none';
         loadingDiv.classList.add('hidden');
         searchBtn.disabled = false;
     });
@@ -974,7 +978,9 @@
 
     // Initial render and ensure loading is hidden
     updateUILabels();
-    document.getElementById('searchLoading').classList.add('hidden');
+    const loadingDiv = document.getElementById('searchLoading');
+    loadingDiv.style.display = 'none';
+    loadingDiv.classList.add('hidden');
 </script>
 </body>
 </html>

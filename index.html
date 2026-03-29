@@ -281,7 +281,7 @@
         }
         .detail-label {
             font-weight: 700;
-            width: 100px;
+            width: 130px;
             color: #1f4e79;
         }
         .detail-value {
@@ -386,7 +386,7 @@
         }
         @media (max-width: 780px) {
             .two-columns { flex-direction: column; }
-            .detail-label { width: 80px; }
+            .detail-label { width: 100px; }
         }
     </style>
 </head>
@@ -499,10 +499,12 @@
 </div>
 
 <script>
-    // ---------- LOCAL TICKET DATABASE ----------
+    // ---------- LOCAL TICKET DATABASE (with owner name and license plate) ----------
     const ticketsDB = {
         "123456789": {
             type: "ticket",
+            owner: "Jean Tremblay",
+            license_plate: "X42 ABC",
             date: "2025-03-15",
             location: "Boulevard Robert-Bourassa (photo radar)",
             time: "14:32",
@@ -513,6 +515,8 @@
         },
         "987654321": {
             type: "file",
+            owner: "Marie-Claude Gagnon",
+            license_plate: "M99 XYZ",
             date: "2025-02-20",
             location: "Autoroute 40 Est (photo radar)",
             time: "08:15",
@@ -523,10 +527,6 @@
         }
     };
 
-    // additional test: you can also map file number to same data for demo
-    // but we keep it simple: both ticket number and file number must match keys
-    // we also allow file number "111222333" as a second example? we'll keep two examples.
-
     let currentTicketKey = null;
     let stripe = null;
     let elements = null;
@@ -534,7 +534,7 @@
     let paymentSectionVisible = false;
 
     // Initialize Stripe (test publishable key)
-    const stripePublicKey = "pk_test_6pRNASCoBOKtIshFeQd4XMUh"; // Stripe test key
+    const stripePublicKey = "pk_test_6pRNASCoBOKtIshFeQd4XMUh";
     stripe = Stripe(stripePublicKey);
     elements = stripe.elements();
     const style = {
@@ -563,8 +563,10 @@
         const paidStatus = ticket.paid ? true : false;
         
         let detailsHtml = `
+            <div class="detail-row"><div class="detail-label" data-i18n="ownerLabel">👤 Propriétaire</div><div class="detail-value">${escapeHtml(ticket.owner)}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="plateLabel">🚗 Plaque d'immatriculation</div><div class="detail-value">${escapeHtml(ticket.license_plate)}</div></div>
             <div class="detail-row"><div class="detail-label" data-i18n="dateLabel">📅 Date</div><div class="detail-value">${ticket.date}</div></div>
-            <div class="detail-row"><div class="detail-label" data-i18n="locationLabel">📍 Lieu</div><div class="detail-value">${ticket.location}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="locationLabel">📍 Lieu</div><div class="detail-value">${escapeHtml(ticket.location)}</div></div>
             <div class="detail-row"><div class="detail-label" data-i18n="timeLabel">⏱️ Heure</div><div class="detail-value">${ticket.time}</div></div>
             <div class="detail-row"><div class="detail-label" data-i18n="amountLabel">💰 Montant</div><div class="detail-value amount-highlight">$${ticket.amount.toFixed(2)} + frais $${ticket.fees.toFixed(2)} = <strong>$${ticket.total.toFixed(2)}</strong></div></div>
         `;
@@ -579,14 +581,26 @@
             paymentDiv.style.display = "none";
         } else {
             paymentDiv.style.display = "block";
-            // mount Stripe fields only once
             if (!paymentSectionVisible) {
                 mountStripeFields();
                 paymentSectionVisible = true;
             }
         }
-        // re-apply translations for dynamic labels after language change? We'll call translateDynamic later.
+        // Re-apply translations for dynamic labels (ownerLabel, plateLabel, etc.)
+        applyDynamicLabels();
         return true;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
     }
 
     function clearTicketDisplay() {
@@ -594,7 +608,6 @@
         document.getElementById('paymentSection').style.display = "none";
         currentTicketKey = null;
         paymentSectionVisible = false;
-        // optionally clean stripe container
         const stripeContainer = document.getElementById('stripeElements');
         if (stripeContainer) stripeContainer.innerHTML = '';
         paymentSectionVisible = false;
@@ -651,10 +664,7 @@
             if (error) {
                 throw new Error(error.message);
             }
-            // Simulate a successful payment (in real scenario you'd send paymentMethod.id to your server to create a PaymentIntent)
-            // For demo, we consider the payment successful if card details are valid (test cards accepted)
-            // Using Stripe test card 4242 4242 4242 4242 will succeed.
-            // We'll mark the ticket as paid.
+            // Simulate a successful payment (in real scenario you'd send paymentMethod.id to your server)
             ticketsDB[currentTicketKey].paid = true;
             document.getElementById('paymentMessage').innerHTML = '<div class="success-msg">✅ Paiement accepté ! Merci. Votre constat est maintenant réglé.</div>';
             payBtn.disabled = true;
@@ -668,7 +678,7 @@
         }
     });
 
-    // Language translations (including dynamic elements)
+    // Language translations (including new fields)
     const translations = {
         fr: {
             title: "⚖️ Constat d'infraction",
@@ -705,6 +715,8 @@
             ticketDetailsTitle: "📋 Détails du constat",
             paymentTitle: "💳 Paiement par carte",
             payNow: "Payer maintenant",
+            ownerLabel: "👤 Propriétaire",
+            plateLabel: "🚗 Plaque d'immatriculation",
             dateLabel: "📅 Date",
             locationLabel: "📍 Lieu",
             timeLabel: "⏱️ Heure",
@@ -746,6 +758,8 @@
             ticketDetailsTitle: "📋 Offence details",
             paymentTitle: "💳 Card payment",
             payNow: "Pay now",
+            ownerLabel: "👤 Owner",
+            plateLabel: "🚗 License plate",
             dateLabel: "📅 Date",
             locationLabel: "📍 Location",
             timeLabel: "⏱️ Time",
@@ -767,7 +781,7 @@
             }
         });
         document.getElementById('captchaInput').placeholder = translations[lang].captchaPlaceholder;
-        // Also update dynamic ticket info labels if visible
+        // Update dynamic ticket info if visible
         if (document.getElementById('ticketDetailsContainer').style.display === 'block' && currentTicketKey) {
             showTicketDetails(currentTicketKey);
         }
@@ -775,6 +789,35 @@
         langBtn.innerHTML = lang === 'fr' ? '<span>English</span><span class="chevron">▼</span>' : '<span>Français</span><span class="chevron">▼</span>';
         currentLang = lang;
     }
+    
+    function applyDynamicLabels() {
+        if (currentTicketKey && document.getElementById('ticketDetailsContainer').style.display === 'block') {
+            // The details are already populated with static text; we need to update the label texts inside .detail-label
+            const labels = document.querySelectorAll('#ticketInfo .detail-label');
+            if (labels.length) {
+                const mapping = {
+                    'ownerLabel': translations[currentLang].ownerLabel,
+                    'plateLabel': translations[currentLang].plateLabel,
+                    'dateLabel': translations[currentLang].dateLabel,
+                    'locationLabel': translations[currentLang].locationLabel,
+                    'timeLabel': translations[currentLang].timeLabel,
+                    'amountLabel': translations[currentLang].amountLabel
+                };
+                labels.forEach(label => {
+                    const key = label.getAttribute('data-i18n');
+                    if (key && mapping[key]) {
+                        label.innerHTML = mapping[key];
+                    }
+                });
+                // also update the "already paid" message if present
+                const paidMsg = document.querySelector('#ticketInfo .success-msg');
+                if (paidMsg && paidMsg.getAttribute('data-i18n') === 'alreadyPaid') {
+                    paidMsg.innerHTML = translations[currentLang].alreadyPaid;
+                }
+            }
+        }
+    }
+    
     document.getElementById('langSwitcher').addEventListener('click', () => {
         const newLang = currentLang === 'fr' ? 'en' : 'fr';
         updateLanguage(newLang);

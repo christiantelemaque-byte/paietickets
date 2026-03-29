@@ -687,46 +687,75 @@
         const lang = currentLang;
         const t = translations[lang];
         
+        // Use clean text for PDF (remove emojis, ensure proper encoding)
+        const title = t.receiptPDFTitle;
+        const subtitle = t.receiptPDFSubtitle;
+        const paymentDateLabel = t.paymentDate;
+        const confirmationLabel = t.confirmationLabel;
+        const ticketDetailsLabel = t.ticketDetailsTitle;
+        const ticketNumberLabel = t.ticketNumberLabel;
+        const ownerLabel = t.ownerLabel.replace('👤 ', '');
+        const plateLabel = t.plateLabel.replace('🚗 ', '');
+        const dateLabel = t.dateLabel.replace('📅 ', '');
+        const locationLabel = t.locationLabel.replace('📍 ', '');
+        const timeLabel = t.timeLabel.replace('⏱️ ', '');
+        const amountLabel = t.amountLabel.replace('💰 ', '');
+        const footer = t.receiptFooter;
+        
+        const now = new Date();
+        const formattedDate = now.toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
+        // Set font to support accented characters (helvetica does basic Latin)
+        doc.setFont('helvetica');
+        
         // Title
         doc.setFontSize(18);
-        doc.text(t.receiptPDFTitle, 105, 20, { align: 'center' });
+        doc.text(title, 105, 20, { align: 'center' });
         doc.setFontSize(10);
-        doc.text(t.receiptPDFSubtitle, 105, 28, { align: 'center' });
+        doc.text(subtitle, 105, 28, { align: 'center' });
         
         // Payment info
         doc.setFontSize(11);
-        doc.text(`${t.paymentDate}: ${new Date().toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}`, 20, 45);
-        doc.text(`${t.confirmationLabel}: ${confirmationNumber}`, 20, 52);
+        doc.text(`${paymentDateLabel}: ${formattedDate}`, 20, 45);
+        doc.text(`${confirmationLabel}: ${confirmationNumber}`, 20, 52);
         
         // Ticket details
         doc.setFontSize(12);
-        doc.text(t.ticketDetailsTitle, 20, 65);
+        doc.text(ticketDetailsLabel, 20, 65);
         doc.setFontSize(10);
-        doc.text(`${t.ticketNumberLabel}: ${currentTicketKey}`, 20, 73);
-        doc.text(`${t.ownerLabel}: ${ticket.owner}`, 20, 80);
-        doc.text(`${t.plateLabel}: ${ticket.license_plate}`, 20, 87);
-        doc.text(`${t.dateLabel}: ${ticket.date}`, 20, 94);
-        doc.text(`${t.timeLabel}: ${ticket.time}`, 20, 101);
-        doc.text(`${t.locationLabel}: ${ticket.location}`, 20, 108);
-        doc.text(`${t.amountLabel}: $${ticket.total.toFixed(2)}`, 20, 115);
+        doc.text(`${ticketNumberLabel}: ${currentTicketKey}`, 20, 73);
+        doc.text(`${ownerLabel}: ${ticket.owner}`, 20, 80);
+        doc.text(`${plateLabel}: ${ticket.license_plate}`, 20, 87);
+        doc.text(`${dateLabel}: ${ticket.date}`, 20, 94);
+        doc.text(`${timeLabel}: ${ticket.time}`, 20, 101);
+        doc.text(`${locationLabel}: ${ticket.location}`, 20, 108);
+        doc.text(`${amountLabel}: $${ticket.total.toFixed(2)}`, 20, 115);
         
         // Footer
         doc.setFontSize(9);
-        doc.text(t.receiptFooter, 105, 270, { align: 'center' });
+        doc.text(footer, 105, 270, { align: 'center' });
         
         doc.save(`recu_${confirmationNumber}.pdf`);
     }
 
-    // Search with loading animation
+    // Search with loading animation - ensure loading shows only while searching and hides after result
     document.getElementById('searchBtn').addEventListener('click', async () => {
         const searchBtn = document.getElementById('searchBtn');
         const loadingDiv = document.getElementById('searchLoading');
+        
         // Show loading immediately
         searchBtn.disabled = true;
         loadingDiv.classList.remove('hidden');
         
-        // Allow animation to show
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // Small delay to ensure animation shows (even if result is instant)
+        await new Promise(resolve => setTimeout(resolve, 100));
         
         const captchaInput = document.getElementById('captchaInput').value.trim();
         const expectedCaptcha = currentCaptcha;
@@ -734,10 +763,12 @@
             alert("Code de sécurité incorrect. Veuillez saisir le code affiché.");
             currentCaptcha = generateCaptcha();
             document.getElementById('captchaInput').value = '';
-            searchBtn.disabled = false;
+            // Hide loading and enable button
             loadingDiv.classList.add('hidden');
+            searchBtn.disabled = false;
             return;
         }
+        
         const ticketNum = document.getElementById('ticketNumber').value.trim();
         const fileNum = document.getElementById('fileNumber').value.trim();
         let foundKey = null;
@@ -752,8 +783,10 @@
             document.getElementById('paymentSection').classList.add('hidden');
             document.getElementById('receiptSection').classList.add('hidden');
         }
-        searchBtn.disabled = false;
+        
+        // Hide loading and enable button after search completes
         loadingDiv.classList.add('hidden');
+        searchBtn.disabled = false;
     });
 
     // Payment

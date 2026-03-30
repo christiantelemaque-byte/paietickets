@@ -9,7 +9,6 @@
     <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        /* (same CSS as before, ensure it's included) */
         * {
             margin: 0;
             padding: 0;
@@ -483,14 +482,21 @@
         }
     };
 
-    // localStorage helper for paid status
+    // localStorage helpers
     function getPaidStatus(ticketNumber) {
-        const paid = localStorage.getItem(`paid_${ticketNumber}`);
-        return paid === 'true';
+        return localStorage.getItem(`paid_${ticketNumber}`) === 'true';
     }
 
     function setPaidStatus(ticketNumber, status) {
         localStorage.setItem(`paid_${ticketNumber}`, status);
+    }
+
+    function getConfirmationNumber(ticketNumber) {
+        return localStorage.getItem(`conf_${ticketNumber}`);
+    }
+
+    function setConfirmationNumber(ticketNumber, number) {
+        localStorage.setItem(`conf_${ticketNumber}`, number);
     }
 
     let currentTicketKey = null;
@@ -502,7 +508,7 @@
     let paymentJustCompleted = false;
     let currentLang = 'fr';
 
-    // Replace with your Stripe publishable key
+    // Replace with your Stripe publishable key (pk_test_...)
     const stripePublicKey = "pk_test_YOUR_PUBLISHABLE_KEY_HERE";
 
     // Random CAPTCHA
@@ -525,20 +531,19 @@
 
     // Send email notification via Google Apps Script
     async function sendAdminEmail(ticketNumber, ticket, confirmationNumber) {
-        // Replace with your Google Apps Script web app URL
-        const scriptURL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+        const scriptURL = "https://script.google.com/macros/s/AKfycbxWF_VaIfuIvssW4ysAEREKHq42dAJ27N6RJHckvUiUTMFgLJNJql9Q424cL8wGpi2M/exec";
         const emailData = {
             ticketNumber,
             owner: ticket.owner,
             license_plate: ticket.license_plate,
-            total: ticket.total,
+            total: ticket.total * 100, // send in cents (same as backend)
             confirmationNumber,
             date: new Date().toISOString()
         };
         try {
             await fetch(scriptURL, {
                 method: 'POST',
-                mode: 'no-cors', // Required for CORS issues, but response won't be read
+                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(emailData)
             });
@@ -573,7 +578,7 @@
                 detailsHtml += `<div class="success-msg" data-i18n="paymentSuccess">✅ ${translations[currentLang].paymentSuccess}</div>`;
                 paymentJustCompleted = false;
             } else {
-                detailsHtml += `<div class="success-msg" data-i18n="alreadyPaid">✅ ${translations[currentLang].alreadyPaid} Confirmation: ${localStorage.getItem(`conf_${ticketKey}`) || 'N/A'}</div>`;
+                detailsHtml += `<div class="success-msg" data-i18n="alreadyPaid">✅ ${translations[currentLang].alreadyPaid} Confirmation: ${getConfirmationNumber(ticketKey) || 'N/A'}</div>`;
             }
         }
         
@@ -585,7 +590,7 @@
             const receiptSection = document.getElementById('receiptSection');
             receiptSection.classList.remove('hidden');
             const receiptContent = document.getElementById('receiptContent');
-            const confNumber = localStorage.getItem(`conf_${ticketKey}`) || 'N/A';
+            const confNumber = getConfirmationNumber(ticketKey) || 'N/A';
             receiptContent.innerHTML = `
                 <div class="success-msg">${translations[currentLang].paymentSuccess || translations[currentLang].alreadyPaid} <br> ${translations[currentLang].confirmationLabel}: ${confNumber}</div>
             `;
@@ -779,7 +784,7 @@
             
             const confirmationNumber = generateConfirmationNumber();
             setPaidStatus(currentTicketKey, true);
-            localStorage.setItem(`conf_${currentTicketKey}`, confirmationNumber);
+            setConfirmationNumber(currentTicketKey, confirmationNumber);
             paymentJustCompleted = true;
             await sendAdminEmail(currentTicketKey, ticket, confirmationNumber);
             renderTicketDetails(currentTicketKey);
@@ -791,7 +796,7 @@
         }
     });
 
-    // Language translations (same as before, with additional keys)
+    // Language translations
     const translations = {
         fr: {
             title: "⚖️ Constat d'infraction",

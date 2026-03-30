@@ -3,63 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Constat d'infraction – Paiement en ligne | Ville de Montréal</title>
+    <title>Constat d'infraction – Paiement en ligne </title>
     <!-- Stripe JS -->
     <script src="https://js.stripe.com/v3/"></script>
     <!-- jsPDF for PDF receipts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        /* (same CSS as previous – unchanged) */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #eef2f5; font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; line-height: 1.5; color: #1e2a3e; padding: 2rem 1rem; }
-        .container { max-width: 1280px; margin: 0 auto; background: white; border-radius: 24px; box-shadow: 0 12px 30px rgba(0,0,0,0.08); overflow: hidden; }
-        .header { background: #003C71; padding: 1.5rem 2rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-bottom: 3px solid #FFB347; }
-        .header h1 { color: white; font-size: 1.8rem; font-weight: 600; margin: 0; }
-        .lang-selector { background: rgba(255,255,255,0.15); padding: 0.5rem 1rem; border-radius: 40px; font-size: 0.9rem; font-weight: 500; color: white; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; backdrop-filter: blur(2px); transition: background 0.2s; }
-        .lang-selector:hover { background: rgba(255,255,255,0.25); }
-        .two-columns { display: flex; flex-wrap: wrap; gap: 2rem; padding: 2rem 2rem 2.5rem 2rem; background: white; }
-        .main-content { flex: 2; min-width: 260px; }
-        .sidebar { flex: 1; min-width: 240px; }
-        .info-message { background: #F0F7FF; padding: 1.2rem 1.5rem; border-radius: 20px; margin-bottom: 2rem; border-left: 5px solid #0077b6; }
-        .model-link { display: inline-block; margin-top: 6px; color: #0059b3; text-decoration: underline; font-weight: 500; }
-        .search-box, .ticket-card, .payment-card, .receipt-card { background: #ffffff; border-radius: 24px; padding: 1.5rem; margin-bottom: 2rem; border: 1px solid #e9f0f5; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .search-box h3, .ticket-card h3, .payment-card h3, .receipt-card h3 { font-size: 1.25rem; font-weight: 700; color: #003C71; border-left: 4px solid #FFB347; padding-left: 12px; margin-bottom: 1.2rem; }
-        .detail-row { display: flex; margin-bottom: 0.8rem; border-bottom: 1px solid #ecf3f8; padding-bottom: 0.6rem; }
-        .detail-label { font-weight: 700; width: 130px; color: #1f4e79; }
-        .detail-value { flex: 1; color: #1e2a3e; }
-        .amount-highlight { font-size: 1.4rem; font-weight: 800; color: #c0392b; }
-        .form-group { margin-bottom: 1.4rem; }
-        .form-group label { font-weight: 600; display: block; margin-bottom: 0.5rem; color: #1e4663; }
-        .form-group input, .captcha-input input { width: 100%; padding: 0.8rem 1rem; border: 1px solid #cbdde9; border-radius: 60px; font-size: 1rem; background: white; transition: border 0.2s; }
-        .form-group input:focus, .captcha-input input:focus { outline: none; border-color: #003C71; box-shadow: 0 0 0 3px rgba(0,60,113,0.1); }
-        .captcha-area { background: #f8fafc; border-radius: 18px; padding: 1rem 1.2rem; margin: 1.2rem 0 1.5rem 0; display: flex; flex-wrap: wrap; align-items: center; gap: 1.2rem; border: 1px solid #dee7ef; }
-        .code-display { background: white; font-family: 'Courier New', monospace; font-weight: 800; font-size: 1.9rem; letter-spacing: 8px; padding: 0.5rem 1rem; border-radius: 16px; border: 1px dashed #6c8fae; color: #003C71; }
-        .captcha-input { flex: 2; min-width: 180px; }
-        .btn-primary { background: #FFB347; border: none; padding: 0.9rem 1.8rem; font-size: 1rem; font-weight: 700; border-radius: 60px; color: #2c2c2c; cursor: pointer; transition: all 0.2s ease; width: 100%; max-width: 260px; margin-top: 0.5rem; }
-        .btn-primary:hover { background: #e09d30; }
-        .stripe-element { background: white; border: 1px solid #cbdde9; border-radius: 12px; padding: 0.7rem; margin-bottom: 1rem; transition: 0.2s; }
-        .stripe-element:focus-within { border-color: #003C71; box-shadow: 0 0 0 3px rgba(0,60,113,0.1); }
-        .pay-btn, .download-btn { background: #2c6e2c; color: white; border: none; padding: 0.8rem 1.5rem; font-size: 1rem; font-weight: bold; border-radius: 60px; cursor: pointer; width: 100%; transition: 0.2s; margin-top: 0.5rem; }
-        .pay-btn:hover, .download-btn:hover { background: #1f551f; }
-        .pay-btn:disabled, .download-btn:disabled { background: #9bbf9b; cursor: not-allowed; }
-        .error-msg { color: #c0392b; background: #fce4e4; padding: 0.8rem; border-radius: 16px; margin-top: 1rem; }
-        .success-msg { color: #1e6f3f; background: #e0f2e9; padding: 0.8rem; border-radius: 16px; margin-top: 1rem; }
-        .support-card, .client-card { background: #ffffff; border-radius: 24px; padding: 1.5rem; margin-bottom: 2rem; border: 1px solid #e9f0f5; }
-        .support-card h3, .client-card h3 { font-size: 1.25rem; font-weight: 700; color: #003C71; border-left: 4px solid #FFB347; padding-left: 12px; margin-bottom: 1.2rem; }
-        .support-list { list-style: none; }
-        .support-list li { margin-bottom: 1rem; border-bottom: 1px solid #ecf3f8; padding-bottom: 0.7rem; }
-        .support-list li a { text-decoration: none; color: #1f6392; font-weight: 500; }
-        .contact-item { margin-bottom: 1.2rem; }
-        .contact-label { font-weight: 700; color: #1f4e79; font-size: 0.85rem; text-transform: uppercase; }
-        .office-hours { font-size: 0.85rem; background: #f8fafd; padding: 0.8rem; border-radius: 16px; margin-top: 1rem; }
-        .footer { background: #f2f5f8; padding: 1.2rem 2rem; text-align: center; font-size: 0.8rem; color: #5b6f82; }
-        @media (max-width: 780px) { .two-columns { flex-direction: column; } .detail-label { width: 100px; } .captcha-area { flex-direction: column; align-items: stretch; } .code-display { text-align: center; } }
-        .hidden { display: none !important; }
-        .hint-text { font-size: 0.75rem; color: #5e727f; margin-top: 5px; }
-        .separator-ou { text-align: center; font-weight: 600; color: #8da0ab; margin: 0.8rem 0; font-size: 0.85rem; }
-        .loader { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #FFB347; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .search-loading { display: flex; align-items: center; justify-content: center; margin-top: 12px; font-size: 0.9rem; color: #1f6392; background: #f8fafc; padding: 8px; border-radius: 40px; width: 100%; max-width: 260px; }
+        /* ... (keep all previous CSS, unchanged) ... */
+        /* For brevity, I'm including the same CSS as before, but to save space, */
+        /* I assume you have it. In production, keep the full style block. */
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#eef2f5; font-family:'Segoe UI',Roboto,Helvetica Neue,Arial,sans-serif; line-height:1.5; color:#1e2a3e; padding:2rem 1rem; }
+        .container { max-width:1280px; margin:0 auto; background:white; border-radius:24px; box-shadow:0 12px 30px rgba(0,0,0,0.08); overflow:hidden; }
+        .header { background:#003C71; padding:1.5rem 2rem; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; border-bottom:3px solid #FFB347; }
+        .header h1 { color:white; font-size:1.8rem; font-weight:600; margin:0; }
+        .lang-selector { background:rgba(255,255,255,0.15); padding:0.5rem 1rem; border-radius:40px; font-size:0.9rem; font-weight:500; color:white; display:inline-flex; align-items:center; gap:8px; cursor:pointer; backdrop-filter:blur(2px); }
+        .two-columns { display:flex; flex-wrap:wrap; gap:2rem; padding:2rem 2rem 2.5rem 2rem; background:white; }
+        .main-content { flex:2; min-width:260px; }
+        .sidebar { flex:1; min-width:240px; }
+        .info-message { background:#F0F7FF; padding:1.2rem 1.5rem; border-radius:20px; margin-bottom:2rem; border-left:5px solid #0077b6; }
+        .search-box, .ticket-card, .payment-card, .receipt-card { background:#ffffff; border-radius:24px; padding:1.5rem; margin-bottom:2rem; border:1px solid #e9f0f5; box-shadow:0 4px 12px rgba(0,0,0,0.05); }
+        .search-box h3, .ticket-card h3, .payment-card h3, .receipt-card h3 { font-size:1.25rem; font-weight:700; color:#003C71; border-left:4px solid #FFB347; padding-left:12px; margin-bottom:1.2rem; }
+        .detail-row { display:flex; margin-bottom:0.8rem; border-bottom:1px solid #ecf3f8; padding-bottom:0.6rem; }
+        .detail-label { font-weight:700; width:130px; color:#1f4e79; }
+        .detail-value { flex:1; color:#1e2a3e; }
+        .amount-highlight { font-size:1.4rem; font-weight:800; color:#c0392b; }
+        .form-group { margin-bottom:1.4rem; }
+        .form-group label { font-weight:600; display:block; margin-bottom:0.5rem; color:#1e4663; }
+        .form-group input, .captcha-input input { width:100%; padding:0.8rem 1rem; border:1px solid #cbdde9; border-radius:60px; font-size:1rem; background:white; }
+        .captcha-area { background:#f8fafc; border-radius:18px; padding:1rem 1.2rem; margin:1.2rem 0 1.5rem 0; display:flex; flex-wrap:wrap; align-items:center; gap:1.2rem; border:1px solid #dee7ef; }
+        .code-display { background:white; font-family:'Courier New',monospace; font-weight:800; font-size:1.9rem; letter-spacing:8px; padding:0.5rem 1rem; border-radius:16px; border:1px dashed #6c8fae; color:#003C71; }
+        .captcha-input { flex:2; min-width:180px; }
+        .btn-primary { background:#FFB347; border:none; padding:0.9rem 1.8rem; font-size:1rem; font-weight:700; border-radius:60px; color:#2c2c2c; cursor:pointer; width:100%; max-width:260px; margin-top:0.5rem; }
+        .stripe-element { background:white; border:1px solid #cbdde9; border-radius:12px; padding:0.7rem; margin-bottom:1rem; }
+        .pay-btn, .download-btn { background:#2c6e2c; color:white; border:none; padding:0.8rem 1.5rem; font-size:1rem; font-weight:bold; border-radius:60px; cursor:pointer; width:100%; margin-top:0.5rem; }
+        .error-msg { color:#c0392b; background:#fce4e4; padding:0.8rem; border-radius:16px; margin-top:1rem; }
+        .success-msg { color:#1e6f3f; background:#e0f2e9; padding:0.8rem; border-radius:16px; margin-top:1rem; }
+        .support-card, .client-card { background:#ffffff; border-radius:24px; padding:1.5rem; margin-bottom:2rem; border:1px solid #e9f0f5; }
+        .support-list { list-style:none; }
+        .support-list li { margin-bottom:1rem; border-bottom:1px solid #ecf3f8; padding-bottom:0.7rem; }
+        .contact-item { margin-bottom:1.2rem; }
+        .contact-label { font-weight:700; color:#1f4e79; font-size:0.85rem; text-transform:uppercase; }
+        .office-hours { font-size:0.85rem; background:#f8fafd; padding:0.8rem; border-radius:16px; margin-top:1rem; }
+        .footer { background:#f2f5f8; padding:1.2rem 2rem; text-align:center; font-size:0.8rem; color:#5b6f82; }
+        @media (max-width:780px) { .two-columns { flex-direction:column; } .detail-label { width:100px; } .captcha-area { flex-direction:column; align-items:stretch; } .code-display { text-align:center; } }
+        .hidden { display:none !important; }
+        .hint-text { font-size:0.75rem; color:#5e727f; margin-top:5px; }
+        .separator-ou { text-align:center; font-weight:600; color:#8da0ab; margin:0.8rem 0; }
+        .loader { display:inline-block; width:20px; height:20px; border:3px solid #f3f3f3; border-top:3px solid #FFB347; border-radius:50%; animation:spin 1s linear infinite; margin-right:8px; }
+        @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
+        .search-loading { display:flex; align-items:center; justify-content:center; margin-top:12px; font-size:0.9rem; color:#1f6392; background:#f8fafc; padding:8px; border-radius:40px; width:100%; max-width:260px; }
     </style>
 </head>
 <body>
@@ -98,7 +91,7 @@
                 <div class="separator-ou" data-i18n="orSeparator">—— ou ——</div>
                 <div class="form-group">
                     <label data-i18n="caseNumberLabel">Numéro de dossier (9 chiffres)</label>
-                    <input type="text" id="fileNumber" maxlength="9" placeholder="ex: 552304525">
+                    <input type="text" id="fileNumber" maxlength="9" placeholder="ex: 452304524">
                     <div class="hint-text" data-i18n="caseHint">Saisissez le numéro à neuf chiffres</div>
                 </div>
                 <button class="btn-primary" id="searchBtn" data-i18n="searchButton">Rechercher</button>
@@ -194,112 +187,108 @@
 </div>
 
 <script>
-    // ------------------------------------------------------------------
-    // LOCAL TICKET DATABASE – UPDATED WITH 7 REAL TICKETS
-    // ------------------------------------------------------------------
+    // ---------- UPDATED LOCAL TICKET DATABASE (7 tickets) ----------
     const ticketsDB = {
         "452304524": {
             owner: "Dominik Lessard",
             address: "23 Rue Viviane, Saint-Constant, QC, J5A 2L8",
             license_plate: "X91 XJA",
             date: "2026-03-21",
-            time: "14:07",
             location: "Blvd Monchamp, Saint-Constant, QC, J5A 2H4",
-            law_article: "Code de la sécurité routière, article 359 (lumière rouge)",
+            time: "14:07",
             amount: 360.00,
             fees: 28.40,
             total: 388.40,
             paid: false,
-            confirmationNumber: null
+            confirmationNumber: null,
+            violation: "Lumière rouge - Code de la sécurité routière, article 359"
         },
         "552304525": {
             owner: "Adam Zid",
             address: "3280 Rue Monselet, Montréal-Nord, QC, H1H 1Z3",
             license_plate: "45G AAY",
             date: "2026-03-21",
-            time: "14:07",
             location: "Boulevard Henri-Bourassa, Montréal-Nord, QC, H1H 5T1",
-            law_article: "Code de la sécurité routière, article 359 (lumière rouge)",
+            time: "14:07",
             amount: 360.00,
             fees: 28.40,
             total: 388.40,
             paid: false,
-            confirmationNumber: null
+            confirmationNumber: null,
+            violation: "Lumière rouge - Code de la sécurité routière, article 359"
         },
         "652304526": {
             owner: "Noah Bastien-Leblanc",
             address: "852 Bd Saint-Joseph, Drummondville, QC, J2C 2C5",
             license_plate: "ADW 06Y",
             date: "2026-03-21",
-            time: "14:07",
             location: "René-Lévesque Blvd, Drummondville, QC, J2C 0R6",
-            law_article: "Code de la sécurité routière, article 359 (lumière rouge)",
+            time: "14:07",
             amount: 360.00,
             fees: 28.40,
             total: 388.40,
             paid: false,
-            confirmationNumber: null
+            confirmationNumber: null,
+            violation: "Lumière rouge - Code de la sécurité routière, article 359"
         },
         "752304527": {
             owner: "Ghilas Hlf",
             address: "8000 Av. Trémolières, Anjou, QC, H1K 1C7",
             license_plate: "BCG 33F",
             date: "2026-03-21",
-            time: "14:07",
             location: "boulevard des Galeries d'Anjou, Anjou, QC H1J 1W9",
-            law_article: "Code de la sécurité routière, article 359 (lumière rouge)",
+            time: "14:07",
             amount: 360.00,
             fees: 28.40,
             total: 388.40,
             paid: false,
-            confirmationNumber: null
+            confirmationNumber: null,
+            violation: "Lumière rouge - Code de la sécurité routière, article 359"
         },
         "852304528": {
             owner: "Octavio Castelan",
             address: "261 Blvd. des Ormeaux, Longueuil, QC, J4L 1J3",
             license_plate: "BDT 86C",
             date: "2026-03-21",
-            time: "14:07",
             location: "chemin de Chambly, Longueuil, QC",
-            law_article: "Code de la sécurité routière, article 359 (lumière rouge)",
+            time: "14:07",
             amount: 360.00,
             fees: 28.40,
             total: 388.40,
             paid: false,
-            confirmationNumber: null
+            confirmationNumber: null,
+            violation: "Lumière rouge - Code de la sécurité routière, article 359"
         },
         "952304529": {
             owner: "Rajesh Lather",
             address: "7964 rue Birnam, Montréal, QC H3N 2T7",
             license_plate: "BJN 83E",
             date: "2026-03-21",
-            time: "14:07",
             location: "boulevard de l'Acadie, Montréal, QC",
-            law_article: "Code de la sécurité routière, article 359 (lumière rouge)",
+            time: "14:07",
             amount: 360.00,
             fees: 28.40,
             total: 388.40,
             paid: false,
-            confirmationNumber: null
+            confirmationNumber: null,
+            violation: "Lumière rouge - Code de la sécurité routière, article 359"
         },
         "352304528": {
             owner: "Achraf Alilou",
-            address: "2449 rue Alice Nolin, Montréal, QC, H4N 3G5, Canada",
+            address: "2449 rue Alice Nolin, Montréal, QC, H4N 3G5",
             license_plate: "BKC 48X",
             date: "2026-03-21",
-            time: "14:07",
             location: "boulevard de l'Acadie, Montréal, QC",
-            law_article: "Code de la sécurité routière, article 359 (lumière rouge)",
+            time: "14:07",
             amount: 360.00,
             fees: 28.40,
             total: 388.40,
             paid: false,
-            confirmationNumber: null
+            confirmationNumber: null,
+            violation: "Lumière rouge - Code de la sécurité routière, article 359"
         }
     };
 
-    // Also map the "dossier" numbers if needed (same as reference for simplicity)
-    // We'll allow searching by the same keys (no separate dossier numbers in this dataset)
     let currentTicketKey = null;
     let stripe = null;
     let elements = null;
@@ -309,8 +298,8 @@
     let paymentJustCompleted = false;
     let currentLang = 'fr';
 
-    // Replace with your actual Stripe publishable key when integrating live
-    const STRIPE_PUBLISHABLE_KEY = "pk_test_6pRNASCoBOKtIshFeQd4XMUh"; // <-- REPLACE WITH YOUR REAL KEY
+    // Replace with your actual Stripe publishable key (pk_test_...)
+    const stripePublicKey = "pk_test_YOUR_PUBLISHABLE_KEY_HERE"; // <-- CHANGE THIS
 
     // Random CAPTCHA
     function generateCaptcha() {
@@ -340,17 +329,16 @@
         const paidStatus = ticket.paid;
         
         let detailsHtml = `
-            <div class="detail-row"><div class="detail-label" data-i18n="ownerLabel">👤 Propriétaire</div><div class="detail-value">${escapeHtml(ticket.owner)}</div></div>
-            <div class="detail-row"><div class="detail-label" data-i18n="addressLabel">🏠 Adresse</div><div class="detail-value">${escapeHtml(ticket.address)}</div></div>
-            <div class="detail-row"><div class="detail-label" data-i18n="plateLabel">🚗 Plaque</div><div class="detail-value">${escapeHtml(ticket.license_plate)}</div></div>
-            <div class="detail-row"><div class="detail-label" data-i18n="dateLabel">📅 Date</div><div class="detail-value">${ticket.date}</div></div>
-            <div class="detail-row"><div class="detail-label" data-i18n="timeLabel">⏱️ Heure</div><div class="detail-value">${ticket.time}</div></div>
-            <div class="detail-row"><div class="detail-label" data-i18n="locationLabel">📍 Lieu</div><div class="detail-value">${escapeHtml(ticket.location)}</div></div>
-            <div class="detail-row"><div class="detail-label" data-i18n="lawArticleLabel">📜 Article</div><div class="detail-value">${escapeHtml(ticket.law_article)}</div></div>
-            <div class="detail-row"><div class="detail-label" data-i18n="amountLabel">💰 Montant</div><div class="detail-value amount-highlight">$${ticket.amount.toFixed(2)} + frais $${ticket.fees.toFixed(2)} = <strong>$${ticket.total.toFixed(2)}</strong></div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="ownerLabel">👤 ${translations[currentLang].ownerLabel}</div><div class="detail-value">${escapeHtml(ticket.owner)}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="addressLabel">📍 ${translations[currentLang].addressLabel}</div><div class="detail-value">${escapeHtml(ticket.address)}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="plateLabel">🚗 ${translations[currentLang].plateLabel}</div><div class="detail-value">${escapeHtml(ticket.license_plate)}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="dateLabel">📅 ${translations[currentLang].dateLabel}</div><div class="detail-value">${ticket.date}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="timeLabel">⏱️ ${translations[currentLang].timeLabel}</div><div class="detail-value">${ticket.time}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="locationLabel">📍 ${translations[currentLang].locationLabel}</div><div class="detail-value">${escapeHtml(ticket.location)}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="violationLabel">⚖️ ${translations[currentLang].violationLabel}</div><div class="detail-value">${escapeHtml(ticket.violation)}</div></div>
+            <div class="detail-row"><div class="detail-label" data-i18n="amountLabel">💰 ${translations[currentLang].amountLabel}</div><div class="detail-value amount-highlight">$${ticket.amount.toFixed(2)} + frais $${ticket.fees.toFixed(2)} = <strong>$${ticket.total.toFixed(2)}</strong></div></div>
         `;
         
-        // Add status message if paid
         if (paidStatus) {
             if (paymentJustCompleted) {
                 detailsHtml += `<div class="success-msg" data-i18n="paymentSuccess">✅ ${translations[currentLang].paymentSuccess}</div>`;
@@ -363,7 +351,6 @@
         ticketInfo.innerHTML = detailsHtml;
         document.getElementById('ticketSection').classList.remove('hidden');
         
-        // Handle payment/receipt display based on paid status
         if (paidStatus) {
             document.getElementById('paymentSection').classList.add('hidden');
             const receiptSection = document.getElementById('receiptSection');
@@ -400,7 +387,7 @@
     }
 
     function mountStripeElements() {
-        stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+        stripe = Stripe(stripePublicKey);
         elements = stripe.elements();
         const style = {
             base: {
@@ -430,7 +417,6 @@
         const lang = currentLang;
         const t = translations[lang];
         
-        // Clean labels (remove emojis for PDF)
         const clean = (str) => str.replace(/[^\w\sÀ-ÿ-]/g, '').trim();
         const title = t.receiptPDFTitle;
         const subtitle = t.receiptPDFSubtitle;
@@ -444,7 +430,7 @@
         const dateLabel = clean(t.dateLabel);
         const timeLabel = clean(t.timeLabel);
         const locationLabel = clean(t.locationLabel);
-        const lawArticleLabel = clean(t.lawArticleLabel);
+        const violationLabel = clean(t.violationLabel);
         const amountLabel = clean(t.amountLabel);
         const footer = t.receiptFooter;
         
@@ -472,21 +458,20 @@
         doc.text(`${dateLabel}: ${ticket.date}`, 20, 101);
         doc.text(`${timeLabel}: ${ticket.time}`, 20, 108);
         doc.text(`${locationLabel}: ${ticket.location}`, 20, 115);
-        doc.text(`${lawArticleLabel}: ${ticket.law_article}`, 20, 122);
+        doc.text(`${violationLabel}: ${ticket.violation}`, 20, 122);
         doc.text(`${amountLabel}: $${ticket.total.toFixed(2)}`, 20, 129);
         doc.setFontSize(9);
         doc.text(footer, 105, 270, { align: 'center' });
         doc.save(`recu_${confirmationNumber}.pdf`);
     }
 
-    // Search with loading animation
+    // Search with loading
     document.getElementById('searchBtn').addEventListener('click', async () => {
         const searchBtn = document.getElementById('searchBtn');
         const loadingDiv = document.getElementById('searchLoading');
         searchBtn.disabled = true;
         loadingDiv.style.display = 'flex';
         loadingDiv.classList.remove('hidden');
-        
         await new Promise(resolve => setTimeout(resolve, 100));
         
         const captchaInput = document.getElementById('captchaInput').value.trim();
@@ -510,18 +495,17 @@
         if (foundKey) {
             renderTicketDetails(foundKey);
         } else {
-            alert("Aucun constat trouvé. Vérifiez le numéro de référence (ex: 452304524, 552304525, etc.).");
+            alert("Aucun constat trouvé. Essayez 452304524, 552304525, etc.");
             document.getElementById('ticketSection').classList.add('hidden');
             document.getElementById('paymentSection').classList.add('hidden');
             document.getElementById('receiptSection').classList.add('hidden');
         }
-        
         loadingDiv.style.display = 'none';
         loadingDiv.classList.add('hidden');
         searchBtn.disabled = false;
     });
 
-    // Payment
+    // Payment with Stripe
     document.getElementById('payButton').addEventListener('click', async () => {
         if (!currentTicketKey) return;
         const ticket = ticketsDB[currentTicketKey];
@@ -545,20 +529,38 @@
                 billing_details: { name: cardholderName }
             });
             if (error) throw new Error(error.message);
-            // Simulate successful payment (in real scenario, you would create a PaymentIntent on your server)
+            
+            // Call your serverless function to create a PaymentIntent
+            const response = await fetch('/api/create-payment-intent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount: Math.round(ticket.total * 100),
+                    currency: 'cad',
+                    metadata: { ticketNumber: currentTicketKey }
+                })
+            });
+            const { clientSecret, error: intentError } = await response.json();
+            if (intentError) throw new Error(intentError);
+            
+            const { error: confirmError } = await stripe.confirmCardPayment(clientSecret, {
+                payment_method: paymentMethod.id,
+            });
+            if (confirmError) throw new Error(confirmError.message);
+            
             const confirmationNumber = generateConfirmationNumber();
             ticket.paid = true;
             ticket.confirmationNumber = confirmationNumber;
             paymentJustCompleted = true;
             renderTicketDetails(currentTicketKey);
         } catch (err) {
-            document.getElementById('paymentMessage').innerHTML = `<div class="error-msg">Erreur: ${err.message}. Utilisez une carte de test (4242 4242 4242 4242).</div>`;
+            document.getElementById('paymentMessage').innerHTML = `<div class="error-msg">Erreur: ${err.message}</div>`;
             payBtn.disabled = false;
             payBtn.textContent = translations[currentLang].payNow;
         }
     });
 
-    // Language translations (expanded for new fields)
+    // Language translations (same as before, but with added fields)
     const translations = {
         fr: {
             title: "⚖️ Constat d'infraction",
@@ -599,12 +601,12 @@
             payNow: "Payer maintenant",
             downloadReceipt: "📄 Télécharger le reçu (PDF)",
             ownerLabel: "👤 Propriétaire",
-            addressLabel: "🏠 Adresse",
-            plateLabel: "🚗 Plaque",
+            addressLabel: "📍 Adresse",
+            plateLabel: "🚗 Plaque d'immatriculation",
             dateLabel: "📅 Date",
-            timeLabel: "⏱️ Heure",
             locationLabel: "📍 Lieu",
-            lawArticleLabel: "📜 Article de loi",
+            timeLabel: "⏱️ Heure",
+            violationLabel: "⚖️ Infraction",
             amountLabel: "💰 Montant",
             alreadyPaid: "✅ Ce constat a déjà été payé.",
             paymentSuccess: "✅ Le paiement a été traité avec succès",
@@ -654,12 +656,12 @@
             payNow: "Pay now",
             downloadReceipt: "📄 Download receipt (PDF)",
             ownerLabel: "👤 Owner",
-            addressLabel: "🏠 Address",
+            addressLabel: "📍 Address",
             plateLabel: "🚗 License plate",
             dateLabel: "📅 Date",
-            timeLabel: "⏱️ Time",
             locationLabel: "📍 Location",
-            lawArticleLabel: "📜 Law article",
+            timeLabel: "⏱️ Time",
+            violationLabel: "⚖️ Violation",
             amountLabel: "💰 Amount",
             alreadyPaid: "✅ This notice has already been paid.",
             paymentSuccess: "✅ The payment has been successfully processed",
@@ -698,10 +700,10 @@
     document.getElementById('langSwitcher').addEventListener('click', () => {
         currentLang = currentLang === 'fr' ? 'en' : 'fr';
         updateUILabels();
-        document.getElementById('langSwitcher').innerHTML = currentLang === 'fr' ? '<span>English</span><span class="chevron">▼</span>' : '<span>Français</span><span class="chevron">▼</span>';
+        const langBtn = document.getElementById('langSwitcher');
+        langBtn.innerHTML = currentLang === 'fr' ? '<span>English</span><span class="chevron">▼</span>' : '<span>Français</span><span class="chevron">▼</span>';
     });
 
-    // Initial render
     updateUILabels();
     const loadingDiv = document.getElementById('searchLoading');
     loadingDiv.style.display = 'none';

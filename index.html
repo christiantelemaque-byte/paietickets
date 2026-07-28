@@ -1,24 +1,24 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Stock Of - Application</title>
 
     <!-- ============================================================ -->
-    <!-- 1. FICHIER CSS EXTERNE                                       -->
+    <!-- 1. EXTERNAL CSS FILE                                         -->
     <!-- ============================================================ -->
     <link rel="stylesheet" href="css/style.css" />
 
-    <!-- 2. Lightweight Charts (pour les graphiques) -->
+    <!-- 2. Lightweight Charts (for graphs) -->
     <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.js">
     </script>
 
     <!-- ============================================================ -->
-    <!-- STYLE DE DÉPANNAGE (pour forcer l'affichage)                -->
+    <!-- TROUBLESHOOTING STYLE (forces login screen)                  -->
     <!-- ============================================================ -->
     <style>
-        /* Force l'affichage de l'écran de connexion au chargement */
+        /* Force login screen to show on load */
         #authContainer {
             display: flex !important;
         }
@@ -43,21 +43,21 @@
 
         <!-- HEADER -->
         <header class="app-header" id="appHeader">
-            <div class="greeting">Bonjour 👋</div>
+            <div class="greeting">Hello</div>
             <div class="user-name" id="userNameDisplay">
-                Utilisateur
-                <span class="badge">⭐ Premium</span>
+                User
+                <span class="badge">Premium</span>
             </div>
 
             <div class="balance-row">
                 <div>
-                    <div class="label">💰 Investissement total</div>
+                    <div class="label">Total Investment</div>
                     <div class="amount" id="totalInvestment">
                         $0 <small>USD</small>
                     </div>
                 </div>
                 <div style="text-align:right;">
-                    <div class="label">📈 Évolution (24h)</div>
+                    <div class="label">Change (24h)</div>
                     <div class="amount" style="color:#4caf50;" id="dailyChange">
                         +0.00%
                     </div>
@@ -66,21 +66,21 @@
 
             <div class="stats-row">
                 <div class="stat-item">
-                    <div class="stat-label">👥 Parrainages</div>
+                    <div class="stat-label">Referrals</div>
                     <div class="stat-value" id="referralCount">0</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">🏅 Récompenses</div>
+                    <div class="stat-label">Rewards</div>
                     <div class="stat-value" id="rewardCount">$0</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">📊 Actif depuis</div>
+                    <div class="stat-label">Member since</div>
                     <div class="stat-value" id="memberSince">-</div>
                 </div>
             </div>
         </header>
 
-        <!-- CONTENU -->
+        <!-- CONTENT -->
         <div class="app-content" id="appContent">
 
             <div class="page-container">
@@ -89,93 +89,93 @@
                 <div class="page" id="page-dashboard">
                     <div class="card">
                         <div class="card-title">
-                            📈 Prix de l'or (USD/once)
-                            <span class="badge-pill">En temps réel</span>
+                            Gold Price (USD/oz)
+                            <span class="badge-pill">Live</span>
                         </div>
                         <div class="chart-wrapper" id="chartContainer"></div>
                         <div style="display:flex; justify-content:space-between; font-size:12px; color:#888; margin-top:8px;">
-                            <span id="lastUpdate">Dernière mise à jour : -</span>
+                            <span id="lastUpdate">Last update : -</span>
                             <span id="currentPriceDisplay">-</span>
                         </div>
                     </div>
 
                     <div class="card">
                         <div class="card-title">
-                            🔮 Prévision sur 6 mois
-                            <span class="badge-pill">Estimation</span>
+                            6-Month Forecast
+                            <span class="badge-pill">Estimate</span>
                         </div>
                         <div class="chart-wrapper" id="forecastContainer"></div>
                         <div style="display:flex; justify-content:space-between; font-size:12px; color:#888; margin-top:8px;">
-                            <span>Projection basée sur les 30 derniers jours</span>
+                            <span>Projection based on last 30 days</span>
                             <span id="forecastPrice">-</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- INVESTISSEMENTS -->
+                <!-- INVESTMENTS -->
                 <div class="page" id="page-investments">
                     <div class="card">
-                        <div class="card-title">📊 Mes investissements</div>
+                        <div class="card-title">My Investments</div>
                         <div id="investmentList">
-                            <p class="text-muted" style="padding:8px 0;">Aucun investissement pour le moment.</p>
+                            <p class="text-muted" style="padding:8px 0;">No investments yet.</p>
                         </div>
                     </div>
 
                     <div class="card">
-                        <div class="card-title">➕ Ajouter un investissement</div>
+                        <div class="card-title">Add Investment</div>
 
-                        <input type="number" id="investAmount" placeholder="Montant (USD)" style="width:100%; padding:12px 16px; border-radius:16px; border:1px solid #e2e8f0; margin-bottom:12px;" />
+                        <input type="number" id="investAmount" placeholder="Amount (USD)" style="width:100%; padding:12px 16px; border-radius:16px; border:1px solid #e2e8f0; margin-bottom:12px;" />
 
                         <div style="display:flex; gap:12px; margin-bottom:12px; justify-content:center;">
                             <label style="display:flex; align-items:center; gap:6px; font-size:14px; cursor:pointer;">
-                                <input type="radio" name="paymentMethod" value="carte" checked /> 💳 Carte
+                                <input type="radio" name="paymentMethod" value="carte" checked /> Credit Card
                             </label>
                             <label style="display:flex; align-items:center; gap:6px; font-size:14px; cursor:pointer;">
-                                <input type="radio" name="paymentMethod" value="crypto" /> ₿ Crypto
+                                <input type="radio" name="paymentMethod" value="crypto" /> Crypto
                             </label>
                         </div>
 
                         <button class="btn-primary" onclick="addInvestment()">
-                            Investir
+                            Invest
                         </button>
                     </div>
                 </div>
 
-                <!-- PARRAINAGE -->
+                <!-- REFERRALS -->
                 <div class="page" id="page-referrals">
                     <div class="card">
                         <div class="card-title">
-                            🔗 Mon code de parrainage
+                            My Referral Code
                             <span class="badge-pill" id="referralCodeDisplay">-</span>
                         </div>
                         <p style="font-size:14px; color:#555; margin-bottom:12px;">
-                            Partage ce code avec tes amis. S'ils s'inscrivent, tu gagnes une récompense !
+                            Share this code with your friends. If they sign up, you earn a reward!
                         </p>
                         <button class="btn-primary" onclick="copyReferralCode()">
-                            📋 Copier le code
+                            Copy Code
                         </button>
                     </div>
 
                     <div class="card">
-                        <div class="card-title">👥 Personnes parrainées</div>
+                        <div class="card-title">Referred People</div>
                         <ul class="referral-list" id="referralList">
-                            <li style="padding:12px 0; color:#888;">Aucun parrainage pour le moment.</li>
+                            <li style="padding:12px 0; color:#888;">No referrals yet.</li>
                         </ul>
                     </div>
                 </div>
 
-                <!-- PROFIL -->
+                <!-- PROFILE -->
                 <div class="page" id="page-profile">
                     <div class="card">
-                        <div class="card-title">👤 Mon profil</div>
+                        <div class="card-title">My Profile</div>
                         <p><strong>Email</strong><br /><span id="profileEmail">-</span></p>
-                        <p style="margin-top:12px;"><strong>Téléphone</strong><br /><span id="profilePhone">-</span></p>
-                        <p style="margin-top:12px;"><strong>Membre depuis</strong><br /><span id="profileSince">-</span></p>
+                        <p style="margin-top:12px;"><strong>Phone</strong><br /><span id="profilePhone">-</span></p>
+                        <p style="margin-top:12px;"><strong>Member since</strong><br /><span id="profileSince">-</span></p>
                     </div>
 
                     <div class="card">
                         <button class="btn-outline" style="background:#fef2f2; border-color:#fecaca; color:#b91c1c;" onclick="logoutUser()">
-                            🚪 Se déconnecter
+                            Logout
                         </button>
                     </div>
                 </div>
@@ -183,7 +183,7 @@
             </div>
         </div>
 
-        <!-- MENU BAS -->
+        <!-- BOTTOM MENU -->
         <nav class="bottom-menu" id="bottomMenu">
             <button class="menu-item" data-page="page-dashboard">
                 <span class="icon">📊</span>
@@ -197,33 +197,33 @@
             </button>
             <button class="menu-item" data-page="page-referrals">
                 <span class="icon">👥</span>
-                <span class="label">Parrainage</span>
+                <span class="label">Referrals</span>
                 <span class="indicator"></span>
             </button>
             <button class="menu-item" data-page="page-profile">
                 <span class="icon">👤</span>
-                <span class="label">Profil</span>
+                <span class="label">Profile</span>
                 <span class="indicator"></span>
             </button>
             <div class="slider" id="menuSlider"></div>
         </nav>
 
-        <!-- AUTH -->
+        <!-- AUTH (Login / Sign Up) -->
         <div id="authContainer">
             <div class="auth-box">
-                <h2>Bienvenue <span>👋</span></h2>
-                <p class="sub">Connecte-toi ou crée un compte pour accéder à ton dashboard.</p>
+                <h2>Welcome</h2>
+                <p class="sub">Log in or create an account to access your dashboard.</p>
 
                 <div id="authForm">
                     <input type="email" id="authEmail" placeholder="Email" />
-                    <input type="password" id="authPassword" placeholder="Mot de passe" />
-                    <button class="btn-primary" id="authActionBtn" onclick="handleAuth()">Se connecter</button>
+                    <input type="password" id="authPassword" placeholder="Password" />
+                    <button class="btn-primary" id="authActionBtn" onclick="handleAuth()">Log in</button>
                     <button class="btn-outline" onclick="toggleAuthMode()">
-                        Créer un compte
+                        Create account
                     </button>
                     <div class="switch-link">
-                        <span id="authSwitchText">Pas encore de compte ?</span>
-                        <span id="authSwitchLink" onclick="toggleAuthMode()">S'inscrire</span>
+                        <span id="authSwitchText">Don't have an account?</span>
+                        <span id="authSwitchLink" onclick="toggleAuthMode()">Sign up</span>
                     </div>
                 </div>
             </div>
@@ -239,7 +239,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
 
-    <!-- 2. Code JavaScript de l'application -->
+    <!-- 2. Application JavaScript -->
     <script>
         // ----------------------------------------------
         // CONFIG
@@ -251,11 +251,11 @@
         try {
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         } catch (e) {
-            alert('Erreur Supabase : ' + e.message);
+            alert('Supabase error: ' + e.message);
         }
 
         // ----------------------------------------------
-        // ÉTAT
+        // STATE
         // ----------------------------------------------
         let currentUser = null;
         let currentPage = 'page-dashboard';
@@ -293,13 +293,13 @@
             const switchText = $('authSwitchText');
             const link = $('authSwitchLink');
             if (isLoginMode) {
-                btn.textContent = 'Se connecter';
-                switchText.textContent = 'Pas encore de compte ?';
-                link.textContent = "S'inscrire";
+                btn.textContent = 'Log in';
+                switchText.textContent = "Don't have an account?";
+                link.textContent = 'Sign up';
             } else {
-                btn.textContent = "S'inscrire";
-                switchText.textContent = 'Déjà un compte ?';
-                link.textContent = 'Se connecter';
+                btn.textContent = 'Sign up';
+                switchText.textContent = 'Already have an account?';
+                link.textContent = 'Log in';
             }
         }
 
@@ -307,7 +307,7 @@
             const email = $('authEmail').value.trim();
             const password = $('authPassword').value.trim();
             if (!email || !password) {
-                showToast('Veuillez remplir tous les champs.');
+                showToast('Please fill in all fields.');
                 return;
             }
 
@@ -315,28 +315,28 @@
                 if (isLoginMode) {
                     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                     if (error) throw error;
-                    showToast('✅ Connexion réussie !');
+                    showToast('Login successful!');
                     await loadUserData(data.user);
                 } else {
                     const { data, error } = await supabase.auth.signUp({ email, password });
                     if (error) throw error;
-                    showToast('✅ Compte créé ! Vérifie ton email.');
+                    showToast('Account created! Check your email.');
                     await loadUserData(data.user);
                 }
             } catch (err) {
-                showToast('❌ ' + err.message);
+                showToast(err.message);
             }
         }
 
         async function logoutUser() {
             await supabase.auth.signOut();
             currentUser = null;
-            showToast('Déconnecté.');
+            showToast('Logged out.');
             showAuthScreen();
         }
 
         // ----------------------------------------------
-        // CHARGEMENT UTILISATEUR
+        // LOAD USER DATA
         // ----------------------------------------------
         async function loadUserData(user) {
             if (!user) return;
@@ -358,7 +358,7 @@
                         is_verified: true,
                     }]);
                 if (insertError) {
-                    showToast('Erreur création profil.');
+                    showToast('Error creating profile.');
                     return;
                 }
                 const { data: newData } = await supabase
@@ -381,10 +381,10 @@
         }
 
         // ----------------------------------------------
-        // AFFICHAGE ÉCRANS
+        // SCREEN MANAGEMENT
         // ----------------------------------------------
         function showAuthScreen() {
-            // Supprimer le style de dépannage qui force l'affichage
+            // Remove the troubleshooting style
             const styleTag = document.querySelector('style');
             if (styleTag) styleTag.remove();
 
@@ -445,7 +445,7 @@
         }
 
         // ----------------------------------------------
-        // CURSEUR GLISSANT
+        // SLIDING CURSOR
         // ----------------------------------------------
         function updateSlider(pageId) {
             const slider = document.getElementById('menuSlider');
@@ -470,11 +470,11 @@
         function updateDashboard() {
             if (!currentUser) return;
 
-            const displayName = currentUser.email ? currentUser.email.split('@')[0] : 'Utilisateur';
-            $('userNameDisplay').innerHTML = `${displayName} <span class="badge">⭐ Premium</span>`;
+            const displayName = currentUser.email ? currentUser.email.split('@')[0] : 'User';
+            $('userNameDisplay').innerHTML = `${displayName} <span class="badge">Premium</span>`;
 
             $('profileEmail').textContent = currentUser.email || '-';
-            $('profilePhone').textContent = currentUser.phone || 'Non renseigné';
+            $('profilePhone').textContent = currentUser.phone || 'Not set';
             $('profileSince').textContent = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() :
                 '-';
 
@@ -488,7 +488,7 @@
         }
 
         // ----------------------------------------------
-        // INVESTISSEMENTS
+        // INVESTMENTS
         // ----------------------------------------------
         async function loadInvestments() {
             if (!currentUser) return;
@@ -499,13 +499,13 @@
                 .order('purchase_date', { ascending: false });
 
             if (error) {
-                console.error('Erreur investissements:', error);
+                console.error('Error loading investments:', error);
                 return;
             }
 
             const list = $('investmentList');
             if (!data || data.length === 0) {
-                list.innerHTML = '<p class="text-muted" style="padding:8px 0;">Aucun investissement.</p>';
+                list.innerHTML = '<p class="text-muted" style="padding:8px 0;">No investments.</p>';
                 $('totalInvestment').textContent = '$0 USD';
                 return;
             }
@@ -515,7 +515,7 @@
             data.forEach(inv => {
                 total += parseFloat(inv.amount_invested || 0);
                 const method = inv.payment_method || 'carte';
-                const methodLabel = method === 'crypto' ? '₿ Crypto' : '💳 Carte';
+                const methodLabel = method === 'crypto' ? 'Crypto' : 'Credit Card';
                 html += `
                     <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f0f2f5;">
                         <div>
@@ -535,12 +535,12 @@
 
         async function addInvestment() {
             if (!currentUser) {
-                showToast('Veuillez vous connecter.');
+                showToast('Please log in.');
                 return;
             }
             const amount = parseFloat($('investAmount').value);
             if (!amount || amount <= 0) {
-                showToast('Montant invalide.');
+                showToast('Invalid amount.');
                 return;
             }
 
@@ -548,7 +548,7 @@
 
             const price = await getGoldPrice();
             if (!price) {
-                showToast('Impossible de récupérer le prix de l\'or.');
+                showToast('Could not fetch gold price.');
                 return;
             }
 
@@ -565,9 +565,9 @@
                 }]);
 
             if (error) {
-                showToast('❌ Erreur : ' + error.message);
+                showToast('Error: ' + error.message);
             } else {
-                showToast('✅ Investissement de $' + amount + ' enregistré !');
+                showToast('Investment of $' + amount + ' recorded!');
                 $('investAmount').value = '';
                 loadInvestments();
                 refreshCharts();
@@ -575,7 +575,7 @@
         }
 
         // ----------------------------------------------
-        // PARRAINAGE
+        // REFERRALS
         // ----------------------------------------------
         async function loadReferrals() {
             if (!currentUser) return;
@@ -586,14 +586,14 @@
                 .order('created_at', { ascending: false });
 
             if (error) {
-                console.error('Erreur parrainages:', error);
+                console.error('Error loading referrals:', error);
                 return;
             }
 
             const list = $('referralList');
             const countEl = $('referralCount');
             if (!data || data.length === 0) {
-                list.innerHTML = '<li style="padding:12px 0; color:#888;">Aucun parrainage.</li>';
+                list.innerHTML = '<li style="padding:12px 0; color:#888;">No referrals yet.</li>';
                 countEl.textContent = '0';
                 return;
             }
@@ -601,7 +601,7 @@
             countEl.textContent = data.length;
             let html = '';
             data.forEach(ref => {
-                const email = ref.referred?.email || 'Inconnu';
+                const email = ref.referred?.email || 'Unknown';
                 html += `
                     <li>
                         <span class="ref-name">${email}</span>
@@ -615,11 +615,11 @@
         function copyReferralCode() {
             const code = currentUser?.referral_code;
             if (!code) {
-                showToast('Aucun code disponible.');
+                showToast('No code available.');
                 return;
             }
             navigator.clipboard?.writeText(code).then(() => {
-                showToast('✅ Code copié !');
+                showToast('Code copied!');
             }).catch(() => {
                 const textarea = document.createElement('textarea');
                 textarea.value = code;
@@ -627,12 +627,12 @@
                 textarea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
-                showToast('✅ Code copié !');
+                showToast('Code copied!');
             });
         }
 
         // ----------------------------------------------
-        // PRIX DE L'OR
+        // GOLD PRICE API
         // ----------------------------------------------
         async function getGoldPrice() {
             try {
@@ -640,13 +640,13 @@
                 const data = await response.json();
                 return data.price_usd || null;
             } catch (e) {
-                console.error('API or :', e);
+                console.error('Gold API error:', e);
                 return null;
             }
         }
 
         // ----------------------------------------------
-        // GRAPHIQUES
+        // GRAPHS
         // ----------------------------------------------
         function generateDummyData(basePrice, count = 30) {
             const data = [];
@@ -695,8 +695,8 @@
 
             const last = chartData[chartData.length - 1];
             if (last) {
-                $('currentPriceDisplay').textContent = `💰 $${last.value.toFixed(2)} USD`;
-                $('lastUpdate').textContent = `Dernière mise à jour : ${new Date(last.time * 1000).toLocaleTimeString()}`;
+                $('currentPriceDisplay').textContent = `$${last.value.toFixed(2)} USD`;
+                $('lastUpdate').textContent = `Last update: ${new Date(last.time * 1000).toLocaleTimeString()}`;
             }
 
             const forecastContainer = $('forecastContainer');
@@ -754,7 +754,7 @@
 
             const lastForecast = forecastData[forecastData.length - 1];
             if (lastForecast) {
-                $('forecastPrice').textContent = `📈 ${lastForecast.value.toFixed(2)} USD (6 mois)`;
+                $('forecastPrice').textContent = `${lastForecast.value.toFixed(2)} USD (6 months)`;
             }
 
             setTimeout(() => {
@@ -783,13 +783,13 @@
         }
 
         // ----------------------------------------------
-        // CHECK AUTH (modifiée pour forcer l'affichage)
+        // CHECK AUTH
         // ----------------------------------------------
         async function checkAuth() {
-            // D'abord, on force l'affichage de l'écran de connexion
+            // First show the login screen
             showAuthScreen();
 
-            // Puis on vérifie si un utilisateur est connecté
+            // Then check if a user is already logged in
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 await loadUserData(user);
@@ -806,13 +806,13 @@
         });
 
         // ----------------------------------------------
-        // LANCEMENT
+        // START
         // ----------------------------------------------
         window.addEventListener('DOMContentLoaded', () => {
             checkAuth();
         });
 
-        // Exposer les fonctions
+        // Expose functions globally
         window.addInvestment = addInvestment;
         window.copyReferralCode = copyReferralCode;
         window.logoutUser = logoutUser;

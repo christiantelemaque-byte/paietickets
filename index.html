@@ -18,7 +18,6 @@
     <!-- TROUBLESHOOTING STYLE (forces login screen)                  -->
     <!-- ============================================================ -->
     <style>
-        /* Force login screen to show on load */
         #authContainer {
             display: flex !important;
         }
@@ -30,6 +29,17 @@
         }
         .bottom-menu {
             display: none !important;
+        }
+        /* extra style for name fields */
+        .name-row {
+            display: flex;
+            gap: 10px;
+        }
+        .name-row input {
+            flex: 1;
+        }
+        .hidden-field {
+            display: none;
         }
     </style>
 </head>
@@ -168,6 +178,7 @@
                 <div class="page" id="page-profile">
                     <div class="card">
                         <div class="card-title">My Profile</div>
+                        <p><strong>Name</strong><br /><span id="profileName">-</span></p>
                         <p><strong>Email</strong><br /><span id="profileEmail">-</span></p>
                         <p style="margin-top:12px;"><strong>Phone</strong><br /><span id="profilePhone">-</span></p>
                         <p style="margin-top:12px;"><strong>Member since</strong><br /><span id="profileSince">-</span></p>
@@ -215,8 +226,18 @@
                 <p class="sub">Log in or create an account to access your dashboard.</p>
 
                 <div id="authForm">
+                    <!-- Login fields (email + password) -->
                     <input type="email" id="authEmail" placeholder="Email" />
                     <input type="password" id="authPassword" placeholder="Password" />
+
+                    <!-- Sign-up extra fields (hidden by default) -->
+                    <div id="signupFields" class="hidden-field">
+                        <div class="name-row">
+                            <input type="text" id="authFirstName" placeholder="First name" />
+                            <input type="text" id="authLastName" placeholder="Last name" />
+                        </div>
+                    </div>
+
                     <button class="btn-primary" id="authActionBtn" onclick="handleAuth()">Log in</button>
                     <button class="btn-outline" onclick="toggleAuthMode()">
                         Create account
@@ -235,11 +256,9 @@
     <!-- SCRIPTS                                                       -->
     <!-- ============================================================ -->
 
-    <!-- 1. Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
 
-    <!-- 2. Application JavaScript -->
     <script>
         // ----------------------------------------------
         // CONFIG
@@ -273,6 +292,7 @@
         const appHeader = $('appHeader');
         const appContent = $('appContent');
         const bottomMenu = $('bottomMenu');
+        const signupFields = $('signupFields');
 
         // ----------------------------------------------
         // TOAST
@@ -285,49 +305,104 @@
         }
 
         // ----------------------------------------------
-        // AUTH
+        // TOGGLE LOGIN / SIGNUP MODE
         // ----------------------------------------------
         function toggleAuthMode() {
             isLoginMode = !isLoginMode;
             const btn = $('authActionBtn');
             const switchText = $('authSwitchText');
             const link = $('authSwitchLink');
+
             if (isLoginMode) {
                 btn.textContent = 'Log in';
                 switchText.textContent = "Don't have an account?";
                 link.textContent = 'Sign up';
+                signupFields.classList.add('hidden-field');
+                // remove password confirmation if any
             } else {
                 btn.textContent = 'Sign up';
                 switchText.textContent = 'Already have an account?';
                 link.textContent = 'Log in';
+                signupFields.classList.remove('hidden-field');
             }
         }
 
+        // ----------------------------------------------
+        // HANDLE AUTH (Login or Sign Up)
+        // ----------------------------------------------
         async function handleAuth() {
             const email = $('authEmail').value.trim();
             const password = $('authPassword').value.trim();
+
             if (!email || !password) {
-                showToast('Please fill in all fields.');
+                showToast('Please fill in all required fields.');
                 return;
             }
 
             try {
                 if (isLoginMode) {
+                    // LOGIN
                     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                     if (error) throw error;
                     showToast('Login successful!');
                     await loadUserData(data.user);
                 } else {
+                    // SIGN UP
+                    const firstName = $('authFirstName').value.trim();
+                    const lastName = $('authLastName').value.trim();
+                    if (!firstName || !lastName) {
+                        showToast('Please enter your first and last name.');
+                        return;
+                    }
+
+                    // 1. Create auth user
                     const { data, error } = await supabase.auth.signUp({ email, password });
                     if (error) throw error;
-                    showToast('Account created! Check your email.');
-                    await loadUserData(data.user);
+
+                    // 2. After sign-up, the user may be auto-logged in, but we need to insert profile
+                    // Wait for the user to be available
+                    const user = data.user;
+                    if (!user) {
+                        // Sometimes the user might need to confirm email; we'll still try to insert
+                        // but we can't proceed without user id. We'll inform the user.
+                        showToast('Account created. Please check your email to confirm, then log in.');
+                        // We'll clear fields and stay on login mode
+                        // Actually, we'll switch to login mode and let them log in
+                        isLoginMode = true;
+                        toggleAuthMode();
+                        return;
+                    }
+
+                    // Insert into users table with first_name and last_name
+                    const { error: insertError } = await supabase
+                        .from('users')
+                        .insert([{
+                            id: user.id,
+                            email: user.email,
+                            first_name: firstName,
+                            last_name: lastName,
+                            referral_code: generateReferralCode(),
+                            is_verified: true,
+                        }]);
+
+                    if (insertError) {
+                        console.error('Insert error:', insertError);
+                        showToast('Account created but profile data could not be saved. Please contact support.');
+                    } else {
+                        showToast('Account created successfully!');
+                    }
+
+                    // Auto-login after sign-up
+                    await loadUserData(user);
                 }
             } catch (err) {
-                showToast(err.message);
+                showToast('Error: ' + err.message);
             }
         }
 
+        // ----------------------------------------------
+        // LOGOUT
+        // ----------------------------------------------
         async function logoutUser() {
             await supabase.auth.signOut();
             currentUser = null;
@@ -349,6 +424,8 @@
                 .single();
 
             if (error && error.code === 'PGRST116') {
+                // User record doesn't exist - maybe they signed up with email confirmation
+                // We'll insert minimal record
                 const { error: insertError } = await supabase
                     .from('users')
                     .insert([{
@@ -384,7 +461,6 @@
         // SCREEN MANAGEMENT
         // ----------------------------------------------
         function showAuthScreen() {
-            // Remove the troubleshooting style
             const styleTag = document.querySelector('style');
             if (styleTag) styleTag.remove();
 
@@ -470,9 +546,12 @@
         function updateDashboard() {
             if (!currentUser) return;
 
-            const displayName = currentUser.email ? currentUser.email.split('@')[0] : 'User';
-            $('userNameDisplay').innerHTML = `${displayName} <span class="badge">Premium</span>`;
+            const firstName = currentUser.first_name || '';
+            const lastName = currentUser.last_name || '';
+            const fullName = (firstName + ' ' + lastName).trim() || currentUser.email.split('@')[0];
+            $('userNameDisplay').innerHTML = `${fullName} <span class="badge">Premium</span>`;
 
+            $('profileName').textContent = fullName;
             $('profileEmail').textContent = currentUser.email || '-';
             $('profilePhone').textContent = currentUser.phone || 'Not set';
             $('profileSince').textContent = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() :
@@ -488,7 +567,7 @@
         }
 
         // ----------------------------------------------
-        // INVESTMENTS
+        // INVESTMENTS (same as before)
         // ----------------------------------------------
         async function loadInvestments() {
             if (!currentUser) return;
@@ -575,7 +654,7 @@
         }
 
         // ----------------------------------------------
-        // REFERRALS
+        // REFERRALS (same)
         // ----------------------------------------------
         async function loadReferrals() {
             if (!currentUser) return;
@@ -632,7 +711,7 @@
         }
 
         // ----------------------------------------------
-        // GOLD PRICE API
+        // GOLD PRICE API (same)
         // ----------------------------------------------
         async function getGoldPrice() {
             try {
@@ -646,7 +725,7 @@
         }
 
         // ----------------------------------------------
-        // GRAPHS
+        // GRAPHS (same)
         // ----------------------------------------------
         function generateDummyData(basePrice, count = 30) {
             const data = [];
@@ -786,10 +865,8 @@
         // CHECK AUTH
         // ----------------------------------------------
         async function checkAuth() {
-            // First show the login screen
             showAuthScreen();
 
-            // Then check if a user is already logged in
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 await loadUserData(user);
@@ -822,4 +899,4 @@
     </script>
 
 </body>
-    </html>
+                                    </html>

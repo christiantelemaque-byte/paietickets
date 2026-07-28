@@ -1,138 +1,1206 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Of - Test</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Stock Of - Application</title>
+
+    <!-- Lightweight Charts (pour les graphiques) -->
+    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.js">
+    </script>
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        /* ---- RESET & BASE ---- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background: #f0f2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #1a1a2e;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            padding: 16px;
         }
-        .container {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 500px;
+
+        /* ---- APP CONTAINER (style mobile) ---- */
+        .app-container {
+            max-width: 420px;
             width: 100%;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-            text-align: center;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            position: relative;
+            padding-bottom: 80px;
+            /* espace pour le menu bas */
+            min-height: 700px;
         }
-        h1 { color: #1a1a2e; font-size: 24px; }
-        .status {
-            padding: 20px;
-            border-radius: 12px;
-            margin: 20px 0;
+
+        /* ---- HEADER ---- */
+        .app-header {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            padding: 24px 24px 40px 24px;
+            color: white;
+            border-radius: 0 0 40px 40px;
+            position: relative;
+        }
+
+        .app-header .greeting {
             font-size: 14px;
-            background: #f5f5f5;
-            border: 2px solid #ddd;
+            font-weight: 300;
+            opacity: 0.8;
+            letter-spacing: 0.5px;
         }
-        .status.loading { background: #e3f2fd; border-color: #2196f3; color: #0d3a5a; }
-        .status.success { background: #e8f5e9; border-color: #4caf50; color: #1e3a1e; }
-        .status.error { background: #ffebee; border-color: #f44336; color: #5a1a1a; }
-        .status pre {
-            background: rgba(0,0,0,0.05);
-            padding: 10px;
-            border-radius: 8px;
-            overflow-x: auto;
+
+        .app-header .user-name {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .app-header .user-name .badge {
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: #ffd700;
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: 400;
+        }
+
+        .app-header .balance-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+
+        .app-header .balance-row .label {
+            font-size: 13px;
+            opacity: 0.7;
+        }
+
+        .app-header .balance-row .amount {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .app-header .balance-row .amount small {
+            font-size: 16px;
+            font-weight: 400;
+            opacity: 0.6;
+            margin-left: 4px;
+        }
+
+        .app-header .stats-row {
+            display: flex;
+            gap: 20px;
+            margin-top: 16px;
+        }
+
+        .app-header .stats-row .stat-item {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 12px 16px;
+            backdrop-filter: blur(4px);
+        }
+
+        .app-header .stats-row .stat-item .stat-label {
+            font-size: 11px;
+            opacity: 0.6;
+        }
+
+        .app-header .stats-row .stat-item .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* ---- PAGE CONTENT ---- */
+        .page {
+            display: none;
+            padding: 20px 20px 0 20px;
+            animation: fadeUp 0.3s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ---- CARTES ---- */
+        .card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 18px 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            border: 1px solid #f0f0f0;
+            margin-bottom: 16px;
+        }
+
+        .card .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card .card-title .badge-pill {
+            background: #eef2ff;
+            color: #4f46e5;
+            font-size: 11px;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-weight: 400;
+        }
+
+        /* ---- CHART WRAPPER ---- */
+        .chart-wrapper {
+            width: 100%;
+            height: 200px;
+            margin-top: 4px;
+        }
+
+        /* ---- LISTE DE PARRAINAGE ---- */
+        .referral-list {
+            list-style: none;
+        }
+
+        .referral-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        .referral-list li:last-child {
+            border-bottom: none;
+        }
+
+        .referral-list .ref-name {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .referral-list .ref-date {
             font-size: 12px;
-            text-align: left;
+            color: #888;
         }
-        .btn {
-            padding: 12px 30px;
+
+        /* ---- MENU BAS ---- */
+        .bottom-menu {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0 12px 0;
+            border-radius: 0 0 32px 32px;
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.92);
+        }
+
+        .bottom-menu .menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: 0.2s;
+            border: none;
+            background: none;
+            font-family: inherit;
+            padding: 0 12px;
+        }
+
+        .bottom-menu .menu-item.active {
+            opacity: 1;
+        }
+
+        .bottom-menu .menu-item .icon {
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .bottom-menu .menu-item .label {
+            font-size: 10px;
+            font-weight: 500;
+            color: #1a1a2e;
+        }
+
+        .bottom-menu .menu-item.active .label {
+            color: #4f46e5;
+        }
+
+        /* ---- AUTHENTIFICATION ---- */
+        .auth-box {
+            padding: 30px 20px 20px 20px;
+        }
+
+        .auth-box h2 {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .auth-box p.sub {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .auth-box input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            font-size: 15px;
+            margin-bottom: 12px;
+            background: #f8fafc;
+            transition: 0.2s;
+        }
+
+        .auth-box input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            background: #ffffff;
+        }
+
+        .auth-box .btn-primary {
+            width: 100%;
+            padding: 14px;
             background: #1a1a2e;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 16px;
             font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .auth-box .btn-primary:hover {
+            background: #2d2d44;
+        }
+
+        .auth-box .btn-outline {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            color: #1a1a2e;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 8px;
+        }
+
+        .auth-box .btn-outline:hover {
+            border-color: #1a1a2e;
+        }
+
+        .auth-box .switch-link {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .auth-box .switch-link span {
+            color: #4f46e5;
+            font-weight: 600;
             cursor: pointer;
         }
-        .btn:hover { background: #2d2d44; }
+
+        .auth-box .switch-link span:hover {
+            text-decoration: underline;
+        }
+
+        /* ---- STATUS / ALERTE ---- */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            display: none;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .toast.show {
+            display: block;
+            animation: toastIn 0.3s ease;
+        }
+
+        @keyframes toastIn {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* ---- RESPONSIVE ---- */
+        @media (max-width: 480px) {
+            .app-container {
+                border-radius: 0;
+                min-height: 100vh;
+                padding-bottom: 72px;
+            }
+            .app-header {
+                border-radius: 0 0 32px 32px;
+                padding: 20px 20px 32px 20px;
+            }
+            .app-header .balance-row .amount {
+                font-size: 24px;
+            }
+            .bottom-menu {
+                border-radius: 0;
+            }
+        }
+
+        /* ---- PETITS DÉTAILS ---- */
+        .text-muted {
+            color: #888;
+            font-size: 13px;
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mt-2 {
+            margin-top: 8px;
+        }
+
+        .mt-4 {
+            margin-top: 20px;
+        }
+
+        .gap-2 {
+            gap: 8px;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <h1>📈 Stock Of</h1>
-    <p style="color:#666; margin:10px 0;">Test de connexion à Supabase</p>
+    <!-- ============================================================ -->
+    <!-- TOAST (messages temporaires)                                 -->
+    <!-- ============================================================ -->
+    <div id="toast" class="toast"></div>
 
-    <div id="status" class="status loading">
-        ⏳ Test en cours...
+    <!-- ============================================================ -->
+    <!-- APPLICATION                                                   -->
+    <!-- ============================================================ -->
+    <div class="app-container" id="app">
+
+        <!-- ---------- HEADER ---------- -->
+        <header class="app-header" id="appHeader">
+            <div class="greeting">Bonjour 👋</div>
+            <div class="user-name" id="userNameDisplay">
+                Utilisateur
+                <span class="badge">⭐ Premium</span>
+            </div>
+
+            <div class="balance-row">
+                <div>
+                    <div class="label">💰 Investissement total</div>
+                    <div class="amount" id="totalInvestment">
+                        $0 <small>USD</small>
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="label">📈 Évolution (24h)</div>
+                    <div class="amount" style="color:#4caf50;" id="dailyChange">
+                        +0.00%
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-label">👥 Parrainages</div>
+                    <div class="stat-value" id="referralCount">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">🏅 Récompenses</div>
+                    <div class="stat-value" id="rewardCount">$0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">📊 Actif depuis</div>
+                    <div class="stat-value" id="memberSince">-</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ============================================================ -->
+        <!-- PAGES                                                         -->
+        <!-- ============================================================ -->
+
+        <!-- ---------- PAGE 1 : DASHBOARD ---------- -->
+        <div class="page active" id="page-dashboard">
+            <div class="card">
+                <div class="card-title">
+                    📈 Prix de l'or (USD/once)
+                    <span class="badge-pill">En temps réel</span>
+                </div>
+                <div class="chart-wrapper" id="chartContainer">
+                    <!-- Lightweight Charts sera injecté ici -->
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:12px; color:#888; margin-top:8px;">
+                    <span id="lastUpdate">Dernière mise à jour : -</span>
+                    <span id="currentPriceDisplay">-</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    🔮 Prévision sur 6 mois
+                    <span class="badge-pill">Estimation</span>
+                </div>
+                <div class="chart-wrapper" id="forecastContainer">
+                    <!-- Graphique de prévision -->
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:12px; color:#888; margin-top:8px;">
+                    <span>Projection basée sur les 30 derniers jours</span>
+                    <span id="forecastPrice">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ---------- PAGE 2 : INVESTISSEMENTS ---------- -->
+        <div class="page" id="page-investments">
+            <div class="card">
+                <div class="card-title">📊 Mes investissements</div>
+                <div id="investmentList">
+                    <p class="text-muted" style="padding:8px 0;">Aucun investissement pour le moment.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">➕ Ajouter un investissement</div>
+                <input type="number" id="investAmount" placeholder="Montant (USD)" style="width:100%; padding:12px 16px; border-radius:16px; border:1px solid #e2e8f0; margin-bottom:12px;" />
+                <button class="btn-primary" style="width:100%; padding:12px; background:#1a1a2e; color:white; border:none; border-radius:16px; font-weight:600; cursor:pointer;" onclick="addInvestment()">
+                    Investir
+                </button>
+            </div>
+        </div>
+
+        <!-- ---------- PAGE 3 : PARRAINAGE ---------- -->
+        <div class="page" id="page-referrals">
+            <div class="card">
+                <div class="card-title">
+                    🔗 Mon code de parrainage
+                    <span class="badge-pill" id="referralCodeDisplay">-</span>
+                </div>
+                <p style="font-size:14px; color:#555; margin-bottom:12px;">
+                    Partage ce code avec tes amis. S'ils s'inscrivent, tu gagnes une récompense !
+                </p>
+                <button class="btn-primary" style="width:100%; padding:12px; background:#1a1a2e; color:white; border:none; border-radius:16px; font-weight:600; cursor:pointer;" onclick="copyReferralCode()">
+                    📋 Copier le code
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">👥 Personnes parrainées</div>
+                <ul class="referral-list" id="referralList">
+                    <li style="padding:12px 0; color:#888;">Aucun parrainage pour le moment.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ---------- PAGE 4 : PROFIL ---------- -->
+        <div class="page" id="page-profile">
+            <div class="card">
+                <div class="card-title">👤 Mon profil</div>
+                <p><strong>Email</strong><br /><span id="profileEmail">-</span></p>
+                <p style="margin-top:12px;"><strong>Téléphone</strong><br /><span id="profilePhone">-</span></p>
+                <p style="margin-top:12px;"><strong>Membre depuis</strong><br /><span id="profileSince">-</span></p>
+            </div>
+
+            <div class="card">
+                <button class="btn-outline" style="width:100%; padding:12px; background:#fef2f2; border:1px solid #fecaca; color:#b91c1c; border-radius:16px; font-weight:600; cursor:pointer;" onclick="logoutUser()">
+                    🚪 Se déconnecter
+                </button>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- MENU BAS                                                      -->
+        <!-- ============================================================ -->
+        <nav class="bottom-menu" id="bottomMenu">
+            <button class="menu-item active" data-page="page-dashboard">
+                <span class="icon">📊</span>
+                <span class="label">Dashboard</span>
+            </button>
+            <button class="menu-item" data-page="page-investments">
+                <span class="icon">💰</span>
+                <span class="label">Invest.</span>
+            </button>
+            <button class="menu-item" data-page="page-referrals">
+                <span class="icon">👥</span>
+                <span class="label">Parrainage</span>
+            </button>
+            <button class="menu-item" data-page="page-profile">
+                <span class="icon">👤</span>
+                <span class="label">Profil</span>
+            </button>
+        </nav>
+
+        <!-- ============================================================ -->
+        <!-- PAGE D'AUTH (visible si non connecté)                        -->
+        <!-- ============================================================ -->
+        <div id="authContainer" style="display:none; padding:20px;">
+            <div class="auth-box">
+                <h2>Bienvenue 👋</h2>
+                <p class="sub">Connecte-toi ou crée un compte pour accéder à ton dashboard.</p>
+
+                <div id="authForm">
+                    <input type="email" id="authEmail" placeholder="Email" />
+                    <input type="password" id="authPassword" placeholder="Mot de passe" />
+                    <button class="btn-primary" id="authActionBtn" onclick="handleAuth()">Se connecter</button>
+                    <button class="btn-outline" onclick="toggleAuthMode()">
+                        Créer un compte
+                    </button>
+                    <div class="switch-link">
+                        <span id="authSwitchText">Pas encore de compte ?</span>
+                        <span id="authSwitchLink" onclick="toggleAuthMode()">S'inscrire</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <button class="btn" onclick="runTest()">🔄 Relancer le test</button>
-</div>
+    <!-- ============================================================ -->
+    <!-- SCRIPTS                                                       -->
+    <!-- ============================================================ -->
 
-<!-- ============================================================ -->
-<!-- 1. Charger Supabase -->
-<!-- ============================================================ -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-</script>
+    <!-- 1. Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
 
-<!-- ============================================================ -->
-<!-- 2. Script de test -->
-<!-- ============================================================ -->
-<script>
-    // Configuration
-    const SUPABASE_URL = 'https://iiceaseqdzcdfgkiinnx.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_VZxq4hifeXH7kyDdi91FJg_LlzNoCiL';
+    <!-- 2. Configuration & App -->
+    <script>
+        // ----------------------------------------------
+        // CONFIGURATION SUPABASE
+        // ----------------------------------------------
+        const SUPABASE_URL = 'https://iiceaseqdzcdfgkiinnx.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_VZxq4hifeXH7kyDdi91FJg_LlzNoCiL';
 
-    const statusDiv = document.getElementById('status');
-
-    function setStatus(type, title, details) {
-        statusDiv.className = 'status ' + type;
-        let html = `<strong>${title}</strong>`;
-        if (details) {
-            html += `<pre>${details}</pre>`;
-        }
-        statusDiv.innerHTML = html;
-    }
-
-    async function runTest() {
-        setStatus('loading', '⏳ Test en cours... Connexion à Supabase...');
-
-        // Vérifier que window.supabase existe
-        if (typeof window.supabase === 'undefined') {
-            setStatus('error', '❌ Erreur : La bibliothèque Supabase n\'est pas chargée. Vérifie le CDN.');
-            alert('La bibliothèque Supabase n\'est pas chargée !');
-            return;
-        }
-
+        // Initialiser Supabase
+        let supabase;
         try {
-            // Initialiser le client
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+            alert('Erreur d\'initialisation Supabase : ' + e.message);
+        }
 
-            // Test : vérifier que l'API répond
+        // ----------------------------------------------
+        // ÉTAT DE L'APPLICATION
+        // ----------------------------------------------
+        let currentUser = null;
+        let currentPage = 'page-dashboard';
+        let isLoginMode = true;
+        let chart = null;
+        let forecastChart = null;
+        let goldPriceInterval = null;
+
+        // ----------------------------------------------
+        // ÉLÉMENTS DOM
+        // ----------------------------------------------
+        const $ = (id) => document.getElementById(id);
+        const toast = $('toast');
+        const authContainer = $('authContainer');
+        const appHeader = $('appHeader');
+        const bottomMenu = $('bottomMenu');
+
+        // ----------------------------------------------
+        // TOAST (notification)
+        // ----------------------------------------------
+        function showToast(msg, duration = 3000) {
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => toast.classList.remove('show'), duration);
+        }
+
+        // ----------------------------------------------
+        // AUTHENTIFICATION
+        // ----------------------------------------------
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            const btn = $('authActionBtn');
+            const switchText = $('authSwitchText');
+            const link = $('authSwitchLink');
+            if (isLoginMode) {
+                btn.textContent = 'Se connecter';
+                switchText.textContent = 'Pas encore de compte ?';
+                link.textContent = "S'inscrire";
+            } else {
+                btn.textContent = "S'inscrire";
+                switchText.textContent = 'Déjà un compte ?';
+                link.textContent = 'Se connecter';
+            }
+        }
+
+        async function handleAuth() {
+            const email = $('authEmail').value.trim();
+            const password = $('authPassword').value.trim();
+            if (!email || !password) {
+                showToast('Veuillez remplir tous les champs.');
+                return;
+            }
+
+            try {
+                if (isLoginMode) {
+                    // Connexion
+                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    showToast('✅ Connexion réussie !');
+                    await loadUserData(data.user);
+                } else {
+                    // Inscription
+                    const { data, error } = await supabase.auth.signUp({ email, password });
+                    if (error) throw error;
+                    showToast('✅ Compte créé ! Vérifie ton email.');
+                    // Auto-login après inscription
+                    await loadUserData(data.user);
+                }
+            } catch (err) {
+                showToast('❌ ' + err.message);
+            }
+        }
+
+        async function logoutUser() {
+            await supabase.auth.signOut();
+            currentUser = null;
+            showToast('Déconnecté.');
+            showAuthScreen();
+        }
+
+        // ----------------------------------------------
+        // CHARGEMENT DE L'UTILISATEUR
+        // ----------------------------------------------
+        async function loadUserData(user) {
+            if (!user) return;
+            currentUser = user;
+
+            // Récupérer les infos depuis la table users
             const { data, error } = await supabase
-                .from('gold_prices')
-                .select('count', { count: 'exact', head: true });
+                .from('users')
+                .select('*')
+                .eq('id', user.id)
+                .single();
 
             if (error) {
-                // Erreur : afficher le message
-                setStatus('error', '❌ Erreur de connexion', error.message);
-                alert('❌ ERREUR : ' + error.message);
+                // Si l'utilisateur n'existe pas encore dans la table, on le crée
+                if (error.code === 'PGRST116') {
+                    const { error: insertError } = await supabase
+                        .from('users')
+                        .insert([{
+                            id: user.id,
+                            email: user.email,
+                            referral_code: generateReferralCode(),
+                            is_verified: true,
+                        }]);
+                    if (insertError) {
+                        showToast('Erreur lors de la création du profil.');
+                        return;
+                    }
+                    // Recharger
+                    const { data: newData } = await supabase
+                        .from('users')
+                        .select('*')
+                        .eq('id', user.id)
+                        .single();
+                    if (newData) {
+                        currentUser = { ...user, ...newData };
+                    }
+                } else {
+                    showToast('Erreur : ' + error.message);
+                    return;
+                }
             } else {
-                // Succès
-                setStatus('success', '✅ Connexion réussie ! La table "gold_prices" existe.');
-                alert('✅ Connexion réussie !');
+                currentUser = { ...user, ...data };
             }
-        } catch (err) {
-            setStatus('error', '❌ Erreur inattendue', err.message);
-            alert('❌ Erreur inattendue : ' + err.message);
-        }
-    }
 
-    // Lancer le test au chargement
-    window.addEventListener('load', function() {
-        setTimeout(runTest, 300);
-    });
-</script>
+            // Mettre à jour l'UI
+            hideAuthScreen();
+            updateDashboard();
+            startRealtimeUpdates();
+        }
+
+        function generateReferralCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        // ----------------------------------------------
+        // AFFICHAGE DES ÉCRANS
+        // ----------------------------------------------
+        function showAuthScreen() {
+            authContainer.style.display = 'block';
+            appHeader.style.display = 'none';
+            bottomMenu.style.display = 'none';
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        }
+
+        function hideAuthScreen() {
+            authContainer.style.display = 'none';
+            appHeader.style.display = 'block';
+            bottomMenu.style.display = 'flex';
+            switchPage('page-dashboard');
+        }
+
+        // ----------------------------------------------
+        // MENU BAS
+        // ----------------------------------------------
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const pageId = this.dataset.page;
+                if (pageId) switchPage(pageId);
+            });
+        });
+
+        function switchPage(pageId) {
+            currentPage = pageId;
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const target = $(pageId);
+            if (target) target.classList.add('active');
+
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            const menuBtn = document.querySelector(`.menu-item[data-page="${pageId}"]`);
+            if (menuBtn) menuBtn.classList.add('active');
+
+            // Si on va sur le dashboard, on actualise les graphiques
+            if (pageId === 'page-dashboard') {
+                refreshCharts();
+            }
+        }
+
+        // ----------------------------------------------
+        // MISE À JOUR DU DASHBOARD
+        // ----------------------------------------------
+        function updateDashboard() {
+            if (!currentUser) return;
+
+            // Nom
+            const nameEl = $('userNameDisplay');
+            const displayName = currentUser.email ? currentUser.email.split('@')[0] : 'Utilisateur';
+            nameEl.innerHTML = `${displayName} <span class="badge">⭐ Premium</span>`;
+
+            // Email profil
+            $('profileEmail').textContent = currentUser.email || '-';
+            $('profilePhone').textContent = currentUser.phone || 'Non renseigné';
+            $('profileSince').textContent = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() :
+            '-';
+
+            // Code parrainage
+            const code = currentUser.referral_code || 'N/A';
+            $('referralCodeDisplay').textContent = code;
+
+            // Charger investissements
+            loadInvestments();
+            loadReferrals();
+            refreshCharts();
+        }
+
+        // ----------------------------------------------
+        // INVESTISSEMENTS
+        // ----------------------------------------------
+        async function loadInvestments() {
+            if (!currentUser) return;
+            const { data, error } = await supabase
+                .from('investments')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('purchase_date', { ascending: false });
+
+            if (error) {
+                console.error('Erreur investissements:', error);
+                return;
+            }
+
+            const list = $('investmentList');
+            if (!data || data.length === 0) {
+                list.innerHTML = '<p class="text-muted" style="padding:8px 0;">Aucun investissement.</p>';
+                $('totalInvestment').textContent = '$0 USD';
+                return;
+            }
+
+            let total = 0;
+            let html = '';
+            data.forEach(inv => {
+                total += parseFloat(inv.amount_invested || 0);
+                html += `
+                    <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f0f2f5;">
+                        <div>
+                            <strong>$${parseFloat(inv.amount_invested).toFixed(2)}</strong>
+                            <div style="font-size:12px; color:#888;">${new Date(inv.purchase_date).toLocaleDateString()}</div>
+                        </div>
+                        <div style="font-size:12px; color:#888;">
+                            ${inv.gold_weight ? parseFloat(inv.gold_weight).toFixed(4)+' g' : '-'}
+                        </div>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+            $('totalInvestment').textContent = `$${total.toFixed(2)} USD`;
+        }
+
+        async function addInvestment() {
+            if (!currentUser) {
+                showToast('Veuillez vous connecter.');
+                return;
+            }
+            const amount = parseFloat($('investAmount').value);
+            if (!amount || amount <= 0) {
+                showToast('Montant invalide.');
+                return;
+            }
+
+            // Récupérer le prix actuel de l'or
+            const price = await getGoldPrice();
+            if (!price) {
+                showToast('Impossible de récupérer le prix de l\'or.');
+                return;
+            }
+
+            const goldWeight = amount / price;
+
+            const { error } = await supabase
+                .from('investments')
+                .insert([{
+                    user_id: currentUser.id,
+                    amount_invested: amount,
+                    gold_weight: goldWeight,
+                    purchase_price: price,
+                }]);
+
+            if (error) {
+                showToast('❌ Erreur : ' + error.message);
+            } else {
+                showToast('✅ Investissement de $' + amount + ' enregistré !');
+                $('investAmount').value = '';
+                loadInvestments();
+                refreshCharts();
+            }
+        }
+
+        // ----------------------------------------------
+        // PARRAINAGE
+        // ----------------------------------------------
+        async function loadReferrals() {
+            if (!currentUser) return;
+            const { data, error } = await supabase
+                .from('referrals')
+                .select('*, referred:referred_id(*)')
+                .eq('referrer_id', currentUser.id)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Erreur parrainages:', error);
+                return;
+            }
+
+            const list = $('referralList');
+            const countEl = $('referralCount');
+            if (!data || data.length === 0) {
+                list.innerHTML = '<li style="padding:12px 0; color:#888;">Aucun parrainage.</li>';
+                countEl.textContent = '0';
+                return;
+            }
+
+            countEl.textContent = data.length;
+            let html = '';
+            data.forEach(ref => {
+                const email = ref.referred?.email || 'Inconnu';
+                html += `
+                    <li>
+                        <span class="ref-name">${email}</span>
+                        <span class="ref-date">${new Date(ref.created_at).toLocaleDateString()}</span>
+                    </li>
+                `;
+            });
+            list.innerHTML = html;
+        }
+
+        function copyReferralCode() {
+            const code = currentUser?.referral_code;
+            if (!code) {
+                showToast('Aucun code disponible.');
+                return;
+            }
+            navigator.clipboard?.writeText(code).then(() => {
+                showToast('✅ Code copié !');
+            }).catch(() => {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = code;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('✅ Code copié !');
+            });
+        }
+
+        // ----------------------------------------------
+        // PRIX DE L'OR (API)
+        // ----------------------------------------------
+        async function getGoldPrice() {
+            try {
+                const response = await fetch('https://gold-price-api.omkar.cloud/price');
+                const data = await response.json();
+                return data.price_usd || null;
+            } catch (e) {
+                console.error('API or :', e);
+                return null;
+            }
+        }
+
+        // ----------------------------------------------
+        // GRAPHIQUES (Lightweight Charts)
+        // ----------------------------------------------
+        async function refreshCharts() {
+            if (currentPage !== 'page-dashboard') return;
+
+            const { data, error } = await supabase
+                .from('gold_prices')
+                .select('*')
+                .order('timestamp', { ascending: true })
+                .limit(100);
+
+            if (error) {
+                console.error('Erreur chargement gold_prices:', error);
+                return;
+            }
+
+            // Construire les données
+            const prices = data || [];
+            const chartData = prices.map(row => ({
+                time: Math.floor(new Date(row.timestamp).getTime() / 1000),
+                value: parseFloat(row.price)
+            }));
+
+            // Si pas assez de données, on génère des données fictives pour démonstration
+            if (chartData.length < 3) {
+                const basePrice = 85 + Math.random() * 5;
+                const now = Math.floor(Date.now() / 1000);
+                for (let i = 0; i < 20; i++) {
+                    const t = now - (20 - i) * 3600;
+                    const v = basePrice + Math.sin(i / 3) * 1.5 + Math.random() * 0.5;
+                    chartData.push({ time: t, value: v });
+                }
+            }
+
+            // Graphique principal
+            const container = $('chartContainer');
+            if (chart) {
+                chart.remove();
+                chart = null;
+            }
+            chart = LightweightCharts.createChart(container, {
+                width: container.clientWidth || 340,
+                height: 200,
+                layout: { textColor: '#333', background: { color: '#ffffff' } },
+                grid: { vertLines: { visible: false }, horzLines: { visible: false } },
+                rightPriceScale: { borderVisible: false },
+                timeScale: { borderVisible: false, visible: true }
+            });
+            const lineSeries = chart.addLineSeries({ color: '#4f46e5', lineWidth: 2 });
+            lineSeries.setData(chartData);
+
+            // Dernier prix
+            const last = chartData[chartData.length - 1];
+            if (last) {
+                $('currentPriceDisplay').textContent = `💰 $${last.value.toFixed(2)} USD`;
+                $('lastUpdate').textContent = `Dernière mise à jour : ${new Date(last.time * 1000).toLocaleTimeString()}`;
+            }
+
+            // Graphique de prévision (simple projection linéaire)
+            const forecastContainer = $('forecastContainer');
+            if (forecastChart) {
+                forecastChart.remove();
+                forecastChart = null;
+            }
+            forecastChart = LightweightCharts.createChart(forecastContainer, {
+                width: container.clientWidth || 340,
+                height: 180,
+                layout: { textColor: '#333', background: { color: '#ffffff' } },
+                grid: { vertLines: { visible: false }, horzLines: { visible: false } },
+                rightPriceScale: { borderVisible: false },
+                timeScale: { borderVisible: false, visible: true }
+            });
+
+            // Calculer la tendance sur les 30 derniers points
+            const recent = chartData.slice(-30);
+            if (recent.length >= 5) {
+                const values = recent.map(d => d.value);
+                const times = recent.map(d => d.time);
+                // Régression linéaire simple
+                const n = values.length;
+                let sumX = 0,
+                    sumY = 0,
+                    sumXY = 0,
+                    sumX2 = 0;
+                for (let i = 0; i < n; i++) {
+                    const x = i;
+                    const y = values[i];
+                    sumX += x;
+                    sumY += y;
+                    sumXY += x * y;
+                    sumX2 += x * x;
+                }
+                const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                const intercept = (sumY - slope * sumX) / n;
+
+                // Projeter sur 6 mois (180 jours)
+                const lastTime = recent[recent.length - 1].time;
+                const lastValue = recent[recent.length - 1].value;
+                const futureDays = 180;
+                const step = 86400; // 1 jour en secondes
+
+                const forecastData = [];
+                for (let i = 1; i <= 30; i++) {
+                    const day = i * 5; // tous les 5 jours
+                    const futureTime = lastTime + day * step;
+                    const futureValue = lastValue + slope * day;
+                    forecastData.push({ time: futureTime, value: Math.max(0, futureValue) });
+                }
+
+                const forecastLine = forecastChart.addLineSeries({ color: '#f59e0b', lineWidth: 2, lineStyle: 1 });
+                forecastLine.setData(forecastData);
+
+                // Dernière prévision
+                const lastForecast = forecastData[forecastData.length - 1];
+                if (lastForecast) {
+                    $('forecastPrice').textContent = `📈 ${lastForecast.value.toFixed(2)} USD (6 mois)`;
+                }
+            } else {
+                const dummy = forecastChart.addLineSeries({ color: '#f59e0b', lineWidth: 2 });
+                const dummyData = [];
+                const base = chartData.length > 0 ? chartData[chartData.length - 1].value : 85;
+                const now = Math.floor(Date.now() / 1000);
+                for (let i = 1; i <= 30; i++) {
+                    dummyData.push({ time: now + i * 86400 * 5, value: base + i * 0.15 + Math.sin(i / 5) * 0.8 });
+                }
+                dummy.setData(dummyData);
+                const lastDummy = dummyData[dummyData.length - 1];
+                if (lastDummy) {
+                    $('forecastPrice').textContent = `📈 ${lastDummy.value.toFixed(2)} USD (estimation)`;
+                }
+            }
+
+            // Redimensionner les graphiques
+            setTimeout(() => {
+                if (chart) chart.resize(container.clientWidth || 340, 200);
+                if (forecastChart) forecastChart.resize(forecastContainer.clientWidth || 340, 180);
+            }, 100);
+        }
+
+        // ----------------------------------------------
+        // REAL TIME (mise à jour des prix toutes les 60s)
+        // ----------------------------------------------
+        function startRealtimeUpdates() {
+            if (goldPriceInterval) clearInterval(goldPriceInterval);
+            goldPriceInterval = setInterval(async () => {
+                if (!currentUser) return;
+                const price = await getGoldPrice();
+                if (price) {
+                    // Enregistrer dans la base
+                    await supabase
+                        .from('gold_prices')
+                        .insert([{ price: price, timestamp: new Date().toISOString() }]);
+                    // Rafraîchir le graphique si sur le dashboard
+                    if (currentPage === 'page-dashboard') {
+                        refreshCharts();
+                    }
+                }
+            }, 60000); // toutes les 60 secondes
+        }
+
+        // ----------------------------------------------
+        // VÉRIFICATION DE L'AUTH AU CHARGEMENT
+        // ----------------------------------------------
+        async function checkAuth() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                await loadUserData(user);
+            } else {
+                showAuthScreen();
+            }
+        }
+
+        // ----------------------------------------------
+        // REDIMENSIONNEMENT DES GRAPHIQUES
+        // ----------------------------------------------
+        window.addEventListener('resize', () => {
+            if (currentPage === 'page-dashboard') {
+                setTimeout(refreshCharts, 300);
+            }
+        });
+
+        // ----------------------------------------------
+        // LANCEMENT
+        // ----------------------------------------------
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+        });
+
+        // Exposer certaines fonctions globalement pour les boutons HTML
+        window.addInvestment = addInvestment;
+        window.copyReferralCode = copyReferralCode;
+        window.logoutUser = logoutUser;
+        window.handleAuth = handleAuth;
+        window.toggleAuthMode = toggleAuthMode;
+        window.getGoldPrice = getGoldPrice;
+    </script>
 
 </body>
-        </html>
+            </html>

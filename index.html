@@ -4,21 +4,254 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Of - Application</title>
-    <!-- Ton CSS ici -->
-    <link rel="stylesheet" href="style.css">
+    
+    <!-- Styles CSS de base -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        h1 {
+            color: #1a1a2e;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .test-result {
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+            text-align: left;
+            display: none;
+            background: #f5f5f5;
+            border: 2px solid #ddd;
+        }
+        
+        .test-result.success {
+            display: block;
+            background: #e8f5e9;
+            border-color: #4caf50;
+            color: #1e3a1e;
+        }
+        
+        .test-result.error {
+            display: block;
+            background: #ffebee;
+            border-color: #f44336;
+            color: #5a1a1a;
+        }
+        
+        .test-result.loading {
+            display: block;
+            background: #e3f2fd;
+            border-color: #2196f3;
+            color: #0d3a5a;
+        }
+        
+        .test-result pre {
+            background: rgba(0,0,0,0.05);
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #1a1a2e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            background: #2d2d44;
+        }
+        
+        .status-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-dot.green { background: #4caf50; }
+        .status-dot.red { background: #f44336; }
+        .status-dot.orange { background: #ff9800; }
+        .status-dot.blue { background: #2196f3; }
+    </style>
 </head>
 <body>
-    <h1>Bienvenue sur Stock Of</h1>
-    <p>Le test de connexion à Supabase est en cours...</p>
-    <p>Ouvre la console (F12) pour voir le résultat.</p>
 
-    <!-- Charger Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Charger la configuration -->
-    <script src="js/supabase-config.js"></script>
-    
-    <!-- Charger et exécuter le test -->
-    <script src="js/test.js"></script>
+    <div class="container">
+        <h1>📈 Stock Of</h1>
+        <p class="subtitle">Application de suivi d'investissements</p>
+        
+        <!-- Zone de résultat du test -->
+        <div id="testResult" class="test-result loading">
+            <span class="status-dot blue"></span>
+            <strong>Test en cours...</strong>
+            <p style="margin-top:8px;">Connexion à Supabase en cours. Veuillez patienter.</p>
+        </div>
+        
+        <!-- Boutons -->
+        <button class="btn" onclick="testSupabase()">🔄 Tester la connexion</button>
+        
+        <p style="margin-top:20px; font-size:12px; color:#999;">
+            La connexion à Supabase sera testée automatiquement au chargement.
+        </p>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 1. Charger la bibliothèque Supabase                            -->
+    <!-- ============================================================ -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+
+    <!-- ============================================================ -->
+    <!-- 2. Configuration et test de Supabase                          -->
+    <!-- ============================================================ -->
+    <script>
+        // ----------------------------------------------------------------
+        // Configuration de Supabase
+        // ----------------------------------------------------------------
+        const SUPABASE_URL = 'https://iiceaseqdzcdfgkiinnx.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_VZxq4hifeXH7kyDdi91FJg_LlzNoCiL';
+
+        // Initialiser le client Supabase
+        let supabase;
+
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (err) {
+            alert('❌ ERREUR : Impossible d\'initialiser Supabase.\n\nMessage : ' + err.message);
+        }
+
+        // ----------------------------------------------------------------
+        // Fonction de test
+        // ----------------------------------------------------------------
+        const resultDiv = document.getElementById('testResult');
+
+        function setResult(status, title, message, details) {
+            // Supprimer toutes les classes
+            resultDiv.classList.remove('loading', 'success', 'error');
+            
+            if (status === 'loading') {
+                resultDiv.classList.add('loading');
+                resultDiv.innerHTML = `
+                    <span class="status-dot blue"></span>
+                    <strong>${title}</strong>
+                    <p style="margin-top:8px;">${message}</p>
+                `;
+            } else if (status === 'success') {
+                resultDiv.classList.add('success');
+                resultDiv.innerHTML = `
+                    <span class="status-dot green"></span>
+                    <strong>${title}</strong>
+                    <p style="margin-top:8px;">${message}</p>
+                    ${details ? `<pre>${details}</pre>` : ''}
+                `;
+            } else if (status === 'error') {
+                resultDiv.classList.add('error');
+                resultDiv.innerHTML = `
+                    <span class="status-dot red"></span>
+                    <strong>${title}</strong>
+                    <p style="margin-top:8px;">${message}</p>
+                    ${details ? `<pre>${details}</pre>` : ''}
+                `;
+            }
+        }
+
+        async function testSupabase() {
+            // Afficher le chargement
+            setResult('loading', 'Test en cours...', 'Connexion à Supabase en cours. Veuillez patienter.');
+
+            // Vérifier que supabase est bien initialisé
+            if (typeof supabase === 'undefined' || !supabase) {
+                setResult('error', 'Erreur d\'initialisation', 
+                    'Le client Supabase n\'a pas pu être initialisé. Vérifie que la bibliothèque est bien chargée.',
+                    'Vérifie que le script CDN est accessible.'
+                );
+                alert('❌ ERREUR : Supabase n\'est pas initialisé !');
+                return;
+            }
+
+            try {
+                // Tester la connexion
+                const { data, error } = await supabase
+                    .from('gold_prices')
+                    .select('*')
+                    .limit(1);
+
+                if (error) {
+                    setResult('error', 'Erreur de connexion', 
+                        'Impossible de récupérer les données de la table "gold_prices".',
+                        `Message : ${error.message}`
+                    );
+                    alert(`❌ ERREUR de connexion à Supabase !\n\nMessage : ${error.message}\n\nVérifie que la table "gold_prices" existe bien.`);
+                } else {
+                    setResult('success', 'Connexion réussie ✅', 
+                        'La base de données est accessible. Les données suivantes ont été récupérées :',
+                        JSON.stringify(data, null, 2)
+                    );
+                    alert(`✅ CONNEXION RÉUSSIE !\n\nDonnées récupérées :\n${JSON.stringify(data, null, 2)}\n\nLa base de données est accessible.`);
+                }
+            } catch (err) {
+                setResult('error', 'Erreur inattendue', 
+                    'Une erreur inattendue s\'est produite lors du test.',
+                    `Message : ${err.message}`
+                );
+                alert(`❌ ERREUR INATTENDUE !\n\nMessage : ${err.message}`);
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // Exécuter le test automatiquement au chargement
+        // ----------------------------------------------------------------
+        window.addEventListener('load', function() {
+            // Petit délai pour laisser le temps au DOM de s'afficher
+            setTimeout(testSupabase, 500);
+        });
+    </script>
+
 </body>
-</html>
+    </html>

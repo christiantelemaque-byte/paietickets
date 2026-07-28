@@ -13,6 +13,25 @@
     <!-- 2. Lightweight Charts (pour les graphiques) -->
     <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.js">
     </script>
+
+    <!-- ============================================================ -->
+    <!-- STYLE DE DÉPANNAGE (pour forcer l'affichage)                -->
+    <!-- ============================================================ -->
+    <style>
+        /* Force l'affichage de l'écran de connexion au chargement */
+        #authContainer {
+            display: flex !important;
+        }
+        #appHeader {
+            display: none !important;
+        }
+        .app-content {
+            display: none !important;
+        }
+        .bottom-menu {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -67,7 +86,7 @@
             <div class="page-container">
 
                 <!-- DASHBOARD -->
-                <div class="page active" id="page-dashboard">
+                <div class="page" id="page-dashboard">
                     <div class="card">
                         <div class="card-title">
                             📈 Prix de l'or (USD/once)
@@ -166,7 +185,7 @@
 
         <!-- MENU BAS -->
         <nav class="bottom-menu" id="bottomMenu">
-            <button class="menu-item active" data-page="page-dashboard">
+            <button class="menu-item" data-page="page-dashboard">
                 <span class="icon">📊</span>
                 <span class="label">Dashboard</span>
                 <span class="indicator"></span>
@@ -365,7 +384,12 @@
         // AFFICHAGE ÉCRANS
         // ----------------------------------------------
         function showAuthScreen() {
+            // Supprimer le style de dépannage qui force l'affichage
+            const styleTag = document.querySelector('style');
+            if (styleTag) styleTag.remove();
+
             authContainer.classList.add('show');
+            authContainer.style.display = 'flex !important';
             appHeader.classList.remove('show');
             appContent.classList.add('hidden');
             bottomMenu.classList.add('hidden');
@@ -373,6 +397,7 @@
 
         function hideAuthScreen() {
             authContainer.classList.remove('show');
+            authContainer.style.display = 'none';
             appHeader.classList.add('show');
             appContent.classList.remove('hidden');
             bottomMenu.classList.remove('hidden');
@@ -412,7 +437,6 @@
             const menuBtn = document.querySelector(`.menu-item[data-page="${pageId}"]`);
             if (menuBtn) menuBtn.classList.add('active');
 
-            // Mettre à jour le curseur glissant
             updateSlider(pageId);
 
             if (pageId === 'page-dashboard') {
@@ -421,7 +445,7 @@
         }
 
         // ----------------------------------------------
-        // CURSEUR GLISSANT (pour le menu)
+        // CURSEUR GLISSANT
         // ----------------------------------------------
         function updateSlider(pageId) {
             const slider = document.getElementById('menuSlider');
@@ -431,12 +455,10 @@
             const activeIndex = Array.from(items).findIndex(item => item.dataset.page === pageId);
             if (activeIndex === -1) return;
 
-            // Calculer la position de la ligne
             const containerWidth = slider.parentElement.offsetWidth;
             const itemWidth = containerWidth / items.length;
-            const sliderWidth = 20; // Largeur de la ligne
+            const sliderWidth = 20;
 
-            // Positionner la ligne au centre de l'élément actif
             const leftPos = (activeIndex * itemWidth) + (itemWidth - sliderWidth) / 2;
             slider.style.left = leftPos + 'px';
             slider.style.width = sliderWidth + 'px';
@@ -462,7 +484,6 @@
             loadReferrals();
             refreshCharts();
 
-            // Initialiser le curseur
             setTimeout(() => updateSlider('page-dashboard'), 100);
         }
 
@@ -523,7 +544,6 @@
                 return;
             }
 
-            // Récupérer le mode de paiement sélectionné
             const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'carte';
 
             const price = await getGoldPrice();
@@ -763,14 +783,16 @@
         }
 
         // ----------------------------------------------
-        // CHECK AUTH
+        // CHECK AUTH (modifiée pour forcer l'affichage)
         // ----------------------------------------------
         async function checkAuth() {
+            // D'abord, on force l'affichage de l'écran de connexion
+            showAuthScreen();
+
+            // Puis on vérifie si un utilisateur est connecté
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 await loadUserData(user);
-            } else {
-                showAuthScreen();
             }
         }
 
@@ -800,4 +822,4 @@
     </script>
 
 </body>
-                                                                                        </html>
+    </html>

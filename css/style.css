@@ -1,5 +1,5 @@
 /* ============================================================
-   STYLE.CSS - Application Stock Of (Luxe V2)
+   STYLE.CSS - Application Stock Of (Luxe V3 - Curseur glissant)
    ============================================================ */
 
 /* ---- VARIABLES COULEURS LUXE ---- */
@@ -7,7 +7,7 @@
     --luxe-gold: #d4af37;
     --luxe-gold-dark: #b8962f;
     --luxe-dark: #0f0e17;
-    --luxe-glow: rgba(212, 175, 55, 0.35);
+    --luxe-glow: rgba(212, 175, 55, 0.3);
     --luxe-bg: #f8f6f0;
     --luxe-glass: rgba(255, 255, 255, 0.65);
 }
@@ -161,7 +161,7 @@ body {
 }
 
 /* ================================================================
-   ANIMATIONS LUXE V2 (moderne, fluide, avec rebond)
+   ANIMATION DES PAGES (douce et moderne)
    ================================================================ */
 .page-container {
     position: relative;
@@ -171,8 +171,7 @@ body {
 .page {
     display: none;
     padding: 16px 16px 0 16px;
-    animation: pageIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    transform-origin: center bottom;
+    animation: fadeIn 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
 .page.active {
@@ -180,40 +179,20 @@ body {
 }
 
 .page.exit {
-    animation: pageOut 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation: fadeOut 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
-@keyframes pageIn {
-    0% {
-        opacity: 0;
-        transform: scale(0.96) translateY(12px);
-        filter: blur(3px);
-    }
-    60% {
-        opacity: 0.9;
-        transform: scale(1.005) translateY(-2px);
-        filter: blur(0);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-        filter: blur(0);
-    }
+@keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(6px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pageOut {
-    0% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
-    100% {
-        opacity: 0;
-        transform: scale(0.95) translateY(8px);
-        filter: blur(1px);
-    }
+@keyframes fadeOut {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-6px); }
 }
 
-/* ---- CARTES (effet verre / glassmorphism) ---- */
+/* ---- CARTES (effet verre) ---- */
 .card {
     background: var(--luxe-glass);
     backdrop-filter: blur(8px);
@@ -284,7 +263,7 @@ body {
 }
 
 /* ================================================================
-   MENU BAS FIXE (LUXE) - avec point doré lumineux
+   MENU BAS FIXE - CURSEUR GLISSANT MODERNE
    ================================================================ */
 .bottom-menu {
     position: fixed;
@@ -299,13 +278,22 @@ body {
     border-top: 1px solid rgba(212, 175, 55, 0.06);
     display: flex;
     justify-content: space-around;
-    padding: 8px 0 14px 0;
+    padding: 8px 0 10px 0;
     border-radius: 0;
     z-index: 100;
-    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+    position: relative;
 }
 .bottom-menu.hidden {
     display: none;
+}
+
+/* Conteneur des boutons pour le curseur */
+.bottom-menu-inner {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    position: relative;
 }
 
 .bottom-menu .menu-item {
@@ -319,69 +307,58 @@ body {
     border: none;
     background: none;
     font-family: inherit;
-    padding: 4px 16px;
+    padding: 4px 0;
+    flex: 1;
     position: relative;
+    z-index: 2;
 }
 
 .bottom-menu .menu-item.active {
     opacity: 1;
 }
 
-/* ---- INDICATEUR : POINT DORÉ LUMINEUX (au lieu d'un carré) ---- */
-.bottom-menu .menu-item::after {
-    content: '';
+/* ---- CURSEUR : LIGNE DORÉE GLISSANTE ---- */
+.bottom-menu .menu-item .indicator {
     position: absolute;
-    top: -2px;
+    bottom: -2px;
     left: 50%;
     transform: translateX(-50%);
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
+    width: 20px;
+    height: 3px;
+    border-radius: 4px;
     background: var(--luxe-gold);
-    box-shadow: 0 0 16px var(--luxe-glow);
+    box-shadow: 0 0 12px var(--luxe-glow);
     opacity: 0;
     transition: opacity 0.3s ease;
 }
-.bottom-menu .menu-item.active::after {
+
+.bottom-menu .menu-item.active .indicator {
     opacity: 1;
-    animation: dotPulse 1.6s ease-in-out infinite;
 }
 
-@keyframes dotPulse {
-    0%, 100% {
-        transform: translateX(-50%) scale(1);
-        opacity: 0.8;
-    }
-    50% {
-        transform: translateX(-50%) scale(1.9);
-        opacity: 0.3;
-    }
+/* Curseur glissant (ligne qui se déplace) */
+.bottom-menu .slider {
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 20px;
+    height: 3px;
+    border-radius: 4px;
+    background: var(--luxe-gold);
+    box-shadow: 0 0 14px var(--luxe-glow);
+    transition: left 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+    z-index: 1;
 }
 
-/* ---- ICÔNES : REBOND ÉLÉGANT ---- */
+/* ---- ICÔNES ---- */
 .bottom-menu .menu-item .icon {
     font-size: 24px;
     line-height: 1;
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.2s ease;
 }
 
 .bottom-menu .menu-item.active .icon {
-    animation: iconBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-@keyframes iconBounce {
-    0% {
-        transform: scale(1);
-    }
-    30% {
-        transform: scale(1.25) rotate(-2deg);
-    }
-    60% {
-        transform: scale(0.92) rotate(1deg);
-    }
-    100% {
-        transform: scale(1) rotate(0);
-    }
+    transform: scale(1.05);
 }
 
 .bottom-menu .menu-item .label {
@@ -397,7 +374,7 @@ body {
     color: var(--luxe-gold);
 }
 
-/* ---- BOUTONS LUXE ---- */
+/* ---- BOUTONS ---- */
 .btn-primary {
     width: 100%;
     padding: 14px;
@@ -513,14 +490,8 @@ body {
 }
 
 @keyframes toastIn {
-    0% {
-        opacity: 0;
-        transform: translateX(-50%) translateY(20px) scale(0.95);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0) scale(1);
-    }
+    0% { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.95); }
+    100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
 }
 
 /* ---- UTILITAIRES ---- */
@@ -543,13 +514,17 @@ body {
         font-size: 24px;
     }
     .bottom-menu {
-        padding: 6px 0 10px 0;
-    }
-    .bottom-menu .menu-item {
-        padding: 2px 12px;
+        padding: 6px 0 8px 0;
     }
     .bottom-menu .menu-item .icon {
         font-size: 20px;
+    }
+    .bottom-menu .menu-item .label {
+        font-size: 9px;
+    }
+    .bottom-menu .slider {
+        width: 16px;
+        height: 2.5px;
     }
 }
 

@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Stock Of - Application</title>
 
-    <!-- Lightweight Charts (pour les graphiques) -->
+    <!-- Lightweight Charts -->
     <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.js">
     </script>
 
     <style>
-        /* ---- RESET & BASE ---- */
+        /* RESET & BASE */
         * {
             margin: 0;
             padding: 0;
@@ -29,7 +29,6 @@
             margin: 0;
         }
 
-        /* ---- APP CONTAINER (style mobile) ---- */
         .app-container {
             max-width: 420px;
             width: 100%;
@@ -43,16 +42,20 @@
             border-radius: 0;
         }
 
-        /* ---- HEADER (fixe en haut) ---- */
+        /* HEADER */
         .app-header {
             background: linear-gradient(145deg, #1a1a2e, #16213e);
-            padding: 20px 20px 32px 20px;
+            padding: 20px 20px 28px 20px;
             color: white;
             border-radius: 0 0 32px 32px;
             position: sticky;
             top: 0;
             z-index: 10;
             flex-shrink: 0;
+            display: none;
+        }
+        .app-header.show {
+            display: block;
         }
 
         .app-header .greeting {
@@ -133,16 +136,19 @@
             margin-top: 2px;
         }
 
-        /* ---- CONTENU (scrollable) ---- */
+        /* CONTENU */
         .app-content {
             flex: 1;
             overflow-y: auto;
             padding-bottom: 80px;
-            /* espace pour le menu bas */
             padding-top: 8px;
+            display: block;
+        }
+        .app-content.hidden {
+            display: none;
         }
 
-        /* ---- PAGE CONTENT ---- */
+        /* PAGES - Animation mobile (Fade + Slide up) */
         .page-container {
             position: relative;
             overflow: hidden;
@@ -151,40 +157,42 @@
         .page {
             display: none;
             padding: 16px 16px 0 16px;
-            animation: slideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
 
         .page.active {
             display: block;
         }
 
-        @keyframes slideIn {
+        /* Animation d'entrée : fondu + glissement vers le haut */
+        @keyframes fadeUp {
             0% {
                 opacity: 0;
-                transform: translateX(30px);
+                transform: translateY(18px);
             }
             100% {
                 opacity: 1;
-                transform: translateX(0);
+                transform: translateY(0);
             }
         }
 
-        @keyframes slideOut {
-            0% {
-                opacity: 1;
-                transform: translateX(0);
-            }
-            100% {
-                opacity: 0;
-                transform: translateX(-30px);
-            }
-        }
-
+        /* Animation de sortie (quand on change de page) */
         .page.exit {
-            animation: slideOut 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            animation: fadeDown 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
 
-        /* ---- CARTES ---- */
+        @keyframes fadeDown {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(18px);
+            }
+        }
+
+        /* CARTES */
         .card {
             background: #ffffff;
             border-radius: 20px;
@@ -222,7 +230,6 @@
         .referral-list {
             list-style: none;
         }
-
         .referral-list li {
             display: flex;
             justify-content: space-between;
@@ -230,22 +237,19 @@
             padding: 10px 0;
             border-bottom: 1px solid #f0f2f5;
         }
-
         .referral-list li:last-child {
             border-bottom: none;
         }
-
         .referral-list .ref-name {
             font-weight: 500;
             font-size: 14px;
         }
-
         .referral-list .ref-date {
             font-size: 12px;
             color: #888;
         }
 
-        /* ---- MENU BAS FIXE ---- */
+        /* MENU BAS FIXE */
         .bottom-menu {
             position: fixed;
             bottom: 0;
@@ -262,6 +266,9 @@
             border-radius: 0;
             z-index: 100;
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+        }
+        .bottom-menu.hidden {
+            display: none;
         }
 
         .bottom-menu .menu-item {
@@ -321,7 +328,7 @@
             width: 24px;
         }
 
-        /* ---- AUTH ---- */
+        /* AUTH */
         .auth-box {
             padding: 30px 20px 20px 20px;
         }
@@ -330,13 +337,11 @@
             font-size: 24px;
             margin-bottom: 6px;
         }
-
         .auth-box p.sub {
             color: #888;
             font-size: 14px;
             margin-bottom: 24px;
         }
-
         .auth-box input {
             width: 100%;
             padding: 14px 16px;
@@ -347,13 +352,11 @@
             background: #f8fafc;
             transition: 0.2s;
         }
-
         .auth-box input:focus {
             outline: none;
             border-color: #4f46e5;
             background: #ffffff;
         }
-
         .auth-box .btn-primary {
             width: 100%;
             padding: 14px;
@@ -366,11 +369,9 @@
             cursor: pointer;
             transition: 0.2s;
         }
-
         .auth-box .btn-primary:hover {
             background: #2d2d44;
         }
-
         .auth-box .btn-outline {
             width: 100%;
             padding: 14px;
@@ -384,29 +385,25 @@
             transition: 0.2s;
             margin-top: 8px;
         }
-
         .auth-box .btn-outline:hover {
             border-color: #1a1a2e;
         }
-
         .auth-box .switch-link {
             text-align: center;
             margin-top: 16px;
             font-size: 14px;
             color: #888;
         }
-
         .auth-box .switch-link span {
             color: #4f46e5;
             font-weight: 600;
             cursor: pointer;
         }
-
         .auth-box .switch-link span:hover {
             text-decoration: underline;
         }
 
-        /* ---- TOAST ---- */
+        /* TOAST */
         .toast {
             position: fixed;
             bottom: 100px;
@@ -424,7 +421,6 @@
             max-width: 90%;
             text-align: center;
         }
-
         .toast.show {
             display: block;
             animation: toastIn 0.3s ease;
@@ -441,27 +437,24 @@
             }
         }
 
-        /* ---- UTILITAIRES ---- */
+        /* UTILITAIRES */
         .text-muted {
             color: #888;
             font-size: 13px;
         }
-
         .flex-between {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-
         .mt-2 {
             margin-top: 8px;
         }
-
         .mt-4 {
             margin-top: 20px;
         }
 
-        /* ---- RESPONSIVE ---- */
+        /* RESPONSIVE */
         @media (max-width: 480px) {
             .app-container {
                 border-radius: 0;
@@ -483,7 +476,7 @@
             }
         }
 
-        /* ---- AUTH CONTAINER ---- */
+        /* AUTH CONTAINER */
         #authContainer {
             display: none;
             flex: 1;
@@ -492,25 +485,14 @@
             padding: 20px;
             min-height: 100vh;
         }
-
         #authContainer.show {
             display: flex;
         }
-
         #appHeader {
             display: none;
         }
-
         #appHeader.show {
             display: block;
-        }
-
-        .app-content.hidden {
-            display: none;
-        }
-
-        .bottom-menu.hidden {
-            display: none;
         }
     </style>
 </head>
@@ -565,10 +547,9 @@
         <!-- CONTENU -->
         <div class="app-content" id="appContent">
 
-            <!-- PAGES -->
             <div class="page-container">
 
-                <!-- Dashboard -->
+                <!-- DASHBOARD -->
                 <div class="page active" id="page-dashboard">
                     <div class="card">
                         <div class="card-title">
@@ -595,7 +576,7 @@
                     </div>
                 </div>
 
-                <!-- Investissements -->
+                <!-- INVESTISSEMENTS -->
                 <div class="page" id="page-investments">
                     <div class="card">
                         <div class="card-title">📊 Mes investissements</div>
@@ -613,7 +594,7 @@
                     </div>
                 </div>
 
-                <!-- Parrainage -->
+                <!-- PARRAINAGE -->
                 <div class="page" id="page-referrals">
                     <div class="card">
                         <div class="card-title">
@@ -636,7 +617,7 @@
                     </div>
                 </div>
 
-                <!-- Profil -->
+                <!-- PROFIL -->
                 <div class="page" id="page-profile">
                     <div class="card">
                         <div class="card-title">👤 Mon profil</div>
@@ -655,7 +636,7 @@
             </div>
         </div>
 
-        <!-- MENU BAS FIXE -->
+        <!-- MENU BAS -->
         <nav class="bottom-menu" id="bottomMenu">
             <button class="menu-item active" data-page="page-dashboard">
                 <span class="icon">📊</span>
@@ -861,6 +842,8 @@
             appContent.classList.remove('hidden');
             bottomMenu.classList.remove('hidden');
             switchPage('page-dashboard');
+            // Remonter en haut pour voir le header
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // ----------------------------------------------
@@ -879,24 +862,28 @@
             const oldPage = $(currentPage);
             const newPage = $(pageId);
 
+            // Sortie de l'ancienne page
             if (oldPage) {
                 oldPage.classList.remove('active');
                 oldPage.classList.add('exit');
                 setTimeout(() => oldPage.classList.remove('exit'), 300);
             }
 
+            // Entrée de la nouvelle page
             if (newPage) {
                 newPage.classList.add('active');
             }
 
             currentPage = pageId;
 
+            // Mettre à jour le menu
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             const menuBtn = document.querySelector(`.menu-item[data-page="${pageId}"]`);
             if (menuBtn) menuBtn.classList.add('active');
 
+            // Rafraîchir les graphiques si on va sur le dashboard
             if (pageId === 'page-dashboard') {
-                setTimeout(refreshCharts, 300);
+                setTimeout(refreshCharts, 400);
             }
         }
 
@@ -912,7 +899,7 @@
             $('profileEmail').textContent = currentUser.email || '-';
             $('profilePhone').textContent = currentUser.phone || 'Non renseigné';
             $('profileSince').textContent = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() :
-            '-';
+                '-';
 
             $('referralCodeDisplay').textContent = currentUser.referral_code || 'N/A';
 
@@ -1060,7 +1047,7 @@
         }
 
         // ----------------------------------------------
-        // PRIX DE L'OR (API)
+        // PRIX DE L'OR
         // ----------------------------------------------
         async function getGoldPrice() {
             try {
@@ -1099,7 +1086,6 @@
 
             let chartData = [];
             if (error || !realData || realData.length < 3) {
-                // Générer des données fictives
                 const basePrice = 85 + Math.random() * 5;
                 chartData = generateDummyData(basePrice, 30);
             } else {
@@ -1170,7 +1156,6 @@
                     forecastData.push({ time: futureTime, value: Math.max(0, futureValue) });
                 }
             } else {
-                // Données fictives pour la prévision
                 const base = chartData.length > 0 ? chartData[chartData.length - 1].value : 85;
                 const now = Math.floor(Date.now() / 1000);
                 for (let i = 1; i <= 30; i++) {

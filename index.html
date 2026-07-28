@@ -5,498 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Stock Of - Application</title>
 
-    <!-- Lightweight Charts -->
+    <!-- ============================================================ -->
+    <!-- 1. FICHIER CSS EXTERNE                                       -->
+    <!-- ============================================================ -->
+    <link rel="stylesheet" href="css/style.css" />
+
+    <!-- 2. Lightweight Charts (pour les graphiques) -->
     <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.js">
     </script>
-
-    <style>
-        /* RESET & BASE */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
-            color: #1a1a2e;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0;
-            margin: 0;
-        }
-
-        .app-container {
-            max-width: 420px;
-            width: 100%;
-            background: #ffffff;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
-            position: relative;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            border-radius: 0;
-        }
-
-        /* HEADER */
-        .app-header {
-            background: linear-gradient(145deg, #1a1a2e, #16213e);
-            padding: 20px 20px 28px 20px;
-            color: white;
-            border-radius: 0 0 32px 32px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            flex-shrink: 0;
-            display: none;
-        }
-        .app-header.show {
-            display: block;
-        }
-
-        .app-header .greeting {
-            font-size: 14px;
-            font-weight: 300;
-            opacity: 0.8;
-            letter-spacing: 0.5px;
-        }
-
-        .app-header .user-name {
-            font-size: 20px;
-            font-weight: 600;
-            margin-top: 2px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .app-header .user-name .badge {
-            background: rgba(255, 215, 0, 0.2);
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            color: #ffd700;
-            font-size: 10px;
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-weight: 400;
-        }
-
-        .app-header .balance-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
-
-        .app-header .balance-row .label {
-            font-size: 12px;
-            opacity: 0.7;
-        }
-
-        .app-header .balance-row .amount {
-            font-size: 26px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        .app-header .balance-row .amount small {
-            font-size: 14px;
-            font-weight: 400;
-            opacity: 0.6;
-            margin-left: 4px;
-        }
-
-        .app-header .stats-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 14px;
-        }
-
-        .app-header .stats-row .stat-item {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 14px;
-            padding: 10px 12px;
-            backdrop-filter: blur(4px);
-        }
-
-        .app-header .stats-row .stat-item .stat-label {
-            font-size: 10px;
-            opacity: 0.6;
-        }
-
-        .app-header .stats-row .stat-item .stat-value {
-            font-size: 16px;
-            font-weight: 600;
-            margin-top: 2px;
-        }
-
-        /* CONTENU */
-        .app-content {
-            flex: 1;
-            overflow-y: auto;
-            padding-bottom: 80px;
-            padding-top: 8px;
-            display: block;
-        }
-        .app-content.hidden {
-            display: none;
-        }
-
-        /* PAGES - Animation mobile (Fade + Slide up) */
-        .page-container {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .page {
-            display: none;
-            padding: 16px 16px 0 16px;
-            animation: fadeUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        /* Animation d'entrée : fondu + glissement vers le haut */
-        @keyframes fadeUp {
-            0% {
-                opacity: 0;
-                transform: translateY(18px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Animation de sortie (quand on change de page) */
-        .page.exit {
-            animation: fadeDown 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
-        @keyframes fadeDown {
-            0% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(18px);
-            }
-        }
-
-        /* CARTES */
-        .card {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 16px 18px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-            border: 1px solid #f0f0f0;
-            margin-bottom: 16px;
-        }
-
-        .card .card-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #1a1a2e;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .card .card-title .badge-pill {
-            background: #eef2ff;
-            color: #4f46e5;
-            font-size: 10px;
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-weight: 400;
-        }
-
-        .chart-wrapper {
-            width: 100%;
-            height: 200px;
-            margin-top: 4px;
-        }
-
-        .referral-list {
-            list-style: none;
-        }
-        .referral-list li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #f0f2f5;
-        }
-        .referral-list li:last-child {
-            border-bottom: none;
-        }
-        .referral-list .ref-name {
-            font-weight: 500;
-            font-size: 14px;
-        }
-        .referral-list .ref-date {
-            font-size: 12px;
-            color: #888;
-        }
-
-        /* MENU BAS FIXE */
-        .bottom-menu {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            max-width: 420px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(12px);
-            border-top: 1px solid rgba(0, 0, 0, 0.04);
-            display: flex;
-            justify-content: space-around;
-            padding: 8px 0 12px 0;
-            border-radius: 0;
-            z-index: 100;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
-        }
-        .bottom-menu.hidden {
-            display: none;
-        }
-
-        .bottom-menu .menu-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1px;
-            cursor: pointer;
-            opacity: 0.4;
-            transition: all 0.25s ease;
-            border: none;
-            background: none;
-            font-family: inherit;
-            padding: 4px 16px;
-            position: relative;
-        }
-
-        .bottom-menu .menu-item.active {
-            opacity: 1;
-        }
-
-        .bottom-menu .menu-item .icon {
-            font-size: 22px;
-            line-height: 1;
-            transition: transform 0.25s ease;
-        }
-
-        .bottom-menu .menu-item.active .icon {
-            transform: scale(1.1);
-        }
-
-        .bottom-menu .menu-item .label {
-            font-size: 10px;
-            font-weight: 500;
-            color: #1a1a2e;
-            transition: color 0.25s ease;
-        }
-
-        .bottom-menu .menu-item.active .label {
-            color: #4f46e5;
-        }
-
-        .bottom-menu .menu-item::after {
-            content: '';
-            position: absolute;
-            top: -1px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 3px;
-            background: #4f46e5;
-            border-radius: 0 0 4px 4px;
-            transition: width 0.3s ease;
-        }
-
-        .bottom-menu .menu-item.active::after {
-            width: 24px;
-        }
-
-        /* AUTH */
-        .auth-box {
-            padding: 30px 20px 20px 20px;
-        }
-
-        .auth-box h2 {
-            font-size: 24px;
-            margin-bottom: 6px;
-        }
-        .auth-box p.sub {
-            color: #888;
-            font-size: 14px;
-            margin-bottom: 24px;
-        }
-        .auth-box input {
-            width: 100%;
-            padding: 14px 16px;
-            border-radius: 16px;
-            border: 1px solid #e2e8f0;
-            font-size: 15px;
-            margin-bottom: 12px;
-            background: #f8fafc;
-            transition: 0.2s;
-        }
-        .auth-box input:focus {
-            outline: none;
-            border-color: #4f46e5;
-            background: #ffffff;
-        }
-        .auth-box .btn-primary {
-            width: 100%;
-            padding: 14px;
-            background: #1a1a2e;
-            color: white;
-            border: none;
-            border-radius: 16px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .auth-box .btn-primary:hover {
-            background: #2d2d44;
-        }
-        .auth-box .btn-outline {
-            width: 100%;
-            padding: 14px;
-            background: transparent;
-            color: #1a1a2e;
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
-            margin-top: 8px;
-        }
-        .auth-box .btn-outline:hover {
-            border-color: #1a1a2e;
-        }
-        .auth-box .switch-link {
-            text-align: center;
-            margin-top: 16px;
-            font-size: 14px;
-            color: #888;
-        }
-        .auth-box .switch-link span {
-            color: #4f46e5;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .auth-box .switch-link span:hover {
-            text-decoration: underline;
-        }
-
-        /* TOAST */
-        .toast {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1a1a2e;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 40px;
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-            z-index: 999;
-            display: none;
-            max-width: 90%;
-            text-align: center;
-        }
-        .toast.show {
-            display: block;
-            animation: toastIn 0.3s ease;
-        }
-
-        @keyframes toastIn {
-            0% {
-                opacity: 0;
-                transform: translateX(-50%) translateY(20px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
-        }
-
-        /* UTILITAIRES */
-        .text-muted {
-            color: #888;
-            font-size: 13px;
-        }
-        .flex-between {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .mt-2 {
-            margin-top: 8px;
-        }
-        .mt-4 {
-            margin-top: 20px;
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 480px) {
-            .app-container {
-                border-radius: 0;
-                min-height: 100vh;
-            }
-            .app-header {
-                border-radius: 0 0 28px 28px;
-                padding: 16px 16px 24px 16px;
-            }
-            .app-header .balance-row .amount {
-                font-size: 22px;
-            }
-            .bottom-menu {
-                border-radius: 0;
-                padding: 6px 0 10px 0;
-            }
-            .bottom-menu .menu-item {
-                padding: 2px 12px;
-            }
-        }
-
-        /* AUTH CONTAINER */
-        #authContainer {
-            display: none;
-            flex: 1;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            min-height: 100vh;
-        }
-        #authContainer.show {
-            display: flex;
-        }
-        #appHeader {
-            display: none;
-        }
-        #appHeader.show {
-            display: block;
-        }
-    </style>
 </head>
-
 <body>
 
     <!-- TOAST -->
@@ -588,7 +105,7 @@
                     <div class="card">
                         <div class="card-title">➕ Ajouter un investissement</div>
                         <input type="number" id="investAmount" placeholder="Montant (USD)" style="width:100%; padding:12px 16px; border-radius:16px; border:1px solid #e2e8f0; margin-bottom:12px;" />
-                        <button class="btn-primary" style="width:100%; padding:12px; background:#1a1a2e; color:white; border:none; border-radius:16px; font-weight:600; cursor:pointer;" onclick="addInvestment()">
+                        <button class="btn-primary" onclick="addInvestment()">
                             Investir
                         </button>
                     </div>
@@ -604,7 +121,7 @@
                         <p style="font-size:14px; color:#555; margin-bottom:12px;">
                             Partage ce code avec tes amis. S'ils s'inscrivent, tu gagnes une récompense !
                         </p>
-                        <button class="btn-primary" style="width:100%; padding:12px; background:#1a1a2e; color:white; border:none; border-radius:16px; font-weight:600; cursor:pointer;" onclick="copyReferralCode()">
+                        <button class="btn-primary" onclick="copyReferralCode()">
                             📋 Copier le code
                         </button>
                     </div>
@@ -627,7 +144,7 @@
                     </div>
 
                     <div class="card">
-                        <button class="btn-outline" style="width:100%; padding:12px; background:#fef2f2; border:1px solid #fecaca; color:#b91c1c; border-radius:16px; font-weight:600; cursor:pointer;" onclick="logoutUser()">
+                        <button class="btn-outline" style="background:#fef2f2; border-color:#fecaca; color:#b91c1c;" onclick="logoutUser()">
                             🚪 Se déconnecter
                         </button>
                     </div>
@@ -659,7 +176,7 @@
         <!-- AUTH -->
         <div id="authContainer">
             <div class="auth-box">
-                <h2>Bienvenue 👋</h2>
+                <h2>Bienvenue <span>👋</span></h2>
                 <p class="sub">Connecte-toi ou crée un compte pour accéder à ton dashboard.</p>
 
                 <div id="authForm">
@@ -680,12 +197,14 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SCRIPTS -->
+    <!-- SCRIPTS                                                       -->
     <!-- ============================================================ -->
 
+    <!-- 1. Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
 
+    <!-- 2. Code JavaScript de l'application -->
     <script>
         // ----------------------------------------------
         // CONFIG
@@ -842,7 +361,6 @@
             appContent.classList.remove('hidden');
             bottomMenu.classList.remove('hidden');
             switchPage('page-dashboard');
-            // Remonter en haut pour voir le header
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -862,26 +380,22 @@
             const oldPage = $(currentPage);
             const newPage = $(pageId);
 
-            // Sortie de l'ancienne page
             if (oldPage) {
                 oldPage.classList.remove('active');
                 oldPage.classList.add('exit');
                 setTimeout(() => oldPage.classList.remove('exit'), 300);
             }
 
-            // Entrée de la nouvelle page
             if (newPage) {
                 newPage.classList.add('active');
             }
 
             currentPage = pageId;
 
-            // Mettre à jour le menu
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             const menuBtn = document.querySelector(`.menu-item[data-page="${pageId}"]`);
             if (menuBtn) menuBtn.classList.add('active');
 
-            // Rafraîchir les graphiques si on va sur le dashboard
             if (pageId === 'page-dashboard') {
                 setTimeout(refreshCharts, 400);
             }
@@ -1077,7 +591,6 @@
         async function refreshCharts() {
             if (currentPage !== 'page-dashboard') return;
 
-            // Récupérer les données réelles
             const { data: realData, error } = await supabase
                 .from('gold_prices')
                 .select('*')
@@ -1095,7 +608,6 @@
                 }));
             }
 
-            // Graphique principal
             const container = $('chartContainer');
             if (chart) { chart.remove();
                 chart = null; }
@@ -1107,7 +619,7 @@
                 rightPriceScale: { borderVisible: false },
                 timeScale: { borderVisible: false, visible: true }
             });
-            const lineSeries = chart.addLineSeries({ color: '#4f46e5', lineWidth: 2 });
+            const lineSeries = chart.addLineSeries({ color: '#d4af37', lineWidth: 2 });
             lineSeries.setData(chartData);
 
             const last = chartData[chartData.length - 1];
@@ -1116,7 +628,6 @@
                 $('lastUpdate').textContent = `Dernière mise à jour : ${new Date(last.time * 1000).toLocaleTimeString()}`;
             }
 
-            // Prévision
             const forecastContainer = $('forecastContainer');
             if (forecastChart) { forecastChart.remove();
                 forecastChart = null; }
@@ -1167,7 +678,7 @@
                 }
             }
 
-            const forecastLine = forecastChart.addLineSeries({ color: '#f59e0b', lineWidth: 2, lineStyle: 1 });
+            const forecastLine = forecastChart.addLineSeries({ color: '#b8962f', lineWidth: 2, lineStyle: 1 });
             forecastLine.setData(forecastData);
 
             const lastForecast = forecastData[forecastData.length - 1];

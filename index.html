@@ -15,7 +15,7 @@
             align-items: center;
             min-height: 100vh;
             padding: 16px;
-            padding-bottom: 80px; /* pour ne pas masquer le menu */
+            padding-bottom: 80px;
         }
         .container {
             max-width: 420px;
@@ -106,7 +106,9 @@
             display:flex; justify-content:space-around;
             padding:8px 0 14px 0; z-index:100;
             box-shadow:0 -4px 20px rgba(0,0,0,0.04);
+            display:none; /* caché par défaut */
         }
+        .bottom-menu.show { display:flex; }
         .bottom-menu .menu-item {
             display:flex; flex-direction:column; align-items:center;
             gap:2px; cursor:pointer; opacity:0.5;
@@ -120,6 +122,13 @@
         /* ---------- PAGES (contenu) ---------- */
         .page { display:none; padding:16px 0; }
         .page.active { display:block; }
+
+        /* ---------- CHART WRAPPER ---------- */
+        .chart-wrapper {
+            width:100%;
+            height:180px;
+            margin-top:8px;
+        }
 
         #errorMsg { display:none; background:#fef2f2; border:1px solid #fecaca; border-radius:16px; padding:16px; color:#b91c1c; margin-top:16px; text-align:center; }
         #errorMsg.show { display:block; }
@@ -156,7 +165,7 @@
             </div>
         </div>
 
-        <!-- ============ DASHBOARD (contenu des onglets) ============ -->
+        <!-- ============ DASHBOARD ============ -->
         <div id="dashboard">
             <!-- Header -->
             <div class="card">
@@ -166,25 +175,47 @@
                 <div class="stat-item"><span>My Referral Code</span> <span id="myReferralCode">-</span></div>
                 <div class="stat-item"><span>Total Referrals</span> <span id="referralCount">0</span></div>
                 <div class="stat-item"><span>Total Invested</span> <span id="totalInvestment">$0</span></div>
+                <div class="stat-item"><span>Current Portfolio Value</span> <span id="portfolioValue">$0</span></div>
             </div>
 
             <!-- Pages -->
             <div id="page-dashboard" class="page active">
-                <!-- Referral Tree -->
+                <!-- Graph 1: Investment value over time -->
+                <div class="card">
+                    <div style="font-weight:600; margin-bottom:4px;">📈 Portfolio Value (USD)</div>
+                    <div style="font-size:12px; color:#888; margin-bottom:8px;">Current vs gold price</div>
+                    <div class="chart-wrapper" id="chartInvest"></div>
+                </div>
+                <!-- Graph 2: 6-month forecast -->
+                <div class="card">
+                    <div style="font-weight:600; margin-bottom:4px;">🔮 6-Month Forecast</div>
+                    <div style="font-size:12px; color:#888; margin-bottom:8px;">Based on gold price trend</div>
+                    <div class="chart-wrapper" id="chartForecast"></div>
+                </div>
+                <!-- Graph 3: Referral growth -->
+                <div class="card">
+                    <div style="font-weight:600; margin-bottom:4px;">👥 Referral Growth</div>
+                    <div style="font-size:12px; color:#888; margin-bottom:8px;">Cumulative referrals over time</div>
+                    <div class="chart-wrapper" id="chartReferral"></div>
+                </div>
+                <!-- Graph 4: Referral projection -->
+                <div class="card">
+                    <div style="font-weight:600; margin-bottom:4px;">🚀 Referral Projection (6 mo)</div>
+                    <div style="font-size:12px; color:#888; margin-bottom:8px;">Based on current growth rate</div>
+                    <div class="chart-wrapper" id="chartReferralForecast"></div>
+                </div>
+                <!-- Referral Tree (keep below graphs) -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:12px;">Referral Tree</div>
                     <div id="referralTreeContainer"><p class="text-muted">Loading tree...</p></div>
                 </div>
-                <!-- Quick stats (will add gold price later) -->
             </div>
 
             <div id="page-investments" class="page">
-                <!-- Liste des investissements -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:12px;">My Investments</div>
                     <div id="investmentList"><p class="text-muted">No investments yet.</p></div>
                 </div>
-                <!-- Formulaire d'ajout -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:12px;">Add Investment</div>
                     <div class="field"><input type="number" id="investAmount" placeholder="Amount (USD)" /></div>
@@ -216,7 +247,7 @@
 
         </div>
 
-        <!-- Message d'erreur (si Supabase ne charge pas) -->
+        <!-- Message d'erreur -->
         <div id="errorMsg">
             <p><strong>⚠️ Impossible de charger Supabase</strong></p>
             <p style="font-size:14px; margin-top:8px;">Vérifie ta connexion internet.</p>
@@ -229,7 +260,7 @@
     <div id="toast"></div>
 
     <!-- ============================================================ -->
-    <!-- MENU BAS (FIXE)                                               -->
+    <!-- MENU BAS (FIXE) – caché par défaut                           -->
     <!-- ============================================================ -->
     <nav class="bottom-menu" id="bottomMenu">
         <button class="menu-item active" data-page="page-dashboard">
@@ -249,6 +280,12 @@
             <span class="label">Profile</span>
         </button>
     </nav>
+
+    <!-- ============================================================ -->
+    <!-- LIGHTWEIGHT CHARTS CDN                                       -->
+    <!-- ============================================================ -->
+    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.js">
+    </script>
 
     <!-- ============================================================ -->
     <!-- IMPORT MAP (Supabase ESM)                                    -->
@@ -307,6 +344,7 @@
             const memberSince = $('memberSince');
             const myReferralCode = $('myReferralCode');
             const totalInvestment = $('totalInvestment');
+            const portfolioValue = $('portfolioValue');
             const referralTreeContainer = $('referralTreeContainer');
             const referralTreeFull = $('referralTreeFull');
             const investmentList = $('investmentList');
@@ -317,11 +355,21 @@
             const profileLastName = $('profileLastName');
             const profilePhone = $('profilePhone');
             const profileSaveBtn = $('profileSaveBtn');
+            const bottomMenu = $('bottomMenu');
+
+            // Chart containers
+            const chartInvestEl = $('chartInvest');
+            const chartForecastEl = $('chartForecast');
+            const chartReferralEl = $('chartReferral');
+            const chartReferralForecastEl = $('chartReferralForecast');
 
             let isLoginMode = true;
             let currentUser = null;
             let allUsers = [];
-            let goldPriceCache = null;
+            let investments = [];
+            let goldPrices = [];
+            let referrals = [];
+            let chartInvest = null, chartForecast = null, chartReferral = null, chartReferralForecast = null;
 
             alert('✅ DOM refs prêtes');
 
@@ -468,6 +516,7 @@
                             }
                         }
 
+                        // Insert user
                         const { error: insertError } = await supabase
                             .from('users')
                             .insert([{
@@ -486,6 +535,21 @@
                             showToast('Account created but profile could not be saved.');
                         } else {
                             alert('✅ Profile saved with referral');
+                            // Insert into referrals table if referrer exists
+                            if (referrerId) {
+                                const { error: refInsertError } = await supabase
+                                    .from('referrals')
+                                    .insert([{
+                                        referrer_id: referrerId,
+                                        referred_id: user.id,
+                                        created_at: new Date().toISOString()
+                                    }]);
+                                if (refInsertError) {
+                                    alert('⚠️ Error inserting referral: ' + refInsertError.message);
+                                } else {
+                                    alert('✅ Referral recorded in referrals table');
+                                }
+                            }
                             showToast('Account created successfully!');
                         }
 
@@ -550,8 +614,7 @@
                 alert('✅ User data loaded: ' + currentUser.email);
                 showDashboard();
                 updateDashboard();
-                await loadReferralTree();
-                await loadInvestments();
+                await loadAllData();
                 // Fill profile fields
                 profileFirstName.value = currentUser.first_name || '';
                 profileLastName.value = currentUser.last_name || '';
@@ -569,16 +632,18 @@
                 alert('📺 Showing auth screen');
                 authContainer.style.display = 'block';
                 dashboard.classList.remove('show');
+                bottomMenu.classList.remove('show'); // caché
             }
 
             function showDashboard() {
                 alert('📺 Showing dashboard');
                 authContainer.style.display = 'none';
                 dashboard.classList.add('show');
+                bottomMenu.classList.add('show'); // visible
             }
 
             // =============================================================
-            // UPDATE DASHBOARD
+            // UPDATE DASHBOARD (basic stats)
             // =============================================================
             function updateDashboard() {
                 if (!currentUser) return;
@@ -589,35 +654,109 @@
                 profileEmail.textContent = currentUser.email || '-';
                 memberSince.textContent = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() : '-';
                 myReferralCode.textContent = currentUser.referral_code || 'N/A';
-                // total investment updated in loadInvestments
+            }
+
+            // =============================================================
+            // LOAD ALL DATA (investments, gold_prices, referrals, users)
+            // =============================================================
+            async function loadAllData() {
+                alert('📦 Loading all data...');
+                try {
+                    // Load investments
+                    const { data: invData, error: invErr } = await supabase
+                        .from('investments')
+                        .select('*')
+                        .eq('user_id', currentUser.id)
+                        .order('purchase_date', { ascending: true });
+                    if (invErr) throw invErr;
+                    investments = invData || [];
+
+                    // Load gold prices (for charts)
+                    const { data: gpData, error: gpErr } = await supabase
+                        .from('gold_prices')
+                        .select('*')
+                        .order('timestamp', { ascending: true })
+                        .limit(100);
+                    if (gpErr) throw gpErr;
+                    goldPrices = gpData || [];
+
+                    // Load referrals (for referral charts)
+                    const { data: refData, error: refErr } = await supabase
+                        .from('referrals')
+                        .select('*, referred:referred_id(id, email, first_name, last_name)')
+                        .eq('referrer_id', currentUser.id)
+                        .order('created_at', { ascending: true });
+                    if (refErr) throw refErr;
+                    referrals = refData || [];
+
+                    // Load all users for tree
+                    const { data: usersData, error: usersErr } = await supabase
+                        .from('users')
+                        .select('id, first_name, last_name, email, referral_code, referred_by')
+                        .order('created_at', { ascending: true });
+                    if (usersErr) throw usersErr;
+                    allUsers = usersData || [];
+
+                    // Update UI
+                    updateInvestmentList();
+                    updateReferralTree();
+                    updateCharts();
+                } catch (err) {
+                    alert('❌ Error loading data: ' + err.message);
+                }
+            }
+
+            // =============================================================
+            // INVESTMENT LIST & TOTAL
+            // =============================================================
+            function updateInvestmentList() {
+                const list = investmentList;
+                if (!investments || investments.length === 0) {
+                    list.innerHTML = '<p class="text-muted">No investments yet.</p>';
+                    totalInvestment.textContent = '$0';
+                    portfolioValue.textContent = '$0';
+                    return;
+                }
+
+                let total = 0;
+                let html = '';
+                investments.forEach(inv => {
+                    total += parseFloat(inv.amount_invested || 0);
+                    const method = inv.payment_method === 'crypto' ? 'Crypto' : 'Credit Card';
+                    const date = new Date(inv.purchase_date).toLocaleDateString();
+                    html += `
+                        <div class="investment-item">
+                            <div>
+                                <div class="investment-amount">$${parseFloat(inv.amount_invested).toFixed(2)}</div>
+                                <div class="investment-meta">${date} • ${inv.gold_weight ? parseFloat(inv.gold_weight).toFixed(4)+' g' : '-'}</div>
+                            </div>
+                            <span class="payment-method">${method}</span>
+                        </div>
+                    `;
+                });
+                list.innerHTML = html;
+                totalInvestment.textContent = `$${total.toFixed(2)}`;
+
+                // Compute current portfolio value based on current gold price
+                const currentPrice = goldPrices.length > 0 ? goldPrices[goldPrices.length - 1].price : 85;
+                let portfolioTotal = 0;
+                investments.forEach(inv => {
+                    if (inv.gold_weight) {
+                        portfolioTotal += inv.gold_weight * currentPrice;
+                    }
+                });
+                portfolioValue.textContent = `$${portfolioTotal.toFixed(2)}`;
             }
 
             // =============================================================
             // REFERRAL TREE
             // =============================================================
-            async function loadReferralTree() {
-                alert('🌳 Loading referral tree...');
-                try {
-                    const { data, error } = await supabase
-                        .from('users')
-                        .select('id, first_name, last_name, email, referral_code, referred_by')
-                        .order('created_at', { ascending: true });
-
-                    if (error) throw error;
-                    allUsers = data;
-
-                    const tree = buildTree(currentUser.id);
-                    const total = countNodes(tree);
-                    referralCount.textContent = total;
-
-                    renderTree(tree, referralTreeContainer);
-                    // Also render full tree in referrals tab (same for now)
-                    renderTree(tree, referralTreeFull);
-                } catch (err) {
-                    alert('❌ Error loading tree: ' + err.message);
-                    referralTreeContainer.innerHTML = '<p class="text-muted">Unable to load referral tree.</p>';
-                    referralTreeFull.innerHTML = '<p class="text-muted">Unable to load referral tree.</p>';
-                }
+            function updateReferralTree() {
+                const tree = buildTree(currentUser.id);
+                const total = countNodes(tree);
+                referralCount.textContent = total;
+                renderTree(tree, referralTreeContainer);
+                renderTree(tree, referralTreeFull);
             }
 
             function buildTree(rootId) {
@@ -682,50 +821,166 @@
             }
 
             // =============================================================
-            // INVESTMENTS
+            // CHARTS
             // =============================================================
-            async function loadInvestments() {
-                if (!currentUser) return;
-                alert('📊 Loading investments...');
-                try {
-                    const { data, error } = await supabase
-                        .from('investments')
-                        .select('*')
-                        .eq('user_id', currentUser.id)
-                        .order('purchase_date', { ascending: false });
+            function updateCharts() {
+                // Get current gold price (last from goldPrices or dummy)
+                const currentPrice = goldPrices.length > 0 ? goldPrices[goldPrices.length - 1].price : 85;
 
-                    if (error) throw error;
-
-                    const list = investmentList;
-                    if (!data || data.length === 0) {
-                        list.innerHTML = '<p class="text-muted">No investments yet.</p>';
-                        totalInvestment.textContent = '$0';
-                        return;
+                // 1. Investment value over time (portfolio value per day)
+                // We'll compute daily portfolio value using gold prices
+                let portfolioHistory = [];
+                if (goldPrices.length > 0 && investments.length > 0) {
+                    // For each gold price entry, compute total portfolio value
+                    // We need to compute total gold weight from all investments
+                    const totalGoldWeight = investments.reduce((acc, inv) => acc + (inv.gold_weight || 0), 0);
+                    portfolioHistory = goldPrices.map(gp => ({
+                        time: Math.floor(new Date(gp.timestamp).getTime() / 1000),
+                        value: totalGoldWeight * gp.price
+                    }));
+                } else {
+                    // Dummy data
+                    const base = currentPrice;
+                    const now = Math.floor(Date.now() / 1000);
+                    for (let i = 30; i >= 0; i--) {
+                        const t = now - i * 86400;
+                        const v = base * (1 + Math.sin(i / 10) * 0.02);
+                        portfolioHistory.push({ time: t, value: v });
                     }
-
-                    let total = 0;
-                    let html = '';
-                    data.forEach(inv => {
-                        total += parseFloat(inv.amount_invested || 0);
-                        const method = inv.payment_method === 'crypto' ? 'Crypto' : 'Credit Card';
-                        const date = new Date(inv.purchase_date).toLocaleDateString();
-                        html += `
-                            <div class="investment-item">
-                                <div>
-                                    <div class="investment-amount">$${parseFloat(inv.amount_invested).toFixed(2)}</div>
-                                    <div class="investment-meta">${date} • ${inv.gold_weight ? parseFloat(inv.gold_weight).toFixed(4)+' g' : '-'}</div>
-                                </div>
-                                <span class="payment-method">${method}</span>
-                            </div>
-                        `;
-                    });
-                    list.innerHTML = html;
-                    totalInvestment.textContent = `$${total.toFixed(2)}`;
-                } catch (err) {
-                    alert('❌ Error loading investments: ' + err.message);
                 }
+
+                // 2. Forecast: simple linear regression on gold prices
+                let forecastData = [];
+                if (goldPrices.length >= 5) {
+                    const prices = goldPrices.map(gp => gp.price);
+                    const times = goldPrices.map(gp => Math.floor(new Date(gp.timestamp).getTime() / 1000));
+                    const n = prices.length;
+                    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+                    for (let i = 0; i < n; i++) {
+                        sumX += i;
+                        sumY += prices[i];
+                        sumXY += i * prices[i];
+                        sumX2 += i * i;
+                    }
+                    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                    const intercept = (sumY - slope * sumX) / n;
+                    const lastTime = times[times.length - 1];
+                    const lastPrice = prices[prices.length - 1];
+                    // Predict 6 months (180 days)
+                    const days = 180;
+                    const step = 86400;
+                    for (let i = 0; i <= 30; i++) {
+                        const day = i * 6; // steps of 6 days for smoothness
+                        const t = lastTime + day * step;
+                        const val = lastPrice + slope * day;
+                        forecastData.push({ time: t, value: Math.max(0, val) });
+                    }
+                } else {
+                    // Dummy forecast
+                    const base = currentPrice;
+                    const now = Math.floor(Date.now() / 1000);
+                    for (let i = 0; i <= 30; i++) {
+                        const t = now + i * 6 * 86400;
+                        const v = base * (1 + i * 0.001);
+                        forecastData.push({ time: t, value: v });
+                    }
+                }
+
+                // 3. Referral growth (cumulative over time)
+                let referralHistory = [];
+                if (referrals.length > 0) {
+                    let cumulative = 0;
+                    referralHistory = referrals.map(ref => {
+                        cumulative++;
+                        return {
+                            time: Math.floor(new Date(ref.created_at).getTime() / 1000),
+                            value: cumulative
+                        };
+                    });
+                } else {
+                    // Dummy referrals
+                    const now = Math.floor(Date.now() / 1000);
+                    for (let i = 0; i < 10; i++) {
+                        referralHistory.push({ time: now - (10 - i) * 86400, value: i + 1 });
+                    }
+                }
+
+                // 4. Referral forecast: linear regression on referral counts
+                let referralForecast = [];
+                if (referralHistory.length >= 3) {
+                    const values = referralHistory.map(d => d.value);
+                    const times = referralHistory.map(d => d.time);
+                    const n = values.length;
+                    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+                    for (let i = 0; i < n; i++) {
+                        sumX += i;
+                        sumY += values[i];
+                        sumXY += i * values[i];
+                        sumX2 += i * i;
+                    }
+                    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                    const intercept = (sumY - slope * sumX) / n;
+                    const lastTime = times[times.length - 1];
+                    const lastVal = values[values.length - 1];
+                    const days = 180;
+                    const step = 86400;
+                    for (let i = 1; i <= 30; i++) {
+                        const day = i * 6;
+                        const t = lastTime + day * step;
+                        const val = Math.max(0, lastVal + slope * day);
+                        referralForecast.push({ time: t, value: val });
+                    }
+                } else {
+                    // Dummy forecast
+                    const last = referralHistory.length > 0 ? referralHistory[referralHistory.length - 1] : { time: Math.floor(Date.now() / 1000), value: 0 };
+                    const baseTime = last.time;
+                    const baseVal = last.value;
+                    for (let i = 1; i <= 30; i++) {
+                        const t = baseTime + i * 6 * 86400;
+                        const v = baseVal + i * 0.2;
+                        referralForecast.push({ time: t, value: v });
+                    }
+                }
+
+                // Render charts
+                renderChart(chartInvestEl, portfolioHistory, '#d4af37', 'Portfolio Value');
+                renderChart(chartForecastEl, forecastData, '#b8962f', 'Forecast');
+                renderChart(chartReferralEl, referralHistory, '#4f46e5', 'Referrals');
+                renderChart(chartReferralForecastEl, referralForecast, '#6c2bd9', 'Referral Projection');
             }
 
+            function renderChart(container, data, color, label) {
+                // Destroy previous chart if exists
+                let chart = null;
+                if (container._chart) {
+                    container._chart.remove();
+                }
+                if (data.length === 0) {
+                    container.innerHTML = '<p class="text-muted">No data</p>';
+                    return;
+                }
+                chart = LightweightCharts.createChart(container, {
+                    width: container.clientWidth || 340,
+                    height: 180,
+                    layout: { textColor: '#333', background: { color: '#ffffff' } },
+                    grid: { vertLines: { visible: false }, horzLines: { visible: false } },
+                    rightPriceScale: { borderVisible: false },
+                    timeScale: { borderVisible: false, visible: true }
+                });
+                const series = chart.addLineSeries({ color: color, lineWidth: 2 });
+                series.setData(data);
+                container._chart = chart;
+                // Resize on window resize
+                window.addEventListener('resize', () => {
+                    if (container._chart) {
+                        container._chart.resize(container.clientWidth || 340, 180);
+                    }
+                });
+            }
+
+            // =============================================================
+            // ADD INVESTMENT
+            // =============================================================
             async function addInvestment() {
                 if (!currentUser) {
                     showToast('Please log in.');
@@ -763,13 +1018,14 @@
                 } else {
                     showToast('Investment of $' + amount + ' recorded!');
                     investAmount.value = '';
-                    await loadInvestments();
+                    await loadAllData();
                 }
             }
 
             // =============================================================
-            // GOLD PRICE API
+            // GOLD PRICE API (with cache)
             // =============================================================
+            let goldPriceCache = null;
             async function getGoldPrice() {
                 if (goldPriceCache) return goldPriceCache;
                 try {
@@ -779,7 +1035,6 @@
                     return goldPriceCache;
                 } catch (e) {
                     alert('⚠️ API gold price error, using dummy value.');
-                    // Fallback dummy
                     goldPriceCache = 85 + Math.random() * 5;
                     return goldPriceCache;
                 }
@@ -809,7 +1064,6 @@
                     showToast('Error updating profile.');
                 } else {
                     showToast('Profile updated!');
-                    // Refresh user data
                     await loadUserData(currentUser);
                 }
             }
@@ -840,6 +1094,17 @@
                 document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
                 const menuBtn = document.querySelector(`.menu-item[data-page="${pageId}"]`);
                 if (menuBtn) menuBtn.classList.add('active');
+
+                // Resize charts if dashboard
+                if (pageId === 'page-dashboard') {
+                    setTimeout(() => {
+                        document.querySelectorAll('.chart-wrapper').forEach(el => {
+                            if (el._chart) {
+                                el._chart.resize(el.clientWidth || 340, 180);
+                            }
+                        });
+                    }, 300);
+                }
             }
 
             // =============================================================
@@ -884,4 +1149,4 @@
     </script>
 
 </body>
-    </html>
+                        </html>

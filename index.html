@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Stock Of - App</title>
-    <!-- Stripe JS -->
     <script src="https://js.stripe.com/v3/"></script>
-    <!-- Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js">
     </script>
-
     <style>
+        /* ---- TOUS LES STYLES (identique à la version précédente) ---- */
         * {
             margin: 0;
             padding: 0;
@@ -34,7 +32,6 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
             margin-bottom: 40px;
         }
-
         /* AUTH */
         #authContainer {
             display: block;
@@ -111,7 +108,6 @@
         .name-row input {
             flex: 1;
         }
-
         /* TOAST */
         #toast {
             position: fixed;
@@ -139,7 +135,6 @@
                 transform: translateX(-50%) translateY(0);
             }
         }
-
         /* DASHBOARD */
         #dashboard {
             display: none;
@@ -190,7 +185,6 @@
             color: #888;
             font-size: 14px;
         }
-
         /* INVESTMENTS */
         .investment-item {
             display: flex;
@@ -215,7 +209,6 @@
             padding: 2px 10px;
             border-radius: 12px;
         }
-
         /* REFERRAL TREE */
         .tree-container {
             display: flex;
@@ -300,7 +293,6 @@
             background: rgba(212, 175, 55, 0.2);
             color: #d4af37;
         }
-
         /* CHARTS */
         .chart-wrapper {
             width: 100%;
@@ -308,7 +300,6 @@
             margin-top: 8px;
             position: relative;
         }
-
         /* BOTTOM MENU */
         .bottom-menu {
             position: fixed;
@@ -357,7 +348,6 @@
         .bottom-menu .menu-item.active .label {
             color: #d4af37;
         }
-
         /* PAGES */
         .page {
             display: none;
@@ -366,7 +356,6 @@
         .page.active {
             display: block;
         }
-
         /* ERROR */
         #errorMsg {
             display: none;
@@ -381,7 +370,6 @@
         #errorMsg.show {
             display: block;
         }
-
         /* WITHDRAW */
         .withdraw-method {
             display: flex;
@@ -408,27 +396,33 @@
         .withdraw-fields .field {
             margin-bottom: 8px;
         }
-
-        /* STRIPE CARD ELEMENT */
-        .stripe-card-element {
+        /* STRIPE CARD FIELDS */
+        .stripe-field {
             padding: 12px 16px;
             border-radius: 16px;
             border: 2px solid #e2ddd6;
             background: #faf9f7;
             transition: 0.2s;
         }
-        .stripe-card-element.StripeElement--focus {
+        .stripe-field.StripeElement--focus {
             border-color: #d4af37;
             background: white;
             box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.08);
         }
-        .stripe-card-element.StripeElement--invalid {
+        .stripe-field.StripeElement--invalid {
             border-color: #f44336;
         }
         #card-errors {
             color: #f44336;
             font-size: 14px;
             margin-top: 8px;
+        }
+        .card-row {
+            display: flex;
+            gap: 10px;
+        }
+        .card-row .field {
+            flex: 1;
         }
     </style>
 </head>
@@ -509,13 +503,26 @@
                     <div id="investmentList"><p class="text-muted">No investments yet.</p></div>
                 </div>
 
-                <!-- Invest with Stripe -->
+                <!-- Invest with Stripe (champs séparés) -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:12px;">💳 Invest with Credit Card</div>
                     <div class="field">
                         <input type="number" id="investAmount" placeholder="Amount (USD)" />
                     </div>
-                    <div id="card-element" class="stripe-card-element"></div>
+                    <div class="field">
+                        <div id="card-number-element" class="stripe-field"></div>
+                    </div>
+                    <div class="card-row">
+                        <div class="field">
+                            <div id="card-expiry-element" class="stripe-field"></div>
+                        </div>
+                        <div class="field">
+                            <div id="card-cvc-element" class="stripe-field"></div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <input type="text" id="card-postal" placeholder="ZIP / Postal Code (optional)" />
+                    </div>
                     <div id="card-errors"></div>
                     <button class="btn btn-primary" id="investBtn">Invest Now</button>
                     <div style="margin-top:12px; font-size:12px; color:#888; text-align:center;">Secured by Stripe</div>
@@ -615,12 +622,14 @@
             document.getElementById('errorMsg').classList.remove('show');
 
             // =============================================================
-            // STRIPE SETUP
+            // STRIPE SETUP (avec champs séparés)
             // =============================================================
-            // 🔑 Remplace 'pk_test_...' par ta clé publique Stripe
+            // 🔑 Remplace par ta clé publique Stripe (pk_test_...)
             const stripe = Stripe('pk_test_K6URFQ24ytJNJCIJSHXy9E27');
             const elements = stripe.elements();
-            const cardElement = elements.create('card', {
+
+            // Créer les éléments séparés
+            const cardNumber = elements.create('cardNumber', {
                 style: {
                     base: {
                         fontSize: '16px',
@@ -629,19 +638,45 @@
                     }
                 }
             });
-            cardElement.mount('#card-element');
+            cardNumber.mount('#card-number-element');
+
+            const cardExpiry = elements.create('cardExpiry', {
+                style: {
+                    base: {
+                        fontSize: '16px',
+                        color: '#0f0e17',
+                        '::placeholder': { color: '#a09b94' }
+                    }
+                }
+            });
+            cardExpiry.mount('#card-expiry-element');
+
+            const cardCvc = elements.create('cardCvc', {
+                style: {
+                    base: {
+                        fontSize: '16px',
+                        color: '#0f0e17',
+                        '::placeholder': { color: '#a09b94' }
+                    }
+                }
+            });
+            cardCvc.mount('#card-cvc-element');
 
             const cardErrors = document.getElementById('card-errors');
-            cardElement.on('change', function(event) {
-                if (event.error) {
-                    cardErrors.textContent = event.error.message;
-                } else {
-                    cardErrors.textContent = '';
-                }
+
+            // Gestion des erreurs
+            [cardNumber, cardExpiry, cardCvc].forEach(el => {
+                el.on('change', function(event) {
+                    if (event.error) {
+                        cardErrors.textContent = event.error.message;
+                    } else {
+                        cardErrors.textContent = '';
+                    }
+                });
             });
 
             // =============================================================
-            // DOM REFS
+            // DOM REFS (tous les éléments)
             // =============================================================
             const $ = id => document.getElementById(id);
             const authContainer = $('authContainer');
@@ -691,6 +726,9 @@
             const btcAddress = $('btcAddress');
             const withdrawBankLabel = $('withdrawBankLabel');
             const withdrawBtcLabel = $('withdrawBtcLabel');
+
+            // Postal code
+            const cardPostal = $('card-postal');
 
             // Charts
             const canvasInvest = $('chartInvest');
@@ -1245,24 +1283,34 @@
             }
 
             // =============================================================
-            // ADD INVESTMENT WITH STRIPE
+            // ADD INVESTMENT WITH STRIPE (champs séparés)
             // =============================================================
             async function addInvestment() {
                 if (!currentUser) { showToast('Please log in.'); return; }
+
                 const amount = parseFloat(investAmount.value);
-                if (!amount || amount <= 0) { showToast('Please enter a valid amount.'); return; }
+                if (!amount || amount <= 0) {
+                    showToast('Please enter a valid amount.');
+                    return;
+                }
 
                 investBtn.disabled = true;
                 investBtn.textContent = 'Processing...';
 
                 try {
-                    // 1. Créer un PaymentMethod avec Stripe
+                    // Récupérer le code postal (optionnel)
+                    const postal = cardPostal.value.trim();
+
+                    // 1. Créer un PaymentMethod avec les éléments Stripe
                     const { error, paymentMethod } = await stripe.createPaymentMethod({
                         type: 'card',
-                        card: cardElement,
+                        card: cardNumber,
                         billing_details: {
                             email: currentUser.email,
                             name: currentUser.first_name + ' ' + currentUser.last_name,
+                            address: {
+                                postal_code: postal || undefined,
+                            },
                         },
                     });
 
@@ -1284,6 +1332,7 @@
                     });
 
                     if (functionError) {
+                        console.error('Edge Function error:', functionError);
                         showToast('Server error: ' + functionError.message);
                         investBtn.disabled = false;
                         investBtn.textContent = 'Invest Now';
@@ -1293,11 +1342,14 @@
                     if (data && data.success) {
                         showToast('Investment of $' + amount + ' recorded!');
                         investAmount.value = '';
+                        cardPostal.value = '';
+                        // Vider les champs Stripe (ils se vident automatiquement)
                         await loadAllData();
                     } else {
-                        showToast('Payment failed: ' + (data.error || 'Unknown error'));
+                        showToast('Payment failed: ' + (data?.error || 'Unknown error'));
                     }
                 } catch (err) {
+                    console.error('Error:', err);
                     showToast('Error: ' + err.message);
                 }
 

@@ -8,7 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js">
     </script>
     <style>
-        /* ---- TOUS LES STYLES (identique à la version précédente) ---- */
         * {
             margin: 0;
             padding: 0;
@@ -32,7 +31,6 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
             margin-bottom: 40px;
         }
-        /* AUTH */
         #authContainer {
             display: block;
         }
@@ -108,7 +106,6 @@
         .name-row input {
             flex: 1;
         }
-        /* TOAST */
         #toast {
             position: fixed;
             bottom: 100px;
@@ -135,7 +132,6 @@
                 transform: translateX(-50%) translateY(0);
             }
         }
-        /* DASHBOARD */
         #dashboard {
             display: none;
             margin-top: 20px;
@@ -185,7 +181,6 @@
             color: #888;
             font-size: 14px;
         }
-        /* INVESTMENTS */
         .investment-item {
             display: flex;
             justify-content: space-between;
@@ -209,7 +204,6 @@
             padding: 2px 10px;
             border-radius: 12px;
         }
-        /* REFERRAL TREE */
         .tree-container {
             display: flex;
             flex-direction: column;
@@ -293,14 +287,12 @@
             background: rgba(212, 175, 55, 0.2);
             color: #d4af37;
         }
-        /* CHARTS */
         .chart-wrapper {
             width: 100%;
             height: 200px;
             margin-top: 8px;
             position: relative;
         }
-        /* BOTTOM MENU */
         .bottom-menu {
             position: fixed;
             bottom: 0;
@@ -348,7 +340,6 @@
         .bottom-menu .menu-item.active .label {
             color: #d4af37;
         }
-        /* PAGES */
         .page {
             display: none;
             padding: 16px 0;
@@ -356,7 +347,6 @@
         .page.active {
             display: block;
         }
-        /* ERROR */
         #errorMsg {
             display: none;
             background: #fef2f2;
@@ -370,7 +360,6 @@
         #errorMsg.show {
             display: block;
         }
-        /* WITHDRAW */
         .withdraw-method {
             display: flex;
             gap: 12px;
@@ -396,7 +385,6 @@
         .withdraw-fields .field {
             margin-bottom: 8px;
         }
-        /* STRIPE CARD FIELDS */
         .stripe-field {
             padding: 12px 16px;
             border-radius: 16px;
@@ -608,16 +596,16 @@
         // =============================================================
         // CONFIG
         // =============================================================
-        console.log('🚀 Script chargé');
+        alert('🚀 Script chargé');
 
         try {
             const { createClient } = await import('@supabase/supabase-js');
-            console.log('✅ Supabase importé');
+            alert('✅ Supabase importé');
 
             const SUPABASE_URL = 'https://iiceaseqdzcdfgkiinnx.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_VZxq4hifeXH7kyDdi91FJg_LlzNoCiL';
             const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            console.log('✅ Supabase initialisé');
+            alert('✅ Supabase initialisé');
 
             document.getElementById('errorMsg').classList.remove('show');
 
@@ -676,7 +664,7 @@
             });
 
             // =============================================================
-            // DOM REFS (tous les éléments)
+            // DOM REFS
             // =============================================================
             const $ = id => document.getElementById(id);
             const authContainer = $('authContainer');
@@ -744,7 +732,7 @@
             let referrals = [];
             let chartInstances = {};
 
-            console.log('✅ DOM ready');
+            alert('✅ DOM ready');
 
             // =============================================================
             // TOAST
@@ -1283,25 +1271,34 @@
             }
 
             // =============================================================
-            // ADD INVESTMENT WITH STRIPE (champs séparés)
+            // ADD INVESTMENT WITH STRIPE (avec alertes de débogage)
             // =============================================================
             async function addInvestment() {
-                if (!currentUser) { showToast('Please log in.'); return; }
+                alert('🔵 addInvestment appelée');
+
+                if (!currentUser) {
+                    alert('❌ Utilisateur non connecté');
+                    showToast('Please log in.');
+                    return;
+                }
+                alert('✅ Utilisateur connecté : ' + currentUser.email);
 
                 const amount = parseFloat(investAmount.value);
                 if (!amount || amount <= 0) {
+                    alert('❌ Montant invalide');
                     showToast('Please enter a valid amount.');
                     return;
                 }
+                alert('✅ Montant : ' + amount);
 
                 investBtn.disabled = true;
                 investBtn.textContent = 'Processing...';
 
                 try {
-                    // Récupérer le code postal (optionnel)
                     const postal = cardPostal.value.trim();
+                    alert('📦 Création du PaymentMethod Stripe...');
 
-                    // 1. Créer un PaymentMethod avec les éléments Stripe
+                    // 1. Créer un PaymentMethod
                     const { error, paymentMethod } = await stripe.createPaymentMethod({
                         type: 'card',
                         card: cardNumber,
@@ -1315,13 +1312,16 @@
                     });
 
                     if (error) {
+                        alert('❌ Erreur Stripe : ' + error.message);
                         showToast('Payment error: ' + error.message);
                         investBtn.disabled = false;
                         investBtn.textContent = 'Invest Now';
                         return;
                     }
+                    alert('✅ PaymentMethod créé : ' + paymentMethod.id);
 
                     // 2. Appeler l'Edge Function
+                    alert('📡 Appel de la fonction create-payment...');
                     const { data, error: functionError } = await supabase.functions.invoke('create-payment', {
                         body: {
                             paymentMethodId: paymentMethod.id,
@@ -1332,24 +1332,27 @@
                     });
 
                     if (functionError) {
-                        console.error('Edge Function error:', functionError);
+                        alert('❌ Erreur Edge Function : ' + functionError.message);
                         showToast('Server error: ' + functionError.message);
                         investBtn.disabled = false;
                         investBtn.textContent = 'Invest Now';
                         return;
                     }
 
+                    alert('✅ Réponse reçue : ' + JSON.stringify(data));
+
                     if (data && data.success) {
+                        alert('🎉 Investissement de $' + amount + ' enregistré !');
                         showToast('Investment of $' + amount + ' recorded!');
                         investAmount.value = '';
                         cardPostal.value = '';
-                        // Vider les champs Stripe (ils se vident automatiquement)
                         await loadAllData();
                     } else {
+                        alert('❌ Échec du paiement : ' + (data?.error || 'Unknown error'));
                         showToast('Payment failed: ' + (data?.error || 'Unknown error'));
                     }
                 } catch (err) {
-                    console.error('Error:', err);
+                    alert('❌ Erreur inattendue : ' + err.message);
                     showToast('Error: ' + err.message);
                 }
 

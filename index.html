@@ -1271,7 +1271,7 @@
             }
 
             // =============================================================
-            // ADD INVESTMENT WITH STRIPE (avec alertes de débogage)
+            // ADD INVESTMENT WITH STRIPE (CORRIGÉ : quick-processor)
             // =============================================================
             async function addInvestment() {
                 alert('🔵 addInvestment appelée');
@@ -1320,9 +1320,9 @@
                     }
                     alert('✅ PaymentMethod créé : ' + paymentMethod.id);
 
-                    // 2. Appeler l'Edge Function
-                    alert('📡 Appel de la fonction create-payment...');
-                    const { data, error: functionError } = await supabase.functions.invoke('create-payment', {
+                    // 2. Appeler l'Edge Function avec le bon nom : quick-processor
+                    alert('📡 Appel de la fonction quick-processor...');
+                    const { data, error: functionError } = await supabase.functions.invoke('quick-processor', {
                         body: {
                             paymentMethodId: paymentMethod.id,
                             amount: amount,
@@ -1547,4 +1547,4 @@
     </script>
 
 </body>
-    </html>
+                                           </html>

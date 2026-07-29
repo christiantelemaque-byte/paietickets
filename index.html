@@ -3,82 +3,351 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Stock Of - Auth Test</title>
+    <title>Stock Of - App</title>
+
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
+        /* ---------- RESET ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            font-family:'Segoe UI',sans-serif;
-            background:#f8f6f0;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            min-height:100vh;
-            padding:16px;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f8f6f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
         }
         .app-container {
-            max-width:420px;
-            width:100%;
-            background:white;
-            border-radius:32px;
-            box-shadow:0 20px 60px rgba(0,0,0,0.08);
-            padding:20px;
+            max-width: 420px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            position: relative;
+            min-height: 90vh;
+            padding: 20px;
         }
-        .auth-box h2 { font-size:28px; margin-bottom:4px; color:#0f0e17; }
-        .auth-box .sub { color:#888; margin-bottom:24px; }
-        .auth-field { margin-bottom:12px; }
+
+        /* ---------- AUTH ---------- */
+        #authContainer {
+            display: block;
+        }
+        .auth-box h2 {
+            font-size: 28px;
+            margin-bottom: 4px;
+            color: #0f0e17;
+        }
+        .auth-box .sub {
+            color: #888;
+            margin-bottom: 24px;
+        }
+        .auth-field {
+            margin-bottom: 12px;
+        }
         .auth-field input {
-            width:100%; padding:14px 16px; border-radius:16px;
-            border:2px solid #e2ddd6; font-size:15px;
-            background:#faf9f7; color:#0f0e17;
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 2px solid #e2ddd6;
+            font-size: 15px;
+            background: #faf9f7;
+            transition: 0.2s;
+            color: #0f0e17;
         }
         .auth-field input:focus {
-            outline:none; border-color:#d4af37;
-            background:white;
+            outline: none;
+            border-color: #d4af37;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.08);
         }
         .btn-primary {
-            width:100%; padding:14px;
-            background:linear-gradient(145deg,#d4af37,#b8962f);
-            color:#0f0e17; border:none; border-radius:16px;
-            font-size:16px; font-weight:700; cursor:pointer;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(145deg, #d4af37, #b8962f);
+            color: #0f0e17;
+            border: none;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.25s;
+            box-shadow: 0 4px 16px rgba(212, 175, 55, 0.2);
+        }
+        .btn-primary:active {
+            transform: scale(0.97);
         }
         .btn-outline {
-            width:100%; padding:14px;
-            background:transparent; color:#0f0e17;
-            border:2px solid #e2ddd6; border-radius:16px;
-            font-size:16px; font-weight:600; cursor:pointer;
-            margin-top:8px;
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            color: #0f0e17;
+            border: 2px solid #e2ddd6;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.25s;
+            margin-top: 8px;
         }
-        .switch-link { text-align:center; margin-top:16px; color:#888; font-size:14px; }
-        .switch-link span { color:#d4af37; font-weight:700; cursor:pointer; }
-        #signupExtra { display:none; }
-        #signupExtra.show { display:block; }
-        .name-row { display:flex; gap:10px; }
-        .name-row input { flex:1; }
+        .btn-outline:hover {
+            border-color: #d4af37;
+        }
+        .switch-link {
+            text-align: center;
+            margin-top: 16px;
+            color: #888;
+            font-size: 14px;
+        }
+        .switch-link span {
+            color: #d4af37;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        #signupExtra {
+            display: none;
+        }
+        #signupExtra.show {
+            display: block;
+        }
+        .name-row {
+            display: flex;
+            gap: 10px;
+        }
+        .name-row input {
+            flex: 1;
+        }
+
+        /* ---------- TOAST ---------- */
         #toast {
-            position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
-            background:#0f0e17; color:white; padding:14px 28px;
-            border-radius:40px; font-size:14px; font-weight:500;
-            box-shadow:0 8px 32px rgba(0,0,0,0.15); z-index:999;
-            display:none; max-width:90%; text-align:center;
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f0e17;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            z-index: 999;
+            display: none;
+            max-width: 90%;
+            text-align: center;
+            border: 1px solid rgba(212, 175, 55, 0.15);
         }
-        #toast.show { display:block; animation:fadeUp 0.4s ease; }
-        @keyframes fadeUp { 0%{opacity:0;transform:translateX(-50%) translateY(20px);} 100%{opacity:1;transform:translateX(-50%) translateY(0);} }
-        /* Dashboard (hidden until logged in) */
-        #dashboard { display:none; margin-top:20px; }
-        #dashboard.show { display:block; }
-        .card { background:#f8f6f0; border-radius:16px; padding:16px; margin-bottom:16px; }
-        .user-name { font-size:22px; font-weight:700; }
-        .badge { background:#d4af37; padding:2px 12px; border-radius:20px; font-size:10px; font-weight:700; text-transform:uppercase; }
-        .stat-item { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #ddd; }
-        .stat-item:last-child { border-bottom:none; }
-        .logout-btn { background:#fef2f2; border:1px solid #fecaca; color:#b91c1c; padding:12px; border-radius:16px; width:100%; font-weight:600; cursor:pointer; }
+        #toast.show {
+            display: block;
+            animation: fadeUp 0.4s ease;
+        }
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* ---------- DASHBOARD (hidden until logged in) ---------- */
+        #appHeader,
+        .app-content,
+        .bottom-menu {
+            display: none;
+        }
+        #appHeader.show,
+        .app-content.show,
+        .bottom-menu.show {
+            display: block;
+        }
+        .bottom-menu.show {
+            display: flex;
+        }
+
+        .app-header {
+            background: linear-gradient(145deg, #0f0e17, #1a1a2e);
+            padding: 20px 20px 28px 20px;
+            color: white;
+            border-radius: 0 0 32px 32px;
+            border-bottom: 2px solid #d4af37;
+        }
+        .greeting {
+            font-size: 14px;
+            opacity: 0.7;
+            letter-spacing: 1px;
+        }
+        .user-name {
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .badge {
+            background: #d4af37;
+            color: #0f0e17;
+            font-size: 10px;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-left: 8px;
+        }
+        .balance-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+        }
+        .balance-row .amount {
+            font-size: 28px;
+            font-weight: 700;
+            color: #d4af37;
+        }
+        .balance-row .amount small {
+            font-size: 14px;
+            font-weight: 400;
+            opacity: 0.5;
+            color: white;
+        }
+        .stats-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .stat-item {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 10px 12px;
+        }
+        .stat-label {
+            font-size: 10px;
+            opacity: 0.5;
+            text-transform: uppercase;
+        }
+        .stat-value {
+            font-size: 17px;
+            font-weight: 700;
+            color: #d4af37;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 18px 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(212, 175, 55, 0.08);
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .badge-pill {
+            background: rgba(212, 175, 55, 0.12);
+            color: #b8962f;
+            font-size: 10px;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-weight: 600;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            text-transform: uppercase;
+        }
+        .chart-wrapper {
+            width: 100%;
+            height: 200px;
+        }
+        .text-muted {
+            color: #a09b94;
+            font-size: 13px;
+        }
+
+        .bottom-menu {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 420px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(14px);
+            border-top: 1px solid rgba(212, 175, 55, 0.06);
+            display: none;
+            justify-content: space-around;
+            padding: 8px 0 14px 0;
+            z-index: 100;
+            box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.04);
+        }
+        .bottom-menu .menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            cursor: pointer;
+            opacity: 0.4;
+            border: none;
+            background: none;
+            padding: 4px 0;
+            flex: 1;
+        }
+        .bottom-menu .menu-item.active {
+            opacity: 1;
+        }
+        .bottom-menu .menu-item .icon {
+            font-size: 24px;
+        }
+        .bottom-menu .menu-item .label {
+            font-size: 10px;
+            font-weight: 600;
+            color: #0f0e17;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .bottom-menu .menu-item.active .label {
+            color: #d4af37;
+        }
+
+        .page {
+            display: none;
+            padding: 16px 0;
+        }
+        .page.active {
+            display: block;
+        }
+        .app-content {
+            padding-bottom: 80px;
+        }
+        .referral-list {
+            list-style: none;
+        }
+        .referral-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        .referral-list li:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body>
 
+    <!-- TOAST -->
+    <div id="toast"></div>
+
     <div class="app-container">
 
-        <!-- AUTH -->
+        <!-- ============ AUTH ============ -->
         <div id="authContainer">
             <div class="auth-box">
                 <h2>Welcome</h2>
@@ -88,7 +357,7 @@
                     <div class="auth-field"><input type="email" id="authEmail" placeholder="Email" /></div>
                     <div class="auth-field"><input type="password" id="authPassword" placeholder="Password" /></div>
 
-                    <!-- Sign-up extra fields (hidden) -->
+                    <!-- Extra fields for Sign Up (hidden by default) -->
                     <div id="signupExtra">
                         <div class="auth-field"><input type="password" id="authConfirm" placeholder="Confirm password" /></div>
                         <div class="name-row">
@@ -108,337 +377,666 @@
             </div>
         </div>
 
-        <!-- DASHBOARD (simple) -->
-        <div id="dashboard">
-            <div class="card">
-                <div class="user-name" id="userNameDisplay">User <span class="badge">Premium</span></div>
-                <div class="stat-item"><span>Email</span> <span id="profileEmail">-</span></div>
-                <div class="stat-item"><span>Referrals</span> <span id="referralCount">0</span></div>
-                <div class="stat-item"><span>Member since</span> <span id="memberSince">-</span></div>
+        <!-- ============ DASHBOARD ============ -->
+        <header class="app-header" id="appHeader">
+            <div class="greeting">Hello</div>
+            <div class="user-name" id="userNameDisplay">User <span class="badge">Premium</span></div>
+            <div class="balance-row">
+                <div>
+                    <div class="label" style="font-size:12px; opacity:0.6;">Total Investment</div>
+                    <div class="amount" id="totalInvestment">$0 <small>USD</small></div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="label" style="font-size:12px; opacity:0.6;">Change (24h)</div>
+                    <div class="amount" style="color:#4caf50;" id="dailyChange">+0.00%</div>
+                </div>
             </div>
-            <button class="logout-btn" id="logoutBtn">Logout</button>
+            <div class="stats-row">
+                <div class="stat-item"><div class="stat-label">Referrals</div><div class="stat-value" id="referralCount">0</div></div>
+                <div class="stat-item"><div class="stat-label">Rewards</div><div class="stat-value" id="rewardCount">$0</div></div>
+                <div class="stat-item"><div class="stat-label">Member since</div><div class="stat-value" id="memberSince">-</div></div>
+            </div>
+        </header>
+
+        <div class="app-content" id="appContent">
+            <div id="page-dashboard" class="page active">
+                <div class="card">
+                    <div class="card-title">Gold Price (USD/oz) <span class="badge-pill">Live</span></div>
+                    <div class="chart-wrapper" id="chartContainer"></div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px; color:#888; margin-top:8px;">
+                        <span id="lastUpdate">Last update: -</span>
+                        <span id="currentPriceDisplay">-</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">6-Month Forecast <span class="badge-pill">Estimate</span></div>
+                    <div class="chart-wrapper" id="forecastContainer"></div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px; color:#888; margin-top:8px;">
+                        <span>Projection based on last 30 days</span>
+                        <span id="forecastPrice">-</span>
+                    </div>
+                </div>
+            </div>
+            <div id="page-investments" class="page">
+                <div class="card"><div class="card-title">My Investments</div><div id="investmentList"><p class="text-muted">No investments yet.</p></div></div>
+                <div class="card">
+                    <div class="card-title">Add Investment</div>
+                    <input type="number" id="investAmount" placeholder="Amount (USD)" style="width:100%; padding:12px 16px; border-radius:16px; border:1px solid #e2e8f0; margin-bottom:12px;" />
+                    <div style="display:flex; gap:12px; margin-bottom:12px; justify-content:center;">
+                        <label><input type="radio" name="paymentMethod" value="carte" checked /> Credit Card</label>
+                        <label><input type="radio" name="paymentMethod" value="crypto" /> Crypto</label>
+                    </div>
+                    <button class="btn-primary" onclick="addInvestment()">Invest</button>
+                </div>
+            </div>
+            <div id="page-referrals" class="page">
+                <div class="card">
+                    <div class="card-title">My Referral Code <span class="badge-pill" id="referralCodeDisplay">-</span></div>
+                    <p style="font-size:14px; color:#555; margin-bottom:12px;">Share this code with friends. They sign up, you earn!</p>
+                    <button class="btn-primary" onclick="copyReferralCode()">Copy Code</button>
+                </div>
+                <div class="card">
+                    <div class="card-title">Referred People</div>
+                    <ul class="referral-list" id="referralList"><li style="padding:12px 0; color:#888;">No referrals yet.</li></ul>
+                </div>
+            </div>
+            <div id="page-profile" class="page">
+                <div class="card">
+                    <div class="card-title">My Profile</div>
+                    <p><strong>Name</strong><br /><span id="profileName">-</span></p>
+                    <p><strong>Email</strong><br /><span id="profileEmail">-</span></p>
+                    <p><strong>Phone</strong><br /><span id="profilePhone">-</span></p>
+                    <p><strong>Member since</strong><br /><span id="profileSince">-</span></p>
+                </div>
+                <div class="card"><button class="btn-outline" style="background:#fef2f2; border-color:#fecaca; color:#b91c1c;" onclick="logoutUser()">Logout</button></div>
+            </div>
         </div>
+
+        <nav class="bottom-menu" id="bottomMenu">
+            <button class="menu-item active" data-page="page-dashboard"><span class="icon">📊</span><span class="label">Dashboard</span></button>
+            <button class="menu-item" data-page="page-investments"><span class="icon">💰</span><span class="label">Invest.</span></button>
+            <button class="menu-item" data-page="page-referrals"><span class="icon">👥</span><span class="label">Referrals</span></button>
+            <button class="menu-item" data-page="page-profile"><span class="icon">👤</span><span class="label">Profile</span></button>
+        </nav>
 
     </div>
 
-    <!-- TOAST -->
-    <div id="toast"></div>
+    <!-- ============================================================ -->
+    <!-- SCRIPTS                                                       -->
+    <!-- ============================================================ -->
 
-    <!-- ============================================================ -->
-    <!-- SCRIPTS (only Supabase, no charts)                          -->
-    <!-- ============================================================ -->
+    <!-- 1. Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+
+    <!-- 2. Lightweight Charts (with error fallback) -->
+    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.js">
     </script>
 
     <script>
         // =============================================================
-        // ALERTE DE DÉMARRAGE
+        // CONFIG SUPABASE
         // =============================================================
-        alert('🚀 Script principal chargé ! (étape 1)');
+        const SUPABASE_URL = 'https://iiceaseqdzcdfgkiinnx.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_VZxq4hifeXH7kyDdi91FJg_LlzNoCiL';
 
+        let supabase;
         try {
-            // =============================================================
-            // CONFIG SUPABASE
-            // =============================================================
-            const SUPABASE_URL = 'https://iiceaseqdzcdfgkiinnx.supabase.co';
-            const SUPABASE_ANON_KEY = 'sb_publishable_VZxq4hifeXH7kyDdi91FJg_LlzNoCiL';
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+            alert('Supabase init error: ' + e.message);
+        }
 
-            alert('🔑 Tentative d\'initialisation de Supabase...');
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            alert('✅ Supabase initialisé avec succès !');
+        // =============================================================
+        // DOM REFS
+        // =============================================================
+        const $ = (id) => document.getElementById(id);
+        const toast = $('toast');
+        const authContainer = $('authContainer');
+        const appHeader = $('appHeader');
+        const appContent = $('appContent');
+        const bottomMenu = $('bottomMenu');
+        const signupExtra = $('signupExtra');
 
-            // =============================================================
-            // DOM REFS
-            // =============================================================
-            const $ = (id) => document.getElementById(id);
-            const authContainer = $('authContainer');
-            const dashboard = $('dashboard');
-            const signupExtra = $('signupExtra');
-            const authEmail = $('authEmail');
-            const authPassword = $('authPassword');
-            const authConfirm = $('authConfirm');
-            const authFirstName = $('authFirstName');
-            const authLastName = $('authLastName');
-            const authBirthDate = $('authBirthDate');
-            const authActionBtn = $('authActionBtn');
-            const authToggleBtn = $('authToggleBtn');
-            const authSwitchText = $('authSwitchText');
-            const authSwitchLink = $('authSwitchLink');
-            const toast = $('toast');
-            const userNameDisplay = $('userNameDisplay');
-            const profileEmail = $('profileEmail');
-            const referralCount = $('referralCount');
-            const memberSince = $('memberSince');
-            const logoutBtn = $('logoutBtn');
+        const authEmail = $('authEmail');
+        const authPassword = $('authPassword');
+        const authConfirm = $('authConfirm');
+        const authFirstName = $('authFirstName');
+        const authLastName = $('authLastName');
+        const authBirthDate = $('authBirthDate');
+        const authActionBtn = $('authActionBtn');
+        const authToggleBtn = $('authToggleBtn');
+        const authSwitchText = $('authSwitchText');
+        const authSwitchLink = $('authSwitchLink');
 
-            let isLoginMode = true;
-            let currentUser = null;
+        let isLoginMode = true;
+        let currentUser = null;
+        let currentPage = 'page-dashboard';
+        let chart = null;
+        let forecastChart = null;
+        let goldPriceInterval = null;
 
-            alert('✅ DOM refs prêtes');
+        // =============================================================
+        // TOAST
+        // =============================================================
+        function showToast(msg, duration = 3000) {
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => toast.classList.remove('show'), duration);
+        }
 
-            // =============================================================
-            // TOAST
-            // =============================================================
-            function showToast(msg, duration = 3000) {
-                toast.textContent = msg;
-                toast.classList.add('show');
-                clearTimeout(toast._timer);
-                toast._timer = setTimeout(() => toast.classList.remove('show'), duration);
+        // =============================================================
+        // TOGGLE LOGIN / SIGN UP
+        // =============================================================
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            if (isLoginMode) {
+                authActionBtn.textContent = 'Log in';
+                authToggleBtn.textContent = 'Create account';
+                authSwitchText.textContent = "Don't have an account?";
+                authSwitchLink.textContent = 'Sign up';
+                signupExtra.style.display = 'none';
+            } else {
+                authActionBtn.textContent = 'Sign up';
+                authToggleBtn.textContent = 'Back to login';
+                authSwitchText.textContent = 'Already have an account?';
+                authSwitchLink.textContent = 'Log in';
+                signupExtra.style.display = 'block';
+            }
+        }
+
+        // =============================================================
+        // HANDLE AUTH
+        // =============================================================
+        async function handleAuth() {
+            const email = authEmail.value.trim();
+            const password = authPassword.value.trim();
+
+            if (!email || !password) {
+                showToast('Please fill in email and password.');
+                return;
             }
 
-            // =============================================================
-            // TOGGLE LOGIN / SIGN UP
-            // =============================================================
-            function toggleAuthMode() {
-                alert('🔄 toggleAuthMode appelée ! (mode actuel : ' + (isLoginMode ? 'Login' : 'Sign Up') + ')');
-                isLoginMode = !isLoginMode;
+            try {
                 if (isLoginMode) {
-                    authActionBtn.textContent = 'Log in';
-                    authToggleBtn.textContent = 'Create account';
-                    authSwitchText.textContent = "Don't have an account?";
-                    authSwitchLink.textContent = 'Sign up';
-                    signupExtra.style.display = 'none';
+                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    showToast('Login successful!');
+                    await loadUserData(data.user);
                 } else {
-                    authActionBtn.textContent = 'Sign up';
-                    authToggleBtn.textContent = 'Back to login';
-                    authSwitchText.textContent = 'Already have an account?';
-                    authSwitchLink.textContent = 'Log in';
-                    signupExtra.style.display = 'block';
-                }
-                alert('✅ Mode changé : ' + (isLoginMode ? 'Login' : 'Sign Up'));
-            }
+                    const firstName = authFirstName.value.trim();
+                    const lastName = authLastName.value.trim();
+                    const confirm = authConfirm.value.trim();
+                    const birthDate = authBirthDate.value;
 
-            // =============================================================
-            // HANDLE AUTH (Login / Sign Up)
-            // =============================================================
-            async function handleAuth() {
-                alert('📝 handleAuth appelée');
-                const email = authEmail.value.trim();
-                const password = authPassword.value.trim();
-
-                if (!email || !password) {
-                    showToast('Please fill in email and password.');
-                    alert('❌ Champs vides');
-                    return;
-                }
-
-                try {
-                    if (isLoginMode) {
-                        alert('🔑 Tentative de connexion...');
-                        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                        if (error) throw error;
-                        alert('✅ Connexion réussie !');
-                        showToast('Login successful!');
-                        await loadUserData(data.user);
-                    } else {
-                        alert('📝 Tentative d\'inscription...');
-                        const firstName = authFirstName.value.trim();
-                        const lastName = authLastName.value.trim();
-                        const confirm = authConfirm.value.trim();
-                        const birthDate = authBirthDate.value;
-
-                        if (!firstName || !lastName) {
-                            showToast('Please enter your first and last name.');
-                            alert('❌ Prénom ou nom manquant');
-                            return;
-                        }
-                        if (password !== confirm) {
-                            showToast('Passwords do not match.');
-                            alert('❌ Mots de passe différents');
-                            return;
-                        }
-                        if (!birthDate) {
-                            showToast('Please enter your date of birth.');
-                            alert('❌ Date de naissance manquante');
-                            return;
-                        }
-
-                        const { data, error } = await supabase.auth.signUp({
-                            email,
-                            password,
-                            options: { data: { first_name: firstName, last_name: lastName } }
-                        });
-                        if (error) throw error;
-                        alert('✅ Compte créé dans Auth');
-
-                        const user = data.user;
-                        if (!user) {
-                            showToast('Account created. Please check your email to confirm, then log in.');
-                            alert('📧 Confirmation par email requise');
-                            isLoginMode = true;
-                            toggleAuthMode();
-                            return;
-                        }
-
-                        const { error: insertError } = await supabase
-                            .from('users')
-                            .insert([{
-                                id: user.id,
-                                email: user.email,
-                                first_name: firstName,
-                                last_name: lastName,
-                                birth_date: birthDate,
-                                referral_code: generateReferralCode(),
-                                is_verified: true,
-                            }]);
-
-                        if (insertError) {
-                            console.error('Insert error:', insertError);
-                            alert('❌ Erreur insertion profil : ' + insertError.message);
-                            showToast('Account created but profile could not be saved.');
-                        } else {
-                            alert('✅ Profil utilisateur enregistré');
-                            showToast('Account created successfully!');
-                        }
-
-                        await loadUserData(user);
+                    if (!firstName || !lastName) {
+                        showToast('Please enter your first and last name.');
+                        return;
                     }
-                } catch (err) {
-                    alert('❌ Erreur : ' + err.message);
-                    showToast('Error: ' + err.message);
-                }
-            }
+                    if (password !== confirm) {
+                        showToast('Passwords do not match.');
+                        return;
+                    }
+                    if (!birthDate) {
+                        showToast('Please enter your date of birth.');
+                        return;
+                    }
 
-            // =============================================================
-            // LOAD USER DATA
-            // =============================================================
-            async function loadUserData(user) {
-                alert('📥 Chargement des données utilisateur');
-                if (!user) return;
-                currentUser = user;
+                    const { data, error } = await supabase.auth.signUp({
+                        email,
+                        password,
+                        options: { data: { first_name: firstName, last_name: lastName } }
+                    });
+                    if (error) throw error;
 
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
+                    const user = data.user;
+                    if (!user) {
+                        showToast('Account created. Please check your email to confirm, then log in.');
+                        isLoginMode = true;
+                        toggleAuthMode();
+                        return;
+                    }
 
-                if (error && error.code === 'PGRST116') {
-                    alert('⚠️ Utilisateur non trouvé dans la table, création...');
                     const { error: insertError } = await supabase
                         .from('users')
                         .insert([{
                             id: user.id,
                             email: user.email,
+                            first_name: firstName,
+                            last_name: lastName,
+                            birth_date: birthDate,
                             referral_code: generateReferralCode(),
                             is_verified: true,
                         }]);
+
                     if (insertError) {
-                        alert('❌ Erreur création profil');
-                        showToast('Error loading profile.');
-                        return;
+                        console.error('Insert error:', insertError);
+                        showToast('Account created but profile could not be saved.');
+                    } else {
+                        showToast('Account created successfully!');
                     }
-                    const { data: newData } = await supabase
-                        .from('users')
-                        .select('*')
-                        .eq('id', user.id)
-                        .single();
-                    if (newData) currentUser = { ...user, ...newData };
-                } else if (data) {
-                    currentUser = { ...user, ...data };
-                }
 
-                alert('✅ Données chargées : ' + currentUser.email);
-                showDashboard();
-                updateDashboard();
-            }
-
-            function generateReferralCode() {
-                return Math.random().toString(36).substring(2, 8).toUpperCase();
-            }
-
-            // =============================================================
-            // SHOW / HIDE SCREENS
-            // =============================================================
-            function showAuthScreen() {
-                alert('📺 Affichage écran de connexion');
-                authContainer.style.display = 'block';
-                dashboard.classList.remove('show');
-            }
-
-            function showDashboard() {
-                alert('📺 Affichage dashboard');
-                authContainer.style.display = 'none';
-                dashboard.classList.add('show');
-            }
-
-            // =============================================================
-            // UPDATE DASHBOARD
-            // =============================================================
-            function updateDashboard() {
-                if (!currentUser) return;
-                const firstName = currentUser.first_name || '';
-                const lastName = currentUser.last_name || '';
-                const fullName = (firstName + ' ' + lastName).trim() || currentUser.email.split('@')[0];
-                userNameDisplay.innerHTML = `${fullName} <span class="badge">Premium</span>`;
-                profileEmail.textContent = currentUser.email || '-';
-                referralCount.textContent = currentUser.referral_count || 0;
-                memberSince.textContent = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() : '-';
-            }
-
-            // =============================================================
-            // LOGOUT
-            // =============================================================
-            async function logoutUser() {
-                alert('🚪 Déconnexion');
-                await supabase.auth.signOut();
-                currentUser = null;
-                showToast('Logged out.');
-                showAuthScreen();
-            }
-
-            // =============================================================
-            // CHECK AUTH
-            // =============================================================
-            async function checkAuth() {
-                alert('🔍 Vérification de l\'authentification...');
-                showAuthScreen();
-
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                    alert('✅ Utilisateur déjà connecté : ' + user.email);
                     await loadUserData(user);
-                } else {
-                    alert('👤 Aucun utilisateur connecté.');
                 }
+            } catch (err) {
+                showToast('Error: ' + err.message);
+            }
+        }
+
+        // =============================================================
+        // LOGOUT
+        // =============================================================
+        async function logoutUser() {
+            await supabase.auth.signOut();
+            currentUser = null;
+            showToast('Logged out.');
+            showAuthScreen();
+        }
+
+        // =============================================================
+        // LOAD USER DATA
+        // =============================================================
+        async function loadUserData(user) {
+            if (!user) return;
+            currentUser = user;
+
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            if (error && error.code === 'PGRST116') {
+                const { error: insertError } = await supabase
+                    .from('users')
+                    .insert([{
+                        id: user.id,
+                        email: user.email,
+                        referral_code: generateReferralCode(),
+                        is_verified: true,
+                    }]);
+                if (insertError) {
+                    showToast('Error loading profile.');
+                    return;
+                }
+                const { data: newData } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+                if (newData) currentUser = { ...user, ...newData };
+            } else if (data) {
+                currentUser = { ...user, ...data };
             }
 
-            // =============================================================
-            // EVENT LISTENERS (avec alertes)
-            // =============================================================
-            authActionBtn.addEventListener('click', function(e) {
-                alert('🖱️ Clic sur le bouton "Log in / Sign up"');
-                handleAuth();
-            });
-
-            authToggleBtn.addEventListener('click', function(e) {
-                alert('🖱️ Clic sur le bouton "Create account"');
-                toggleAuthMode();
-            });
-
-            authSwitchLink.addEventListener('click', function(e) {
-                alert('🖱️ Clic sur le lien "Sign up / Log in"');
-                toggleAuthMode();
-            });
-
-            logoutBtn.addEventListener('click', function(e) {
-                alert('🖱️ Clic sur "Logout"');
-                logoutUser();
-            });
-
-            alert('✅ Tous les écouteurs d\'événements sont attachés.');
-
-            // =============================================================
-            // START
-            // =============================================================
-            window.addEventListener('DOMContentLoaded', function() {
-                alert('📄 DOM prêt, lancement de checkAuth()');
-                checkAuth();
-            });
-
-        } catch (err) {
-            alert('❌ ERREUR GLOBALE : ' + err.message + '\n' + err.stack);
+            hideAuthScreen();
+            updateDashboard();
+            startRealtimeUpdates();
         }
+
+        function generateReferralCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        // =============================================================
+        // SCREEN MANAGEMENT
+        // =============================================================
+        function showAuthScreen() {
+            authContainer.style.display = 'block';
+            appHeader.classList.remove('show');
+            appContent.classList.remove('show');
+            bottomMenu.classList.remove('show');
+        }
+
+        function hideAuthScreen() {
+            authContainer.style.display = 'none';
+            appHeader.classList.add('show');
+            appContent.classList.add('show');
+            bottomMenu.classList.add('show');
+            switchPage('page-dashboard');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // =============================================================
+        // MENU
+        // =============================================================
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const pageId = this.dataset.page;
+                if (pageId && pageId !== currentPage) {
+                    switchPage(pageId);
+                }
+            });
+        });
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const target = $(pageId);
+            if (target) target.classList.add('active');
+            currentPage = pageId;
+
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            const menuBtn = document.querySelector(`.menu-item[data-page="${pageId}"]`);
+            if (menuBtn) menuBtn.classList.add('active');
+
+            if (pageId === 'page-dashboard') {
+                setTimeout(refreshCharts, 400);
+            }
+        }
+
+        // =============================================================
+        // DASHBOARD
+        // =============================================================
+        function updateDashboard() {
+            if (!currentUser) return;
+
+            const firstName = currentUser.first_name || '';
+            const lastName = currentUser.last_name || '';
+            const fullName = (firstName + ' ' + lastName).trim() || currentUser.email.split('@')[0];
+            $('userNameDisplay').innerHTML = `${fullName} <span class="badge">Premium</span>`;
+
+            $('profileName').textContent = fullName;
+            $('profileEmail').textContent = currentUser.email || '-';
+            $('profilePhone').textContent = currentUser.phone || 'Not set';
+            $('profileSince').textContent = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() :
+                '-';
+
+            $('referralCodeDisplay').textContent = currentUser.referral_code || 'N/A';
+
+            loadInvestments();
+            loadReferrals();
+            refreshCharts();
+        }
+
+        // =============================================================
+        // INVESTMENTS
+        // =============================================================
+        async function loadInvestments() {
+            if (!currentUser) return;
+            const { data, error } = await supabase
+                .from('investments')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('purchase_date', { ascending: false });
+
+            if (error) { console.error(error); return; }
+
+            const list = $('investmentList');
+            if (!data || data.length === 0) {
+                list.innerHTML = '<p class="text-muted">No investments.</p>';
+                $('totalInvestment').textContent = '$0 USD';
+                return;
+            }
+
+            let total = 0;
+            let html = '';
+            data.forEach(inv => {
+                total += parseFloat(inv.amount_invested || 0);
+                const method = inv.payment_method === 'crypto' ? 'Crypto' : 'Credit Card';
+                html += `
+                    <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f0f2f5;">
+                        <div><strong>$${parseFloat(inv.amount_invested).toFixed(2)}</strong>
+                        <div style="font-size:12px; color:#888;">${new Date(inv.purchase_date).toLocaleDateString()}</div></div>
+                        <div style="font-size:12px; color:#888; text-align:right;">
+                            ${inv.gold_weight ? parseFloat(inv.gold_weight).toFixed(4)+' g' : '-'}
+                            <div style="font-size:10px; opacity:0.7;">${method}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+            $('totalInvestment').textContent = `$${total.toFixed(2)} USD`;
+        }
+
+        async function addInvestment() {
+            if (!currentUser) { showToast('Please log in.'); return; }
+            const amount = parseFloat($('investAmount').value);
+            if (!amount || amount <= 0) { showToast('Invalid amount.'); return; }
+
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'carte';
+            const price = await getGoldPrice();
+            if (!price) { showToast('Could not fetch gold price.'); return; }
+
+            const goldWeight = amount / price;
+
+            const { error } = await supabase
+                .from('investments')
+                .insert([{
+                    user_id: currentUser.id,
+                    amount_invested: amount,
+                    gold_weight: goldWeight,
+                    purchase_price: price,
+                    payment_method: paymentMethod,
+                }]);
+
+            if (error) { showToast('Error: ' + error.message); } else {
+                showToast('Investment of $' + amount + ' recorded!');
+                $('investAmount').value = '';
+                loadInvestments();
+                refreshCharts();
+            }
+        }
+
+        // =============================================================
+        // REFERRALS
+        // =============================================================
+        async function loadReferrals() {
+            if (!currentUser) return;
+            const { data, error } = await supabase
+                .from('referrals')
+                .select('*, referred:referred_id(*)')
+                .eq('referrer_id', currentUser.id)
+                .order('created_at', { ascending: false });
+
+            if (error) { console.error(error); return; }
+
+            const list = $('referralList');
+            const countEl = $('referralCount');
+            if (!data || data.length === 0) {
+                list.innerHTML = '<li style="padding:12px 0; color:#888;">No referrals yet.</li>';
+                countEl.textContent = '0';
+                return;
+            }
+
+            countEl.textContent = data.length;
+            let html = '';
+            data.forEach(ref => {
+                const email = ref.referred?.email || 'Unknown';
+                html += `<li><span class="ref-name">${email}</span><span class="ref-date">${new Date(ref.created_at).toLocaleDateString()}</span></li>`;
+            });
+            list.innerHTML = html;
+        }
+
+        function copyReferralCode() {
+            const code = currentUser?.referral_code;
+            if (!code) { showToast('No code available.'); return; }
+            navigator.clipboard?.writeText(code).then(() => showToast('Code copied!'))
+                .catch(() => {
+                    const ta = document.createElement('textarea');
+                    ta.value = code;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    showToast('Code copied!');
+                });
+        }
+
+        // =============================================================
+        // GOLD PRICE API & GRAPHS
+        // =============================================================
+        async function getGoldPrice() {
+            try {
+                const res = await fetch('https://gold-price-api.omkar.cloud/price');
+                const data = await res.json();
+                return data.price_usd || null;
+            } catch (e) { return null; }
+        }
+
+        function generateDummyData(basePrice, count = 30) {
+            const data = [];
+            const now = Math.floor(Date.now() / 1000);
+            for (let i = 0; i < count; i++) {
+                const t = now - (count - i) * 3600;
+                const v = basePrice + Math.sin(i / 4) * 2 + Math.cos(i / 7) * 1.2 + (i / count) * 1.5;
+                data.push({ time: t, value: Math.max(50, v) });
+            }
+            return data;
+        }
+
+        async function refreshCharts() {
+            if (currentPage !== 'page-dashboard') return;
+
+            try {
+                const { data: realData } = await supabase
+                    .from('gold_prices')
+                    .select('*')
+                    .order('timestamp', { ascending: true })
+                    .limit(100);
+
+                let chartData = [];
+                if (!realData || realData.length < 3) {
+                    chartData = generateDummyData(85 + Math.random() * 5, 30);
+                } else {
+                    chartData = realData.map(row => ({
+                        time: Math.floor(new Date(row.timestamp).getTime() / 1000),
+                        value: parseFloat(row.price)
+                    }));
+                }
+
+                const container = $('chartContainer');
+                if (chart) { chart.remove();
+                    chart = null; }
+                chart = LightweightCharts.createChart(container, {
+                    width: container.clientWidth || 340,
+                    height: 200,
+                    layout: { textColor: '#333', background: { color: '#fff' } },
+                    grid: { vertLines: { visible: false }, horzLines: { visible: false } },
+                    rightPriceScale: { borderVisible: false },
+                    timeScale: { borderVisible: false, visible: true }
+                });
+                const lineSeries = chart.addLineSeries({ color: '#d4af37', lineWidth: 2 });
+                lineSeries.setData(chartData);
+
+                const last = chartData[chartData.length - 1];
+                if (last) {
+                    $('currentPriceDisplay').textContent = `$${last.value.toFixed(2)} USD`;
+                    $('lastUpdate').textContent = `Last update: ${new Date(last.time * 1000).toLocaleTimeString()}`;
+                }
+
+                const forecastContainer = $('forecastContainer');
+                if (forecastChart) { forecastChart.remove();
+                    forecastChart = null; }
+                forecastChart = LightweightCharts.createChart(forecastContainer, {
+                    width: container.clientWidth || 340,
+                    height: 180,
+                    layout: { textColor: '#333', background: { color: '#fff' } },
+                    grid: { vertLines: { visible: false }, horzLines: { visible: false } },
+                    rightPriceScale: { borderVisible: false },
+                    timeScale: { borderVisible: false, visible: true }
+                });
+
+                const recent = chartData.slice(-20);
+                let forecastData = [];
+                if (recent.length >= 4) {
+                    const values = recent.map(d => d.value);
+                    const n = values.length;
+                    let sumX = 0,
+                        sumY = 0,
+                        sumXY = 0,
+                        sumX2 = 0;
+                    for (let i = 0; i < n; i++) {
+                        sumX += i;
+                        sumY += values[i];
+                        sumXY += i * values[i];
+                        sumX2 += i * i;
+                    }
+                    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                    const lastTime = recent[recent.length - 1].time;
+                    const lastValue = recent[recent.length - 1].value;
+                    for (let i = 1; i <= 30; i++) {
+                        const day = i * 5;
+                        forecastData.push({ time: lastTime + day * 86400, value: Math.max(0, lastValue + slope * day) });
+                    }
+                } else {
+                    const base = chartData.length ? chartData[chartData.length - 1].value : 85;
+                    const now = Math.floor(Date.now() / 1000);
+                    for (let i = 1; i <= 30; i++) {
+                        forecastData.push({ time: now + i * 5 * 86400, value: base + i * 0.2 + Math.sin(i / 3) * 0.8 });
+                    }
+                }
+
+                const forecastLine = forecastChart.addLineSeries({ color: '#b8962f', lineWidth: 2, lineStyle: 1 });
+                forecastLine.setData(forecastData);
+
+                const lastForecast = forecastData[forecastData.length - 1];
+                if (lastForecast) $('forecastPrice').textContent = `${lastForecast.value.toFixed(2)} USD (6 months)`;
+
+                setTimeout(() => {
+                    if (chart) chart.resize(container.clientWidth || 340, 200);
+                    if (forecastChart) forecastChart.resize(forecastContainer.clientWidth || 340, 180);
+                }, 100);
+            } catch (e) {
+                console.warn('Chart error:', e);
+                // If charts fail, display a message
+                $('chartContainer').innerHTML = '<p style="text-align:center;color:#888;padding:20px;">Chart unavailable</p>';
+                $('forecastContainer').innerHTML = '<p style="text-align:center;color:#888;padding:20px;">Forecast unavailable</p>';
+            }
+        }
+
+        // =============================================================
+        // REAL TIME
+        // =============================================================
+        function startRealtimeUpdates() {
+            if (goldPriceInterval) clearInterval(goldPriceInterval);
+            goldPriceInterval = setInterval(async () => {
+                if (!currentUser) return;
+                const price = await getGoldPrice();
+                if (price) {
+                    await supabase.from('gold_prices').insert([{ price, timestamp: new Date().toISOString() }]);
+                    if (currentPage === 'page-dashboard') refreshCharts();
+                }
+            }, 60000);
+        }
+
+        // =============================================================
+        // CHECK AUTH
+        // =============================================================
+        async function checkAuth() {
+            showAuthScreen();
+
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                await loadUserData(user);
+            }
+        }
+
+        // =============================================================
+        // EVENT LISTENERS (Attached after DOM ready)
+        // =============================================================
+        function attachEventListeners() {
+            authActionBtn.addEventListener('click', handleAuth);
+            authToggleBtn.addEventListener('click', toggleAuthMode);
+            authSwitchLink.addEventListener('click', toggleAuthMode);
+        }
+
+        // =============================================================
+        // START
+        // =============================================================
+        window.addEventListener('DOMContentLoaded', function() {
+            attachEventListeners();
+            checkAuth();
+        });
+
+        window.addEventListener('resize', () => {
+            if (currentPage === 'page-dashboard') setTimeout(refreshCharts, 300);
+        });
+
+        // Expose for inline onclick
+        window.addInvestment = addInvestment;
+        window.copyReferralCode = copyReferralCode;
+        window.logoutUser = logoutUser;
     </script>
 
 </body>

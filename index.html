@@ -4,17 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Stock Of - App</title>
+    <!-- Chart.js (CDN fiable) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js">
+    </script>
+
     <style>
+        /* ---------- RESET ---------- */
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: 'Segoe UI', sans-serif;
             background: #f8f6f0;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
-            padding: 16px;
-            padding-bottom: 80px;
+            padding: 16px 16px 80px 16px;
         }
         .container {
             max-width: 420px;
@@ -23,9 +27,10 @@
             border-radius: 32px;
             padding: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.08);
-            margin-bottom: 80px;
+            margin-bottom: 40px;
         }
 
+        /* ---------- AUTH ---------- */
         #authContainer { display:block; }
         .auth-box h2 { font-size:28px; margin-bottom:4px; }
         .auth-box .sub { color:#888; margin-bottom:24px; }
@@ -48,6 +53,7 @@
         .name-row { display:flex; gap:10px; }
         .name-row input { flex:1; }
 
+        /* ---------- TOAST ---------- */
         #toast {
             position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
             background:#0f0e17; color:white; padding:14px 28px; border-radius:40px;
@@ -56,6 +62,7 @@
         #toast.show { display:block; animation:fadeUp 0.4s ease; }
         @keyframes fadeUp { 0%{opacity:0;transform:translateX(-50%) translateY(20px);} 100%{opacity:1;transform:translateX(-50%) translateY(0);} }
 
+        /* ---------- DASHBOARD ---------- */
         #dashboard { display:none; margin-top:20px; }
         #dashboard.show { display:block; }
         .card {
@@ -74,6 +81,7 @@
         .badge { background:#d4af37; padding:2px 12px; border-radius:20px; font-size:10px; font-weight:700; text-transform:uppercase; margin-left:8px; }
         .text-muted { color:#888; font-size:14px; }
 
+        /* ---------- INVESTMENTS ---------- */
         .investment-item {
             display:flex; justify-content:space-between; padding:10px 0;
             border-bottom:1px solid #eee;
@@ -83,14 +91,99 @@
         .investment-meta { font-size:12px; color:#888; }
         .payment-method { font-size:11px; background:#e2ddd6; padding:2px 10px; border-radius:12px; }
 
-        .tree { list-style:none; padding-left:0; }
-        .tree ul { list-style:none; padding-left:20px; }
-        .tree li { padding:4px 0; border-left:1px dashed #ccc; margin-left:8px; padding-left:12px; }
-        .tree li:last-child { border-left:none; }
-        .tree .node { display:flex; align-items:center; gap:6px; }
-        .tree .node .name { font-weight:500; }
-        .tree .node .code { font-size:12px; color:#888; }
+        /* ---------- REFERRAL TREE (design luxe) ---------- */
+        .tree-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .tree-node {
+            background: white;
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin: 4px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #f0ede8;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.2s;
+            position: relative;
+        }
+        .tree-node .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #d4af37, #b8962f);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .tree-node .info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .tree-node .info .name {
+            font-weight: 600;
+            font-size: 15px;
+            color: #0f0e17;
+        }
+        .tree-node .info .code {
+            font-size: 11px;
+            color: #888;
+        }
+        .tree-node .level-badge {
+            font-size: 10px;
+            background: #eef2ff;
+            color: #4f46e5;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .tree-children {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            padding-left: 20px;
+            border-left: 2px dashed #e2ddd6;
+            margin-left: 10px;
+        }
+        .tree-children .tree-node {
+            width: auto;
+            max-width: 100%;
+        }
+        .tree-root {
+            background: linear-gradient(145deg, #1a1a2e, #0f0e17);
+            color: white;
+            border: none;
+        }
+        .tree-root .info .name { color: white; }
+        .tree-root .info .code { color: #d4af37; }
+        .tree-root .level-badge { background: rgba(212,175,55,0.2); color: #d4af37; }
 
+        /* ---------- CHART WRAPPER ---------- */
+        .chart-wrapper {
+            width:100%;
+            height:200px;
+            margin-top:8px;
+            position:relative;
+        }
+        .chart-placeholder {
+            display:flex; align-items:center; justify-content:center;
+            height:100%; color:#aaa; font-size:14px;
+            background:#f8f6f0;
+            border-radius:12px;
+        }
+
+        /* ---------- BOTTOM MENU ---------- */
         .bottom-menu {
             position:fixed; bottom:0; left:50%; transform:translateX(-50%);
             max-width:420px; width:100%;
@@ -111,21 +204,9 @@
         .bottom-menu .menu-item .label { font-size:10px; font-weight:600; color:#0f0e17; text-transform:uppercase; letter-spacing:0.3px; }
         .bottom-menu .menu-item.active .label { color:#d4af37; }
 
+        /* ---------- PAGES ---------- */
         .page { display:none; padding:16px 0; }
         .page.active { display:block; }
-
-        .chart-wrapper {
-            width:100%;
-            height:180px;
-            margin-top:8px;
-            position:relative;
-        }
-        .chart-placeholder {
-            display:flex; align-items:center; justify-content:center;
-            height:100%; color:#aaa; font-size:14px;
-            background:#f8f6f0;
-            border-radius:12px;
-        }
 
         #errorMsg { display:none; background:#fef2f2; border:1px solid #fecaca; border-radius:16px; padding:16px; color:#b91c1c; margin-top:16px; text-align:center; }
         #errorMsg.show { display:block; }
@@ -175,28 +256,33 @@
             </div>
 
             <div id="page-dashboard" class="page active">
+                <!-- Graph 1 -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:4px;">📈 Portfolio Value (USD)</div>
                     <div style="font-size:12px; color:#888; margin-bottom:8px;">Current vs gold price</div>
-                    <div class="chart-wrapper" id="chartInvest"><div class="chart-placeholder">Loading chart...</div></div>
+                    <div class="chart-wrapper"><canvas id="chartInvest"></canvas></div>
                 </div>
+                <!-- Graph 2 -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:4px;">🔮 6-Month Forecast</div>
                     <div style="font-size:12px; color:#888; margin-bottom:8px;">Based on gold price trend</div>
-                    <div class="chart-wrapper" id="chartForecast"><div class="chart-placeholder">Loading chart...</div></div>
+                    <div class="chart-wrapper"><canvas id="chartForecast"></canvas></div>
                 </div>
+                <!-- Graph 3 -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:4px;">👥 Referral Growth</div>
                     <div style="font-size:12px; color:#888; margin-bottom:8px;">Cumulative referrals over time</div>
-                    <div class="chart-wrapper" id="chartReferral"><div class="chart-placeholder">Loading chart...</div></div>
+                    <div class="chart-wrapper"><canvas id="chartReferral"></canvas></div>
                 </div>
+                <!-- Graph 4 -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:4px;">🚀 Referral Projection (6 mo)</div>
                     <div style="font-size:12px; color:#888; margin-bottom:8px;">Based on current growth rate</div>
-                    <div class="chart-wrapper" id="chartReferralForecast"><div class="chart-placeholder">Loading chart...</div></div>
+                    <div class="chart-wrapper"><canvas id="chartReferralForecast"></canvas></div>
                 </div>
+                <!-- Referral Tree -->
                 <div class="card">
-                    <div style="font-weight:600; margin-bottom:12px;">Referral Tree</div>
+                    <div style="font-weight:600; margin-bottom:12px;">🌳 Referral Tree</div>
                     <div id="referralTreeContainer"><p class="text-muted">Loading tree...</p></div>
                 </div>
             </div>
@@ -234,7 +320,6 @@
                 </div>
                 <button class="logout-btn" id="logoutBtn">Logout</button>
             </div>
-
         </div>
 
         <div id="errorMsg">
@@ -242,60 +327,42 @@
             <p style="font-size:14px; margin-top:8px;">Vérifie ta connexion internet.</p>
             <button class="btn btn-outline" style="margin-top:12px;" onclick="location.reload()">Réessayer</button>
         </div>
-
     </div>
 
     <div id="toast"></div>
 
     <!-- MENU BAS -->
     <nav class="bottom-menu" id="bottomMenu">
-        <button class="menu-item active" data-page="page-dashboard">
-            <span class="icon">📊</span>
-            <span class="label">Dashboard</span>
-        </button>
-        <button class="menu-item" data-page="page-investments">
-            <span class="icon">💰</span>
-            <span class="label">Invest.</span>
-        </button>
-        <button class="menu-item" data-page="page-referrals">
-            <span class="icon">👥</span>
-            <span class="label">Referrals</span>
-        </button>
-        <button class="menu-item" data-page="page-profile">
-            <span class="icon">👤</span>
-            <span class="label">Profile</span>
-        </button>
+        <button class="menu-item active" data-page="page-dashboard"><span class="icon">📊</span><span class="label">Dashboard</span></button>
+        <button class="menu-item" data-page="page-investments"><span class="icon">💰</span><span class="label">Invest.</span></button>
+        <button class="menu-item" data-page="page-referrals"><span class="icon">👥</span><span class="label">Referrals</span></button>
+        <button class="menu-item" data-page="page-profile"><span class="icon">👤</span><span class="label">Profile</span></button>
     </nav>
 
     <!-- ============================================================ -->
     <!-- SUPABASE IMPORT MAP                                          -->
     <!-- ============================================================ -->
     <script type="importmap">
-        {
-            "imports": {
-                "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
-            }
-        }
+        { "imports": { "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm" } }
     </script>
 
     <!-- ============================================================ -->
-    <!-- SCRIPT PRINCIPAL (MODULE)                                    -->
+    <!-- SCRIPT PRINCIPAL                                             -->
     <!-- ============================================================ -->
     <script type="module">
         // =============================================================
         // CONFIG
         // =============================================================
-        alert('🚀 Script chargé (ES Module)');
+        alert('🚀 Script chargé');
 
         try {
             const { createClient } = await import('@supabase/supabase-js');
-            alert('✅ Supabase importé avec succès !');
+            alert('✅ Supabase importé');
 
             const SUPABASE_URL = 'https://iiceaseqdzcdfgkiinnx.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_VZxq4hifeXH7kyDdi91FJg_LlzNoCiL';
-
             const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            alert('✅ Supabase initialisé avec succès !');
+            alert('✅ Supabase initialisé');
 
             document.getElementById('errorMsg').classList.remove('show');
 
@@ -336,10 +403,12 @@
             const profilePhone = $('profilePhone');
             const profileSaveBtn = $('profileSaveBtn');
             const bottomMenu = $('bottomMenu');
-            const chartInvestEl = $('chartInvest');
-            const chartForecastEl = $('chartForecast');
-            const chartReferralEl = $('chartReferral');
-            const chartReferralForecastEl = $('chartReferralForecast');
+
+            // Chart canvases
+            const canvasInvest = $('chartInvest');
+            const canvasForecast = $('chartForecast');
+            const canvasReferral = $('chartReferral');
+            const canvasReferralForecast = $('chartReferralForecast');
 
             let isLoginMode = true;
             let currentUser = null;
@@ -347,58 +416,9 @@
             let investments = [];
             let goldPrices = [];
             let referrals = [];
-            let chartsReady = false;
+            let chartInstances = {};
 
-            alert('✅ DOM refs prêtes');
-
-            // =============================================================
-            // CHARGEMENT DE LIGHTWEIGHT CHARTS (Promise)
-            // =============================================================
-            function loadScript(src, timeout = 5000) {
-                return new Promise((resolve, reject) => {
-                    const script = document.createElement('script');
-                    script.src = src;
-                    script.async = true;
-                    const timer = setTimeout(() => {
-                        script.onload = null;
-                        script.onerror = null;
-                        reject(new Error('Timeout loading ' + src));
-                    }, timeout);
-                    script.onload = () => {
-                        clearTimeout(timer);
-                        resolve();
-                    };
-                    script.onerror = () => {
-                        clearTimeout(timer);
-                        reject(new Error('Failed to load ' + src));
-                    };
-                    document.head.appendChild(script);
-                });
-            }
-
-            async function loadLightweightCharts() {
-                // Check if already loaded
-                if (typeof LightweightCharts !== 'undefined') return true;
-
-                const cdnList = [
-                    'https://cdnjs.cloudflare.com/ajax/libs/lightweight-charts/4.0.0/lightweight-charts.standalone.js',
-                    'https://unpkg.com/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.js',
-                    'https://cdn.jsdelivr.net/npm/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.js'
-                ];
-
-                for (const src of cdnList) {
-                    try {
-                        await loadScript(src, 4000);
-                        if (typeof LightweightCharts !== 'undefined') {
-                            console.log('✅ LightweightCharts loaded from', src);
-                            return true;
-                        }
-                    } catch (e) {
-                        console.warn('Failed to load from', src, e.message);
-                    }
-                }
-                return false;
-            }
+            alert('✅ DOM ready');
 
             // =============================================================
             // TOAST
@@ -414,7 +434,6 @@
             // TOGGLE LOGIN / SIGN UP
             // =============================================================
             function toggleAuthMode() {
-                alert('🔄 toggleAuthMode called');
                 isLoginMode = !isLoginMode;
                 if (isLoginMode) {
                     authActionBtn.textContent = 'Log in';
@@ -441,10 +460,7 @@
                     .order('created_at', { ascending: true })
                     .limit(1)
                     .maybeSingle();
-                if (error) {
-                    alert('⚠️ Erreur recherche parrain défaut: ' + error.message);
-                    return null;
-                }
+                if (error) return null;
                 return data ? data.id : null;
             }
 
@@ -452,26 +468,20 @@
             // HANDLE AUTH
             // =============================================================
             async function handleAuth() {
-                alert('📝 handleAuth called');
                 const email = authEmail.value.trim();
                 const password = authPassword.value.trim();
-
                 if (!email || !password) {
                     showToast('Please fill in email and password.');
-                    alert('❌ Empty fields');
                     return;
                 }
 
                 try {
                     if (isLoginMode) {
-                        alert('🔑 Attempting login...');
                         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                         if (error) throw error;
-                        alert('✅ Login successful');
                         showToast('Login successful!');
                         await loadUserData(data.user);
                     } else {
-                        alert('📝 Attempting sign up...');
                         const firstName = authFirstName.value.trim();
                         const lastName = authLastName.value.trim();
                         const confirm = authConfirm.value.trim();
@@ -480,17 +490,14 @@
 
                         if (!firstName || !lastName) {
                             showToast('Please enter first and last name.');
-                            alert('❌ Missing name');
                             return;
                         }
                         if (password !== confirm) {
                             showToast('Passwords do not match.');
-                            alert('❌ Password mismatch');
                             return;
                         }
                         if (!birthDate) {
                             showToast('Please enter date of birth.');
-                            alert('❌ Missing birth date');
                             return;
                         }
 
@@ -500,12 +507,10 @@
                             options: { data: { first_name: firstName, last_name: lastName } }
                         });
                         if (error) throw error;
-                        alert('✅ Auth signup successful');
 
                         const user = data.user;
                         if (!user) {
                             showToast('Account created. Please check your email to confirm, then log in.');
-                            alert('📧 Confirmation required');
                             isLoginMode = true;
                             toggleAuthMode();
                             return;
@@ -518,28 +523,13 @@
                                 .select('id')
                                 .eq('referral_code', referralCode)
                                 .maybeSingle();
-                            if (refError) {
-                                alert('❌ Erreur recherche parrain: ' + refError.message);
-                                showToast('Error finding referral code.');
-                                return;
-                            }
-                            if (referrer) {
+                            if (!refError && referrer) {
                                 referrerId = referrer.id;
-                                alert('✅ Parrain trouvé avec le code: ' + referralCode);
-                            } else {
-                                alert('⚠️ Code de parrainage invalide, utilisation du parrain par défaut.');
                             }
                         }
-
                         if (!referrerId) {
                             const defaultId = await getDefaultReferrer();
-                            if (defaultId) {
-                                referrerId = defaultId;
-                                alert('✅ Parrain par défaut (premier utilisateur) utilisé.');
-                            } else {
-                                alert('ℹ️ Aucun utilisateur existant, ce compte sera le premier (sans parrain).');
-                                referrerId = null;
-                            }
+                            if (defaultId) referrerId = defaultId;
                         }
 
                         const { error: insertError } = await supabase
@@ -556,31 +546,18 @@
                             }]);
 
                         if (insertError) {
-                            alert('❌ Insert error: ' + insertError.message);
                             showToast('Account created but profile could not be saved.');
                         } else {
-                            alert('✅ Profile saved with referral');
                             if (referrerId) {
-                                const { error: refInsertError } = await supabase
+                                await supabase
                                     .from('referrals')
-                                    .insert([{
-                                        referrer_id: referrerId,
-                                        referred_id: user.id,
-                                        created_at: new Date().toISOString()
-                                    }]);
-                                if (refInsertError) {
-                                    alert('⚠️ Error inserting referral: ' + refInsertError.message);
-                                } else {
-                                    alert('✅ Referral recorded in referrals table');
-                                }
+                                    .insert([{ referrer_id: referrerId, referred_id: user.id, created_at: new Date().toISOString() }]);
                             }
                             showToast('Account created successfully!');
                         }
-
                         await loadUserData(user);
                     }
                 } catch (err) {
-                    alert('❌ Error: ' + err.message);
                     showToast('Error: ' + err.message);
                 }
             }
@@ -589,7 +566,6 @@
             // LOGOUT
             // =============================================================
             async function logoutUser() {
-                alert('🚪 Logout');
                 await supabase.auth.signOut();
                 currentUser = null;
                 showToast('Logged out.');
@@ -600,7 +576,6 @@
             // LOAD USER DATA
             // =============================================================
             async function loadUserData(user) {
-                alert('📥 Loading user data');
                 if (!user) return;
                 currentUser = user;
 
@@ -611,8 +586,7 @@
                     .single();
 
                 if (error && error.code === 'PGRST116') {
-                    alert('⚠️ Creating minimal profile...');
-                    const { error: insertError } = await supabase
+                    await supabase
                         .from('users')
                         .insert([{
                             id: user.id,
@@ -620,11 +594,6 @@
                             referral_code: generateReferralCode(),
                             is_verified: true,
                         }]);
-                    if (insertError) {
-                        alert('❌ Insert error: ' + insertError.message);
-                        showToast('Error loading profile.');
-                        return;
-                    }
                     const { data: newData } = await supabase
                         .from('users')
                         .select('*')
@@ -635,11 +604,9 @@
                     currentUser = { ...user, ...data };
                 }
 
-                alert('✅ User data loaded: ' + currentUser.email);
                 showDashboard();
                 updateDashboard();
                 await loadAllData();
-                // Fill profile fields
                 profileFirstName.value = currentUser.first_name || '';
                 profileLastName.value = currentUser.last_name || '';
                 profilePhone.value = currentUser.phone || '';
@@ -653,14 +620,12 @@
             // SCREEN MANAGEMENT
             // =============================================================
             function showAuthScreen() {
-                alert('📺 Showing auth screen');
                 authContainer.style.display = 'block';
                 dashboard.classList.remove('show');
                 bottomMenu.classList.remove('show');
             }
 
             function showDashboard() {
-                alert('📺 Showing dashboard');
                 authContainer.style.display = 'none';
                 dashboard.classList.add('show');
                 bottomMenu.classList.add('show');
@@ -684,50 +649,39 @@
             // LOAD ALL DATA
             // =============================================================
             async function loadAllData() {
-                alert('📦 Loading all data...');
                 try {
-                    // Load investments
-                    const { data: invData, error: invErr } = await supabase
+                    const { data: invData } = await supabase
                         .from('investments')
                         .select('*')
                         .eq('user_id', currentUser.id)
                         .order('purchase_date', { ascending: true });
-                    if (invErr) throw invErr;
                     investments = invData || [];
 
-                    // Load gold prices
-                    const { data: gpData, error: gpErr } = await supabase
+                    const { data: gpData } = await supabase
                         .from('gold_prices')
                         .select('*')
                         .order('timestamp', { ascending: true })
                         .limit(100);
-                    if (gpErr) throw gpErr;
                     goldPrices = gpData || [];
 
-                    // Load referrals
-                    const { data: refData, error: refErr } = await supabase
+                    const { data: refData } = await supabase
                         .from('referrals')
                         .select('*, referred:referred_id(id, email, first_name, last_name)')
                         .eq('referrer_id', currentUser.id)
                         .order('created_at', { ascending: true });
-                    if (refErr) throw refErr;
                     referrals = refData || [];
 
-                    // Load all users for tree
-                    const { data: usersData, error: usersErr } = await supabase
+                    const { data: usersData } = await supabase
                         .from('users')
                         .select('id, first_name, last_name, email, referral_code, referred_by')
                         .order('created_at', { ascending: true });
-                    if (usersErr) throw usersErr;
                     allUsers = usersData || [];
 
-                    // Update UI
                     updateInvestmentList();
                     updateReferralTree();
-                    // Load charts after data is ready
-                    await loadCharts();
+                    renderAllCharts();
                 } catch (err) {
-                    alert('❌ Error loading data: ' + err.message);
+                    console.error('Error loading data:', err);
                 }
             }
 
@@ -773,20 +727,20 @@
             }
 
             // =============================================================
-            // REFERRAL TREE
+            // REFERRAL TREE (Design luxe)
             // =============================================================
             function updateReferralTree() {
                 const tree = buildTree(currentUser.id);
                 const total = countNodes(tree);
                 referralCount.textContent = total;
-                renderTree(tree, referralTreeContainer);
-                renderTree(tree, referralTreeFull);
+                const htmlTree = renderTreeHTML(tree, 0);
+                referralTreeContainer.innerHTML = htmlTree;
+                referralTreeFull.innerHTML = htmlTree;
             }
 
             function buildTree(rootId) {
                 const userMap = {};
                 allUsers.forEach(u => userMap[u.id] = u);
-
                 const childrenMap = {};
                 allUsers.forEach(u => {
                     if (u.referred_by) {
@@ -794,106 +748,105 @@
                         childrenMap[u.referred_by].push(u);
                     }
                 });
-
                 function buildNode(userId) {
                     const user = userMap[userId];
                     if (!user) return null;
                     const children = (childrenMap[userId] || []).map(child => buildNode(child.id)).filter(c => c !== null);
                     return { user, children };
                 }
-
                 return buildNode(rootId);
             }
 
             function countNodes(node) {
                 if (!node) return 0;
                 let count = node.children.length;
-                node.children.forEach(child => {
-                    count += countNodes(child);
-                });
+                node.children.forEach(child => { count += countNodes(child); });
                 return count;
             }
 
-            function renderTree(tree, container) {
-                if (!tree) {
-                    container.innerHTML = '<p class="text-muted">No referrals yet.</p>';
-                    return;
-                }
-                const html = buildTreeHTML(tree);
-                container.innerHTML = html;
-            }
-
-            function buildTreeHTML(node) {
-                if (!node) return '';
+            function renderTreeHTML(node, level) {
+                if (!node) return '<p class="text-muted">No referrals yet.</p>';
                 const user = node.user;
                 const name = (user.first_name + ' ' + user.last_name).trim() || user.email;
                 const code = user.referral_code || '';
-                let html = `<li>
-                    <div class="node">
+                const isRoot = level === 0;
+                const avatar = name.charAt(0).toUpperCase();
+
+                let html = `<div class="tree-node ${isRoot ? 'tree-root' : ''}">
+                    <div class="avatar">${avatar}</div>
+                    <div class="info">
                         <span class="name">${name}</span>
-                        <span class="code">(${code})</span>
-                    </div>`;
+                        <span class="code">${code}</span>
+                    </div>
+                    <span class="level-badge">${isRoot ? 'You' : 'Lv.'+level}</span>
+                </div>`;
+
                 if (node.children.length > 0) {
-                    html += '<ul>';
+                    html += '<div class="tree-children">';
                     node.children.forEach(child => {
-                        html += buildTreeHTML(child);
+                        html += renderTreeHTML(child, level + 1);
                     });
-                    html += '</ul>';
+                    html += '</div>';
                 }
-                html += '</li>';
                 return html;
             }
 
             // =============================================================
-            // CHARTS (requires LightweightCharts)
+            // CHARTS (using Chart.js)
             // =============================================================
-            async function loadCharts() {
-                if (!chartsReady) {
-                    const loaded = await loadLightweightCharts();
-                    if (!loaded) {
-                        document.querySelectorAll('.chart-wrapper').forEach(el => {
-                            el.innerHTML = '<div class="chart-placeholder">Chart library unavailable</div>';
-                        });
-                        return;
-                    }
-                    chartsReady = true;
-                }
-                // Now render charts
-                renderAllCharts();
-            }
-
             function renderAllCharts() {
-                if (typeof LightweightCharts === 'undefined') {
-                    // Try to load again
-                    loadCharts();
+                if (typeof Chart === 'undefined') {
+                    // Chart.js not loaded, retry after delay
+                    setTimeout(renderAllCharts, 2000);
                     return;
                 }
 
+                // Destroy any existing charts
+                Object.values(chartInstances).forEach(chart => { if (chart) chart.destroy(); });
+                chartInstances = {};
+
                 const currentPrice = goldPrices.length > 0 ? goldPrices[goldPrices.length - 1].price : 85;
 
-                // 1. Investment value over time
-                let portfolioHistory = [];
+                // 1. Portfolio Value
+                let portfolioData = [];
+                let labels = [];
                 if (goldPrices.length > 0 && investments.length > 0) {
                     const totalGoldWeight = investments.reduce((acc, inv) => acc + (inv.gold_weight || 0), 0);
-                    portfolioHistory = goldPrices.map(gp => ({
-                        time: Math.floor(new Date(gp.timestamp).getTime() / 1000),
-                        value: totalGoldWeight * gp.price
-                    }));
+                    portfolioData = goldPrices.map(gp => totalGoldWeight * gp.price);
+                    labels = goldPrices.map(gp => new Date(gp.timestamp).toLocaleDateString());
                 } else {
                     const base = currentPrice;
-                    const now = Math.floor(Date.now() / 1000);
+                    const now = new Date();
                     for (let i = 30; i >= 0; i--) {
-                        const t = now - i * 86400;
-                        const v = base * (1 + Math.sin(i / 10) * 0.02);
-                        portfolioHistory.push({ time: t, value: v });
+                        const d = new Date(now);
+                        d.setDate(d.getDate() - i);
+                        labels.push(d.toLocaleDateString());
+                        portfolioData.push(base * (1 + Math.sin(i / 10) * 0.02));
                     }
                 }
 
+                chartInstances.invest = new Chart(canvasInvest, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Portfolio Value (USD)',
+                            data: portfolioData,
+                            borderColor: '#d4af37',
+                            backgroundColor: 'rgba(212,175,55,0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+
                 // 2. Forecast
+                let forecastLabels = [];
                 let forecastData = [];
                 if (goldPrices.length >= 5) {
                     const prices = goldPrices.map(gp => gp.price);
-                    const times = goldPrices.map(gp => Math.floor(new Date(gp.timestamp).getTime() / 1000));
                     const n = prices.length;
                     let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
                     for (let i = 0; i < n; i++) {
@@ -903,50 +856,86 @@
                         sumX2 += i * i;
                     }
                     const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-                    const intercept = (sumY - slope * sumX) / n;
-                    const lastTime = times[times.length - 1];
                     const lastPrice = prices[prices.length - 1];
-                    const days = 180;
-                    const step = 86400;
+                    const now = new Date();
                     for (let i = 0; i <= 30; i++) {
-                        const day = i * 6;
-                        const t = lastTime + day * step;
-                        const val = lastPrice + slope * day;
-                        forecastData.push({ time: t, value: Math.max(0, val) });
+                        const d = new Date(now);
+                        d.setDate(d.getDate() + i * 6);
+                        forecastLabels.push(d.toLocaleDateString());
+                        forecastData.push(Math.max(0, lastPrice + slope * i * 6));
                     }
                 } else {
                     const base = currentPrice;
-                    const now = Math.floor(Date.now() / 1000);
+                    const now = new Date();
                     for (let i = 0; i <= 30; i++) {
-                        const t = now + i * 6 * 86400;
-                        const v = base * (1 + i * 0.001);
-                        forecastData.push({ time: t, value: v });
+                        const d = new Date(now);
+                        d.setDate(d.getDate() + i * 6);
+                        forecastLabels.push(d.toLocaleDateString());
+                        forecastData.push(base * (1 + i * 0.001));
                     }
                 }
 
-                // 3. Referral growth
-                let referralHistory = [];
+                chartInstances.forecast = new Chart(canvasForecast, {
+                    type: 'line',
+                    data: {
+                        labels: forecastLabels,
+                        datasets: [{
+                            label: 'Forecast (6mo)',
+                            data: forecastData,
+                            borderColor: '#b8962f',
+                            backgroundColor: 'rgba(184,150,47,0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            borderDash: [5, 5],
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+
+                // 3. Referral Growth
+                let referralLabels = [];
+                let referralData = [];
                 if (referrals.length > 0) {
                     let cumulative = 0;
-                    referralHistory = referrals.map(ref => {
+                    referrals.forEach(ref => {
                         cumulative++;
-                        return {
-                            time: Math.floor(new Date(ref.created_at).getTime() / 1000),
-                            value: cumulative
-                        };
+                        referralLabels.push(new Date(ref.created_at).toLocaleDateString());
+                        referralData.push(cumulative);
                     });
                 } else {
-                    const now = Math.floor(Date.now() / 1000);
+                    const now = new Date();
                     for (let i = 0; i < 10; i++) {
-                        referralHistory.push({ time: now - (10 - i) * 86400, value: i + 1 });
+                        const d = new Date(now);
+                        d.setDate(d.getDate() - (10 - i));
+                        referralLabels.push(d.toLocaleDateString());
+                        referralData.push(i + 1);
                     }
                 }
 
-                // 4. Referral forecast
-                let referralForecast = [];
-                if (referralHistory.length >= 3) {
-                    const values = referralHistory.map(d => d.value);
-                    const times = referralHistory.map(d => d.time);
+                chartInstances.referral = new Chart(canvasReferral, {
+                    type: 'line',
+                    data: {
+                        labels: referralLabels,
+                        datasets: [{
+                            label: 'Referrals',
+                            data: referralData,
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79,70,229,0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#4f46e5',
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+
+                // 4. Referral Forecast
+                let refForecastLabels = [];
+                let refForecastData = [];
+                if (referralData.length >= 3) {
+                    const values = referralData;
                     const n = values.length;
                     let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
                     for (let i = 0; i < n; i++) {
@@ -956,89 +945,54 @@
                         sumX2 += i * i;
                     }
                     const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-                    const intercept = (sumY - slope * sumX) / n;
-                    const lastTime = times[times.length - 1];
                     const lastVal = values[values.length - 1];
-                    const days = 180;
-                    const step = 86400;
+                    const now = new Date();
                     for (let i = 1; i <= 30; i++) {
-                        const day = i * 6;
-                        const t = lastTime + day * step;
-                        const val = Math.max(0, lastVal + slope * day);
-                        referralForecast.push({ time: t, value: val });
+                        const d = new Date(now);
+                        d.setDate(d.getDate() + i * 6);
+                        refForecastLabels.push(d.toLocaleDateString());
+                        refForecastData.push(Math.max(0, lastVal + slope * i * 6));
                     }
                 } else {
-                    const last = referralHistory.length > 0 ? referralHistory[referralHistory.length - 1] : { time: Math.floor(Date.now() / 1000), value: 0 };
-                    const baseTime = last.time;
-                    const baseVal = last.value;
+                    const now = new Date();
+                    const base = referralData.length > 0 ? referralData[referralData.length - 1] : 0;
                     for (let i = 1; i <= 30; i++) {
-                        const t = baseTime + i * 6 * 86400;
-                        const v = baseVal + i * 0.2;
-                        referralForecast.push({ time: t, value: v });
+                        const d = new Date(now);
+                        d.setDate(d.getDate() + i * 6);
+                        refForecastLabels.push(d.toLocaleDateString());
+                        refForecastData.push(base + i * 0.2);
                     }
                 }
 
-                renderChart(chartInvestEl, portfolioHistory, '#d4af37', 'Portfolio Value');
-                renderChart(chartForecastEl, forecastData, '#b8962f', 'Forecast');
-                renderChart(chartReferralEl, referralHistory, '#4f46e5', 'Referrals');
-                renderChart(chartReferralForecastEl, referralForecast, '#6c2bd9', 'Referral Projection');
-            }
-
-            function renderChart(container, data, color, label) {
-                if (typeof LightweightCharts === 'undefined') {
-                    container.innerHTML = '<div class="chart-placeholder">Chart library unavailable</div>';
-                    return;
-                }
-                if (container._chart) {
-                    container._chart.remove();
-                }
-                if (data.length === 0) {
-                    container.innerHTML = '<div class="chart-placeholder">No data</div>';
-                    return;
-                }
-                const chart = LightweightCharts.createChart(container, {
-                    width: container.clientWidth || 340,
-                    height: 180,
-                    layout: { textColor: '#333', background: { color: '#ffffff' } },
-                    grid: { vertLines: { visible: false }, horzLines: { visible: false } },
-                    rightPriceScale: { borderVisible: false },
-                    timeScale: { borderVisible: false, visible: true }
+                chartInstances.referralForecast = new Chart(canvasReferralForecast, {
+                    type: 'line',
+                    data: {
+                        labels: refForecastLabels,
+                        datasets: [{
+                            label: 'Referral Projection',
+                            data: refForecastData,
+                            borderColor: '#6c2bd9',
+                            backgroundColor: 'rgba(108,43,217,0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            borderDash: [5, 5],
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
                 });
-                const series = chart.addLineSeries({ color: color, lineWidth: 2 });
-                series.setData(data);
-                container._chart = chart;
-                // Resize on resize
-                const resizeHandler = () => {
-                    if (container._chart) {
-                        container._chart.resize(container.clientWidth || 340, 180);
-                    }
-                };
-                window.addEventListener('resize', resizeHandler);
-                // Store resize handler to remove later if needed (not critical)
             }
 
             // =============================================================
             // ADD INVESTMENT
             // =============================================================
             async function addInvestment() {
-                if (!currentUser) {
-                    showToast('Please log in.');
-                    return;
-                }
+                if (!currentUser) { showToast('Please log in.'); return; }
                 const amount = parseFloat(investAmount.value);
-                if (!amount || amount <= 0) {
-                    showToast('Please enter a valid amount.');
-                    return;
-                }
-
+                if (!amount || amount <= 0) { showToast('Invalid amount.'); return; }
                 const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'carte';
-
                 const price = await getGoldPrice();
-                if (!price) {
-                    showToast('Could not fetch gold price. Using fallback.');
-                }
                 const goldWeight = price ? amount / price : null;
-
                 const { error } = await supabase
                     .from('investments')
                     .insert([{
@@ -1049,12 +1003,10 @@
                         payment_method: paymentMethod,
                         purchase_date: new Date().toISOString(),
                     }]);
-
                 if (error) {
-                    alert('❌ Insert investment error: ' + error.message);
                     showToast('Error saving investment.');
                 } else {
-                    showToast('Investment of $' + amount + ' recorded!');
+                    showToast('Investment recorded!');
                     investAmount.value = '';
                     await loadAllData();
                 }
@@ -1072,7 +1024,6 @@
                     goldPriceCache = data.price_usd || null;
                     return goldPriceCache;
                 } catch (e) {
-                    alert('⚠️ API gold price error, using dummy value.');
                     goldPriceCache = 85 + Math.random() * 5;
                     return goldPriceCache;
                 }
@@ -1086,19 +1037,12 @@
                 const firstName = profileFirstName.value.trim();
                 const lastName = profileLastName.value.trim();
                 const phone = profilePhone.value.trim();
-
-                if (!firstName || !lastName) {
-                    showToast('First and last name are required.');
-                    return;
-                }
-
+                if (!firstName || !lastName) { showToast('First and last name required.'); return; }
                 const { error } = await supabase
                     .from('users')
                     .update({ first_name: firstName, last_name: lastName, phone: phone })
                     .eq('id', currentUser.id);
-
                 if (error) {
-                    alert('❌ Update profile error: ' + error.message);
                     showToast('Error updating profile.');
                 } else {
                     showToast('Profile updated!');
@@ -1110,14 +1054,10 @@
             // CHECK AUTH
             // =============================================================
             async function checkAuth() {
-                alert('🔍 Checking auth...');
                 showAuthScreen();
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
-                    alert('✅ User already logged in: ' + user.email);
                     await loadUserData(user);
-                } else {
-                    alert('👤 No user logged in.');
                 }
             }
 
@@ -1135,11 +1075,7 @@
 
                 if (pageId === 'page-dashboard') {
                     setTimeout(() => {
-                        document.querySelectorAll('.chart-wrapper').forEach(el => {
-                            if (el._chart) {
-                                el._chart.resize(el.clientWidth || 340, 180);
-                            }
-                        });
+                        Object.values(chartInstances).forEach(chart => { if (chart) chart.resize(); });
                     }, 300);
                 }
             }
@@ -1147,7 +1083,6 @@
             // =============================================================
             // ATTACH EVENT LISTENERS
             // =============================================================
-            alert('📌 Attaching event listeners...');
             authActionBtn.addEventListener('click', handleAuth);
             authToggleBtn.addEventListener('click', toggleAuthMode);
             authSwitchLink.addEventListener('click', toggleAuthMode);
@@ -1162,17 +1097,14 @@
                 });
             });
 
-            alert('✅ Event listeners attached');
-
             // =============================================================
             // INIT
             // =============================================================
             window.addEventListener('DOMContentLoaded', function() {
-                alert('📄 DOM ready, starting checkAuth');
                 checkAuth();
             });
 
-            // Expose functions
+            // Expose functions for debugging
             window.toggleAuthMode = toggleAuthMode;
             window.handleAuth = handleAuth;
             window.logoutUser = logoutUser;
@@ -1180,7 +1112,7 @@
 
         } catch (error) {
             document.getElementById('errorMsg').classList.add('show');
-            alert('❌ ERREUR CRITIQUE : ' + error.message + '\n\n' + error.stack);
+            alert('❌ ERREUR CRITIQUE : ' + error.message);
         }
     </script>
 

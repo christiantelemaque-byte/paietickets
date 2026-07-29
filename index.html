@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Stock Of - App</title>
-    <!-- Chart.js (CDN fiable) -->
+    <!-- Stripe JS -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <!-- Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js">
     </script>
 
     <style>
-        /* ---------- RESET & BASE ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -34,7 +35,7 @@
             margin-bottom: 40px;
         }
 
-        /* ---------- AUTH ---------- */
+        /* AUTH */
         #authContainer {
             display: block;
         }
@@ -77,6 +78,10 @@
             background: linear-gradient(145deg, #d4af37, #b8962f);
             color: #0f0e17;
         }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
         .btn-outline {
             background: transparent;
             border: 2px solid #e2ddd6;
@@ -107,7 +112,7 @@
             flex: 1;
         }
 
-        /* ---------- TOAST ---------- */
+        /* TOAST */
         #toast {
             position: fixed;
             bottom: 100px;
@@ -135,7 +140,7 @@
             }
         }
 
-        /* ---------- DASHBOARD ---------- */
+        /* DASHBOARD */
         #dashboard {
             display: none;
             margin-top: 20px;
@@ -186,7 +191,7 @@
             font-size: 14px;
         }
 
-        /* ---------- INVESTMENTS ---------- */
+        /* INVESTMENTS */
         .investment-item {
             display: flex;
             justify-content: space-between;
@@ -211,7 +216,7 @@
             border-radius: 12px;
         }
 
-        /* ---------- REFERRAL TREE ---------- */
+        /* REFERRAL TREE */
         .tree-container {
             display: flex;
             flex-direction: column;
@@ -296,7 +301,7 @@
             color: #d4af37;
         }
 
-        /* ---------- CHARTS ---------- */
+        /* CHARTS */
         .chart-wrapper {
             width: 100%;
             height: 200px;
@@ -304,7 +309,7 @@
             position: relative;
         }
 
-        /* ---------- BOTTOM MENU ---------- */
+        /* BOTTOM MENU */
         .bottom-menu {
             position: fixed;
             bottom: 0;
@@ -353,7 +358,7 @@
             color: #d4af37;
         }
 
-        /* ---------- PAGES ---------- */
+        /* PAGES */
         .page {
             display: none;
             padding: 16px 0;
@@ -362,7 +367,7 @@
             display: block;
         }
 
-        /* ---------- ERROR ---------- */
+        /* ERROR */
         #errorMsg {
             display: none;
             background: #fef2f2;
@@ -377,7 +382,7 @@
             display: block;
         }
 
-        /* ---------- WITHDRAW ---------- */
+        /* WITHDRAW */
         .withdraw-method {
             display: flex;
             gap: 12px;
@@ -402,6 +407,28 @@
         }
         .withdraw-fields .field {
             margin-bottom: 8px;
+        }
+
+        /* STRIPE CARD ELEMENT */
+        .stripe-card-element {
+            padding: 12px 16px;
+            border-radius: 16px;
+            border: 2px solid #e2ddd6;
+            background: #faf9f7;
+            transition: 0.2s;
+        }
+        .stripe-card-element.StripeElement--focus {
+            border-color: #d4af37;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.08);
+        }
+        .stripe-card-element.StripeElement--invalid {
+            border-color: #f44336;
+        }
+        #card-errors {
+            color: #f44336;
+            font-size: 14px;
+            margin-top: 8px;
         }
     </style>
 </head>
@@ -475,23 +502,26 @@
                 </div>
             </div>
 
-            <!-- INVESTMENTS + WITHDRAW -->
+            <!-- INVESTMENTS + STRIPE + WITHDRAW -->
             <div id="page-investments" class="page">
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:12px;">My Investments</div>
                     <div id="investmentList"><p class="text-muted">No investments yet.</p></div>
                 </div>
+
+                <!-- Invest with Stripe -->
                 <div class="card">
-                    <div style="font-weight:600; margin-bottom:12px;">Add Investment</div>
-                    <div class="field"><input type="number" id="investAmount" placeholder="Amount (USD)" /></div>
-                    <div style="display:flex; gap:12px; margin-bottom:12px; justify-content:center;">
-                        <label><input type="radio" name="paymentMethod" value="carte" checked /> Credit Card</label>
-                        <label><input type="radio" name="paymentMethod" value="crypto" /> Crypto</label>
+                    <div style="font-weight:600; margin-bottom:12px;">💳 Invest with Credit Card</div>
+                    <div class="field">
+                        <input type="number" id="investAmount" placeholder="Amount (USD)" />
                     </div>
-                    <button class="btn btn-primary" id="investBtn">Invest</button>
+                    <div id="card-element" class="stripe-card-element"></div>
+                    <div id="card-errors"></div>
+                    <button class="btn btn-primary" id="investBtn">Invest Now</button>
+                    <div style="margin-top:12px; font-size:12px; color:#888; text-align:center;">Secured by Stripe</div>
                 </div>
 
-                <!-- WITHDRAW SECTION (avec SWIFT) -->
+                <!-- Withdraw -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:12px;">💰 Withdraw</div>
                     <div class="field">
@@ -506,7 +536,6 @@
                         </label>
                     </div>
                     <div class="withdraw-fields">
-                        <!-- Bank Fields -->
                         <div id="bankFields">
                             <div class="field"><input type="text" id="bankName" placeholder="Bank Name" /></div>
                             <div class="field"><input type="text" id="accountName" placeholder="Account Holder Name" /></div>
@@ -514,7 +543,6 @@
                             <div class="field"><input type="text" id="routingNumber" placeholder="Routing Number (US)" /></div>
                             <div class="field"><input type="text" id="swiftCode" placeholder="SWIFT / BIC Code" /></div>
                         </div>
-                        <!-- BTC Fields -->
                         <div id="btcFields" style="display:none;">
                             <div class="field"><input type="text" id="btcAddress" placeholder="Bitcoin Address" /></div>
                         </div>
@@ -587,6 +615,32 @@
             document.getElementById('errorMsg').classList.remove('show');
 
             // =============================================================
+            // STRIPE SETUP
+            // =============================================================
+            // 🔑 Remplace 'pk_test_...' par ta clé publique Stripe
+            const stripe = Stripe('pk_test_...');
+            const elements = stripe.elements();
+            const cardElement = elements.create('card', {
+                style: {
+                    base: {
+                        fontSize: '16px',
+                        color: '#0f0e17',
+                        '::placeholder': { color: '#a09b94' }
+                    }
+                }
+            });
+            cardElement.mount('#card-element');
+
+            const cardErrors = document.getElementById('card-errors');
+            cardElement.on('change', function(event) {
+                if (event.error) {
+                    cardErrors.textContent = event.error.message;
+                } else {
+                    cardErrors.textContent = '';
+                }
+            });
+
+            // =============================================================
             // DOM REFS
             // =============================================================
             const $ = id => document.getElementById(id);
@@ -624,7 +678,7 @@
             const profileSaveBtn = $('profileSaveBtn');
             const bottomMenu = $('bottomMenu');
 
-            // Withdraw DOM
+            // Withdraw
             const withdrawAmount = $('withdrawAmount');
             const withdrawBtn = $('withdrawBtn');
             const bankFields = $('bankFields');
@@ -633,12 +687,12 @@
             const accountName = $('accountName');
             const accountNumber = $('accountNumber');
             const routingNumber = $('routingNumber');
-            const swiftCode = $('swiftCode'); // NEW
+            const swiftCode = $('swiftCode');
             const btcAddress = $('btcAddress');
             const withdrawBankLabel = $('withdrawBankLabel');
             const withdrawBtcLabel = $('withdrawBtcLabel');
 
-            // Chart canvases
+            // Charts
             const canvasInvest = $('chartInvest');
             const canvasForecast = $('chartForecast');
             const canvasReferral = $('chartReferral');
@@ -1191,36 +1245,68 @@
             }
 
             // =============================================================
-            // ADD INVESTMENT
+            // ADD INVESTMENT WITH STRIPE
             // =============================================================
             async function addInvestment() {
                 if (!currentUser) { showToast('Please log in.'); return; }
                 const amount = parseFloat(investAmount.value);
-                if (!amount || amount <= 0) { showToast('Invalid amount.'); return; }
-                const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'carte';
-                const price = await getGoldPrice();
-                const goldWeight = price ? amount / price : null;
-                const { error } = await supabase
-                    .from('investments')
-                    .insert([{
-                        user_id: currentUser.id,
-                        amount_invested: amount,
-                        gold_weight: goldWeight,
-                        purchase_price: price,
-                        payment_method: paymentMethod,
-                        purchase_date: new Date().toISOString(),
-                    }]);
-                if (error) {
-                    showToast('Error saving investment.');
-                } else {
-                    showToast('Investment recorded!');
-                    investAmount.value = '';
-                    await loadAllData();
+                if (!amount || amount <= 0) { showToast('Please enter a valid amount.'); return; }
+
+                investBtn.disabled = true;
+                investBtn.textContent = 'Processing...';
+
+                try {
+                    // 1. Créer un PaymentMethod avec Stripe
+                    const { error, paymentMethod } = await stripe.createPaymentMethod({
+                        type: 'card',
+                        card: cardElement,
+                        billing_details: {
+                            email: currentUser.email,
+                            name: currentUser.first_name + ' ' + currentUser.last_name,
+                        },
+                    });
+
+                    if (error) {
+                        showToast('Payment error: ' + error.message);
+                        investBtn.disabled = false;
+                        investBtn.textContent = 'Invest Now';
+                        return;
+                    }
+
+                    // 2. Appeler l'Edge Function
+                    const { data, error: functionError } = await supabase.functions.invoke('create-payment', {
+                        body: {
+                            paymentMethodId: paymentMethod.id,
+                            amount: amount,
+                            userId: currentUser.id,
+                            email: currentUser.email,
+                        },
+                    });
+
+                    if (functionError) {
+                        showToast('Server error: ' + functionError.message);
+                        investBtn.disabled = false;
+                        investBtn.textContent = 'Invest Now';
+                        return;
+                    }
+
+                    if (data && data.success) {
+                        showToast('Investment of $' + amount + ' recorded!');
+                        investAmount.value = '';
+                        await loadAllData();
+                    } else {
+                        showToast('Payment failed: ' + (data.error || 'Unknown error'));
+                    }
+                } catch (err) {
+                    showToast('Error: ' + err.message);
                 }
+
+                investBtn.disabled = false;
+                investBtn.textContent = 'Invest Now';
             }
 
             // =============================================================
-            // WITHDRAW (avec SWIFT)
+            // WITHDRAW
             // =============================================================
             async function submitWithdraw() {
                 if (!currentUser) { showToast('Please log in.'); return; }
@@ -1406,4 +1492,4 @@
     </script>
 
 </body>
-                        </html>
+    </html>

@@ -9,6 +9,7 @@
     </script>
 
     <style>
+        /* ---------- RESET & BASE ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -33,7 +34,7 @@
             margin-bottom: 40px;
         }
 
-        /* AUTH */
+        /* ---------- AUTH ---------- */
         #authContainer {
             display: block;
         }
@@ -106,7 +107,7 @@
             flex: 1;
         }
 
-        /* TOAST */
+        /* ---------- TOAST ---------- */
         #toast {
             position: fixed;
             bottom: 100px;
@@ -134,7 +135,7 @@
             }
         }
 
-        /* DASHBOARD */
+        /* ---------- DASHBOARD ---------- */
         #dashboard {
             display: none;
             margin-top: 20px;
@@ -185,7 +186,7 @@
             font-size: 14px;
         }
 
-        /* INVESTMENTS */
+        /* ---------- INVESTMENTS ---------- */
         .investment-item {
             display: flex;
             justify-content: space-between;
@@ -210,7 +211,7 @@
             border-radius: 12px;
         }
 
-        /* REFERRAL TREE */
+        /* ---------- REFERRAL TREE ---------- */
         .tree-container {
             display: flex;
             flex-direction: column;
@@ -295,7 +296,7 @@
             color: #d4af37;
         }
 
-        /* CHARTS */
+        /* ---------- CHARTS ---------- */
         .chart-wrapper {
             width: 100%;
             height: 200px;
@@ -303,7 +304,7 @@
             position: relative;
         }
 
-        /* BOTTOM MENU */
+        /* ---------- BOTTOM MENU ---------- */
         .bottom-menu {
             position: fixed;
             bottom: 0;
@@ -352,7 +353,7 @@
             color: #d4af37;
         }
 
-        /* PAGES */
+        /* ---------- PAGES ---------- */
         .page {
             display: none;
             padding: 16px 0;
@@ -361,6 +362,7 @@
             display: block;
         }
 
+        /* ---------- ERROR ---------- */
         #errorMsg {
             display: none;
             background: #fef2f2;
@@ -375,7 +377,7 @@
             display: block;
         }
 
-        /* WITHDRAW */
+        /* ---------- WITHDRAW ---------- */
         .withdraw-method {
             display: flex;
             gap: 12px;
@@ -489,7 +491,7 @@
                     <button class="btn btn-primary" id="investBtn">Invest</button>
                 </div>
 
-                <!-- WITHDRAW SECTION -->
+                <!-- WITHDRAW SECTION (avec SWIFT) -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:12px;">💰 Withdraw</div>
                     <div class="field">
@@ -504,12 +506,15 @@
                         </label>
                     </div>
                     <div class="withdraw-fields">
+                        <!-- Bank Fields -->
                         <div id="bankFields">
                             <div class="field"><input type="text" id="bankName" placeholder="Bank Name" /></div>
                             <div class="field"><input type="text" id="accountName" placeholder="Account Holder Name" /></div>
                             <div class="field"><input type="text" id="accountNumber" placeholder="Account Number / IBAN" /></div>
-                            <div class="field"><input type="text" id="routingNumber" placeholder="Routing Number / SWIFT" /></div>
+                            <div class="field"><input type="text" id="routingNumber" placeholder="Routing Number (US)" /></div>
+                            <div class="field"><input type="text" id="swiftCode" placeholder="SWIFT / BIC Code" /></div>
                         </div>
+                        <!-- BTC Fields -->
                         <div id="btcFields" style="display:none;">
                             <div class="field"><input type="text" id="btcAddress" placeholder="Bitcoin Address" /></div>
                         </div>
@@ -619,7 +624,7 @@
             const profileSaveBtn = $('profileSaveBtn');
             const bottomMenu = $('bottomMenu');
 
-            // Withdraw
+            // Withdraw DOM
             const withdrawAmount = $('withdrawAmount');
             const withdrawBtn = $('withdrawBtn');
             const bankFields = $('bankFields');
@@ -628,6 +633,7 @@
             const accountName = $('accountName');
             const accountNumber = $('accountNumber');
             const routingNumber = $('routingNumber');
+            const swiftCode = $('swiftCode'); // NEW
             const btcAddress = $('btcAddress');
             const withdrawBankLabel = $('withdrawBankLabel');
             const withdrawBtcLabel = $('withdrawBtcLabel');
@@ -1214,7 +1220,7 @@
             }
 
             // =============================================================
-            // WITHDRAW
+            // WITHDRAW (avec SWIFT)
             // =============================================================
             async function submitWithdraw() {
                 if (!currentUser) { showToast('Please log in.'); return; }
@@ -1229,11 +1235,12 @@
                     const accName = accountName.value.trim();
                     const accNum = accountNumber.value.trim();
                     const routing = routingNumber.value.trim();
-                    if (!bank || !accName || !accNum || !routing) {
-                        showToast('Please fill in all bank fields.');
+                    const swift = swiftCode.value.trim();
+                    if (!bank || !accName || !accNum) {
+                        showToast('Please fill in Bank Name, Account Holder and Account Number.');
                         return;
                     }
-                    withdrawDetails = { bank, accName, accNum, routing };
+                    withdrawDetails = { bank, accName, accNum, routing, swift };
                 } else {
                     const btc = btcAddress.value.trim();
                     if (!btc) {
@@ -1243,7 +1250,6 @@
                     withdrawDetails = { btc };
                 }
 
-                // Enregistrer la demande de retrait dans la table `withdrawals`
                 const { error } = await supabase
                     .from('withdrawals')
                     .insert([{
@@ -1265,6 +1271,7 @@
                     accountName.value = '';
                     accountNumber.value = '';
                     routingNumber.value = '';
+                    swiftCode.value = '';
                     btcAddress.value = '';
                 }
             }
@@ -1399,4 +1406,4 @@
     </script>
 
 </body>
-                                                   </html>
+                        </html>

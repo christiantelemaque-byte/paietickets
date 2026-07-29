@@ -36,7 +36,6 @@
         #errorMsg { display: none; background: #fef2f2; border: 1px solid #fecaca; border-radius: 16px; padding: 16px; color: #b91c1c; margin-top: 16px; text-align: center; }
         #errorMsg.show { display: block; }
 
-        /* Tree styles */
         .tree { list-style: none; padding-left: 0; }
         .tree ul { list-style: none; padding-left: 20px; }
         .tree li { padding: 4px 0; border-left: 1px dashed #ccc; margin-left: 8px; padding-left: 12px; }
@@ -87,7 +86,6 @@
                 <div class="stat-item"><span>Total Referrals</span> <span id="referralCount">0</span></div>
             </div>
 
-            <!-- Referral Tree -->
             <div class="card">
                 <div style="font-weight:600; margin-bottom:12px;">Referral Tree</div>
                 <div id="referralTreeContainer">
@@ -109,7 +107,7 @@
     <div id="toast"></div>
 
     <!-- ============================================================ -->
-    <!-- IMPORT MAP (Supabase ESM)                                    -->
+    <!-- IMPORT MAP                                                   -->
     <!-- ============================================================ -->
     <script type="importmap">
         {
@@ -205,15 +203,20 @@
             }
 
             // =============================================================
-            // GET DEFAULT REFERRER (ADMIN)
+            // GET DEFAULT REFERRER (first user or admin)
             // =============================================================
             async function getDefaultReferrer() {
+                // Try to find the first user (oldest)
                 const { data, error } = await supabase
                     .from('users')
                     .select('id')
-                    .eq('email', 'admin@stockof.com')
+                    .order('created_at', { ascending: true })
+                    .limit(1)
                     .maybeSingle();
-                if (error) return null;
+                if (error) {
+                    alert('⚠️ Erreur recherche parrain défaut: ' + error.message);
+                    return null;
+                }
                 return data ? data.id : null;
             }
 
@@ -280,6 +283,7 @@
                             return;
                         }
 
+                        // Determine referrer
                         let referrerId = null;
                         if (referralCode) {
                             const { data: referrer, error: refError } = await supabase
@@ -300,18 +304,19 @@
                             }
                         }
 
+                        // If no code or invalid, use default referrer (first user)
                         if (!referrerId) {
                             const defaultId = await getDefaultReferrer();
                             if (defaultId) {
                                 referrerId = defaultId;
-                                alert('✅ Parrain par défaut (admin) utilisé.');
+                                alert('✅ Parrain par défaut (premier utilisateur) utilisé.');
                             } else {
-                                alert('ℹ️ Aucun admin trouvé, ce compte sera l\'admin (sans parrain).');
+                                alert('ℹ️ Aucun utilisateur existant, ce compte sera le premier (sans parrain).');
                                 referrerId = null;
                             }
                         }
 
-                        // Insertion
+                        // Insert profile
                         const { error: insertError } = await supabase
                             .from('users')
                             .insert([{
@@ -394,7 +399,6 @@
                 alert('✅ User data loaded: ' + currentUser.email);
                 showDashboard();
                 updateDashboard();
-                // Load the referral tree
                 await loadReferralTree();
             }
 
@@ -429,7 +433,7 @@
                 profileEmail.textContent = currentUser.email || '-';
                 memberSince.textContent = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() : '-';
                 myReferralCode.textContent = currentUser.referral_code || 'N/A';
-                // Count will be updated via tree
+                // count will be updated via tree
             }
 
             // =============================================================
@@ -438,7 +442,7 @@
             async function loadReferralTree() {
                 alert('🌳 Loading referral tree...');
                 try {
-                    // Fetch all users (or at least those needed)
+                    // Fetch all users
                     const { data, error } = await supabase
                         .from('users')
                         .select('id, first_name, last_name, email, referral_code, referred_by')
@@ -452,7 +456,6 @@
                     const total = countNodes(tree);
                     referralCount.textContent = total;
 
-                    // Render tree
                     renderTree(tree);
                 } catch (err) {
                     alert('❌ Error loading tree: ' + err.message);
@@ -461,11 +464,9 @@
             }
 
             function buildTree(rootId) {
-                // Create a map of user by id
                 const userMap = {};
                 allUsers.forEach(u => userMap[u.id] = u);
 
-                // Build children map
                 const childrenMap = {};
                 allUsers.forEach(u => {
                     if (u.referred_by) {
@@ -474,15 +475,11 @@
                     }
                 });
 
-                // Recursive function to build tree node
                 function buildNode(userId) {
                     const user = userMap[userId];
                     if (!user) return null;
                     const children = (childrenMap[userId] || []).map(child => buildNode(child.id)).filter(c => c !== null);
-                    return {
-                        user: user,
-                        children: children
-                    };
+                    return { user, children };
                 }
 
                 return buildNode(rootId);
@@ -572,4 +569,4 @@
     </script>
 
 </body>
-    </html>
+</html>

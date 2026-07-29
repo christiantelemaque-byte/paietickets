@@ -2,47 +2,127 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Stock Of - App</title>
     <style>
+        /* ---------- RESET & BASE ---------- */
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f8f6f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; }
-        .container { max-width: 420px; width: 100%; background: white; border-radius: 32px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
-        .auth-box h2 { font-size: 28px; margin-bottom: 4px; }
-        .auth-box .sub { color: #888; margin-bottom: 24px; }
-        .field { margin-bottom: 12px; }
-        .field input { width: 100%; padding: 14px 16px; border-radius: 16px; border: 2px solid #e2ddd6; font-size: 15px; background: #faf9f7; }
-        .field input:focus { outline: none; border-color: #d4af37; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 16px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px; }
-        .btn-primary { background: linear-gradient(145deg, #d4af37, #b8962f); color: #0f0e17; }
-        .btn-outline { background: transparent; border: 2px solid #e2ddd6; color: #0f0e17; }
-        .switch-link { text-align: center; margin-top: 16px; color: #888; font-size: 14px; }
-        .switch-link span { color: #d4af37; font-weight: 700; cursor: pointer; }
-        #extra { display: none; }
-        #extra.show { display: block; }
-        .name-row { display: flex; gap: 10px; }
-        .name-row input { flex: 1; }
-        #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #0f0e17; color: white; padding: 14px 28px; border-radius: 40px; display: none; z-index: 999; }
-        #toast.show { display: block; animation: fadeUp 0.4s ease; }
-        @keyframes fadeUp { 0% { opacity:0; transform: translateX(-50%) translateY(20px); } 100% { opacity:1; transform: translateX(-50%) translateY(0); } }
-        #dashboard { display: none; margin-top: 20px; }
-        #dashboard.show { display: block; }
-        .card { background: #f8f6f0; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
-        .stat-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ddd; }
-        .stat-item:last-child { border-bottom: none; }
-        .logout-btn { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 12px; border-radius: 16px; width: 100%; font-weight: 600; cursor: pointer; }
-        .user-name { font-size: 22px; font-weight: 700; }
-        .badge { background: #d4af37; padding: 2px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-left: 8px; }
-        #errorMsg { display: none; background: #fef2f2; border: 1px solid #fecaca; border-radius: 16px; padding: 16px; color: #b91c1c; margin-top: 16px; text-align: center; }
-        #errorMsg.show { display: block; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f8f6f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+            padding-bottom: 80px; /* pour ne pas masquer le menu */
+        }
+        .container {
+            max-width: 420px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            margin-bottom: 80px;
+        }
 
-        .tree { list-style: none; padding-left: 0; }
-        .tree ul { list-style: none; padding-left: 20px; }
-        .tree li { padding: 4px 0; border-left: 1px dashed #ccc; margin-left: 8px; padding-left: 12px; }
-        .tree li:last-child { border-left: none; }
-        .tree .node { display: flex; align-items: center; gap: 6px; }
-        .tree .node .name { font-weight: 500; }
-        .tree .node .code { font-size: 12px; color: #888; }
+        /* ---------- AUTH ---------- */
+        #authContainer { display:block; }
+        .auth-box h2 { font-size:28px; margin-bottom:4px; }
+        .auth-box .sub { color:#888; margin-bottom:24px; }
+        .field { margin-bottom:12px; }
+        .field input {
+            width:100%; padding:14px 16px; border-radius:16px;
+            border:2px solid #e2ddd6; font-size:15px; background:#faf9f7;
+        }
+        .field input:focus { outline:none; border-color:#d4af37; }
+        .btn {
+            width:100%; padding:14px; border:none; border-radius:16px;
+            font-size:16px; font-weight:700; cursor:pointer; margin-top:8px;
+        }
+        .btn-primary { background:linear-gradient(145deg,#d4af37,#b8962f); color:#0f0e17; }
+        .btn-outline { background:transparent; border:2px solid #e2ddd6; color:#0f0e17; }
+        .switch-link { text-align:center; margin-top:16px; color:#888; font-size:14px; }
+        .switch-link span { color:#d4af37; font-weight:700; cursor:pointer; }
+        #extra { display:none; }
+        #extra.show { display:block; }
+        .name-row { display:flex; gap:10px; }
+        .name-row input { flex:1; }
+
+        /* ---------- TOAST ---------- */
+        #toast {
+            position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
+            background:#0f0e17; color:white; padding:14px 28px; border-radius:40px;
+            display:none; z-index:999;
+        }
+        #toast.show { display:block; animation:fadeUp 0.4s ease; }
+        @keyframes fadeUp { 0%{opacity:0;transform:translateX(-50%) translateY(20px);} 100%{opacity:1;transform:translateX(-50%) translateY(0);} }
+
+        /* ---------- DASHBOARD ---------- */
+        #dashboard { display:none; margin-top:20px; }
+        #dashboard.show { display:block; }
+        .card {
+            background:#f8f6f0; border-radius:16px; padding:16px; margin-bottom:16px;
+        }
+        .stat-item {
+            display:flex; justify-content:space-between; padding:8px 0;
+            border-bottom:1px solid #ddd;
+        }
+        .stat-item:last-child { border-bottom:none; }
+        .logout-btn {
+            background:#fef2f2; border:1px solid #fecaca; color:#b91c1c;
+            padding:12px; border-radius:16px; width:100%; font-weight:600; cursor:pointer;
+        }
+        .user-name { font-size:22px; font-weight:700; }
+        .badge { background:#d4af37; padding:2px 12px; border-radius:20px; font-size:10px; font-weight:700; text-transform:uppercase; margin-left:8px; }
+        .text-muted { color:#888; font-size:14px; }
+
+        /* ---------- INVESTMENTS ---------- */
+        .investment-item {
+            display:flex; justify-content:space-between; padding:10px 0;
+            border-bottom:1px solid #eee;
+        }
+        .investment-item:last-child { border-bottom:none; }
+        .investment-amount { font-weight:600; color:#0f0e17; }
+        .investment-meta { font-size:12px; color:#888; }
+        .payment-method { font-size:11px; background:#e2ddd6; padding:2px 10px; border-radius:12px; }
+
+        /* ---------- TREE ---------- */
+        .tree { list-style:none; padding-left:0; }
+        .tree ul { list-style:none; padding-left:20px; }
+        .tree li { padding:4px 0; border-left:1px dashed #ccc; margin-left:8px; padding-left:12px; }
+        .tree li:last-child { border-left:none; }
+        .tree .node { display:flex; align-items:center; gap:6px; }
+        .tree .node .name { font-weight:500; }
+        .tree .node .code { font-size:12px; color:#888; }
+
+        /* ---------- BOTTOM MENU (fixe) ---------- */
+        .bottom-menu {
+            position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+            max-width:420px; width:100%;
+            background:rgba(255,255,255,0.95); backdrop-filter:blur(12px);
+            border-top:1px solid #e2ddd6;
+            display:flex; justify-content:space-around;
+            padding:8px 0 14px 0; z-index:100;
+            box-shadow:0 -4px 20px rgba(0,0,0,0.04);
+        }
+        .bottom-menu .menu-item {
+            display:flex; flex-direction:column; align-items:center;
+            gap:2px; cursor:pointer; opacity:0.5;
+            border:none; background:none; padding:4px 0; flex:1;
+        }
+        .bottom-menu .menu-item.active { opacity:1; }
+        .bottom-menu .menu-item .icon { font-size:24px; }
+        .bottom-menu .menu-item .label { font-size:10px; font-weight:600; color:#0f0e17; text-transform:uppercase; letter-spacing:0.3px; }
+        .bottom-menu .menu-item.active .label { color:#d4af37; }
+
+        /* ---------- PAGES (contenu) ---------- */
+        .page { display:none; padding:16px 0; }
+        .page.active { display:block; }
+
+        #errorMsg { display:none; background:#fef2f2; border:1px solid #fecaca; border-radius:16px; padding:16px; color:#b91c1c; margin-top:16px; text-align:center; }
+        #errorMsg.show { display:block; }
     </style>
 </head>
 <body>
@@ -76,26 +156,67 @@
             </div>
         </div>
 
-        <!-- DASHBOARD -->
+        <!-- ============ DASHBOARD (contenu des onglets) ============ -->
         <div id="dashboard">
+            <!-- Header -->
             <div class="card">
                 <div class="user-name" id="userNameDisplay">User <span class="badge">Premium</span></div>
                 <div class="stat-item"><span>Email</span> <span id="profileEmail">-</span></div>
                 <div class="stat-item"><span>Member since</span> <span id="memberSince">-</span></div>
                 <div class="stat-item"><span>My Referral Code</span> <span id="myReferralCode">-</span></div>
                 <div class="stat-item"><span>Total Referrals</span> <span id="referralCount">0</span></div>
+                <div class="stat-item"><span>Total Invested</span> <span id="totalInvestment">$0</span></div>
             </div>
 
-            <div class="card">
-                <div style="font-weight:600; margin-bottom:12px;">Referral Tree</div>
-                <div id="referralTreeContainer">
-                    <p class="text-muted">Loading tree...</p>
+            <!-- Pages -->
+            <div id="page-dashboard" class="page active">
+                <!-- Referral Tree -->
+                <div class="card">
+                    <div style="font-weight:600; margin-bottom:12px;">Referral Tree</div>
+                    <div id="referralTreeContainer"><p class="text-muted">Loading tree...</p></div>
+                </div>
+                <!-- Quick stats (will add gold price later) -->
+            </div>
+
+            <div id="page-investments" class="page">
+                <!-- Liste des investissements -->
+                <div class="card">
+                    <div style="font-weight:600; margin-bottom:12px;">My Investments</div>
+                    <div id="investmentList"><p class="text-muted">No investments yet.</p></div>
+                </div>
+                <!-- Formulaire d'ajout -->
+                <div class="card">
+                    <div style="font-weight:600; margin-bottom:12px;">Add Investment</div>
+                    <div class="field"><input type="number" id="investAmount" placeholder="Amount (USD)" /></div>
+                    <div style="display:flex; gap:12px; margin-bottom:12px; justify-content:center;">
+                        <label><input type="radio" name="paymentMethod" value="carte" checked /> Credit Card</label>
+                        <label><input type="radio" name="paymentMethod" value="crypto" /> Crypto</label>
+                    </div>
+                    <button class="btn btn-primary" id="investBtn">Invest</button>
                 </div>
             </div>
 
-            <button class="logout-btn" id="logoutBtn">Logout</button>
+            <div id="page-referrals" class="page">
+                <div class="card">
+                    <div style="font-weight:600; margin-bottom:12px;">Referral Tree (full)</div>
+                    <div id="referralTreeFull"><p class="text-muted">Loading...</p></div>
+                </div>
+            </div>
+
+            <div id="page-profile" class="page">
+                <div class="card">
+                    <div style="font-weight:600; margin-bottom:12px;">Profile Settings</div>
+                    <div class="field"><input type="text" id="profileFirstName" placeholder="First name" /></div>
+                    <div class="field"><input type="text" id="profileLastName" placeholder="Last name" /></div>
+                    <div class="field"><input type="tel" id="profilePhone" placeholder="Phone (optional)" /></div>
+                    <button class="btn btn-primary" id="profileSaveBtn">Save Profile</button>
+                </div>
+                <button class="logout-btn" id="logoutBtn">Logout</button>
+            </div>
+
         </div>
 
+        <!-- Message d'erreur (si Supabase ne charge pas) -->
         <div id="errorMsg">
             <p><strong>⚠️ Impossible de charger Supabase</strong></p>
             <p style="font-size:14px; margin-top:8px;">Vérifie ta connexion internet.</p>
@@ -104,10 +225,33 @@
 
     </div>
 
+    <!-- TOAST -->
     <div id="toast"></div>
 
     <!-- ============================================================ -->
-    <!-- IMPORT MAP                                                   -->
+    <!-- MENU BAS (FIXE)                                               -->
+    <!-- ============================================================ -->
+    <nav class="bottom-menu" id="bottomMenu">
+        <button class="menu-item active" data-page="page-dashboard">
+            <span class="icon">📊</span>
+            <span class="label">Dashboard</span>
+        </button>
+        <button class="menu-item" data-page="page-investments">
+            <span class="icon">💰</span>
+            <span class="label">Invest.</span>
+        </button>
+        <button class="menu-item" data-page="page-referrals">
+            <span class="icon">👥</span>
+            <span class="label">Referrals</span>
+        </button>
+        <button class="menu-item" data-page="page-profile">
+            <span class="icon">👤</span>
+            <span class="label">Profile</span>
+        </button>
+    </nav>
+
+    <!-- ============================================================ -->
+    <!-- IMPORT MAP (Supabase ESM)                                    -->
     <!-- ============================================================ -->
     <script type="importmap">
         {
@@ -162,12 +306,22 @@
             const referralCount = $('referralCount');
             const memberSince = $('memberSince');
             const myReferralCode = $('myReferralCode');
+            const totalInvestment = $('totalInvestment');
             const referralTreeContainer = $('referralTreeContainer');
+            const referralTreeFull = $('referralTreeFull');
+            const investmentList = $('investmentList');
+            const investAmount = $('investAmount');
+            const investBtn = $('investBtn');
             const logoutBtn = $('logoutBtn');
+            const profileFirstName = $('profileFirstName');
+            const profileLastName = $('profileLastName');
+            const profilePhone = $('profilePhone');
+            const profileSaveBtn = $('profileSaveBtn');
 
             let isLoginMode = true;
             let currentUser = null;
             let allUsers = [];
+            let goldPriceCache = null;
 
             alert('✅ DOM refs prêtes');
 
@@ -203,10 +357,9 @@
             }
 
             // =============================================================
-            // GET DEFAULT REFERRER (first user or admin)
+            // GET DEFAULT REFERRER (first user)
             // =============================================================
             async function getDefaultReferrer() {
-                // Try to find the first user (oldest)
                 const { data, error } = await supabase
                     .from('users')
                     .select('id')
@@ -304,7 +457,6 @@
                             }
                         }
 
-                        // If no code or invalid, use default referrer (first user)
                         if (!referrerId) {
                             const defaultId = await getDefaultReferrer();
                             if (defaultId) {
@@ -316,7 +468,6 @@
                             }
                         }
 
-                        // Insert profile
                         const { error: insertError } = await supabase
                             .from('users')
                             .insert([{
@@ -400,6 +551,11 @@
                 showDashboard();
                 updateDashboard();
                 await loadReferralTree();
+                await loadInvestments();
+                // Fill profile fields
+                profileFirstName.value = currentUser.first_name || '';
+                profileLastName.value = currentUser.last_name || '';
+                profilePhone.value = currentUser.phone || '';
             }
 
             function generateReferralCode() {
@@ -433,7 +589,7 @@
                 profileEmail.textContent = currentUser.email || '-';
                 memberSince.textContent = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() : '-';
                 myReferralCode.textContent = currentUser.referral_code || 'N/A';
-                // count will be updated via tree
+                // total investment updated in loadInvestments
             }
 
             // =============================================================
@@ -442,7 +598,6 @@
             async function loadReferralTree() {
                 alert('🌳 Loading referral tree...');
                 try {
-                    // Fetch all users
                     const { data, error } = await supabase
                         .from('users')
                         .select('id, first_name, last_name, email, referral_code, referred_by')
@@ -451,15 +606,17 @@
                     if (error) throw error;
                     allUsers = data;
 
-                    // Build tree starting from current user
                     const tree = buildTree(currentUser.id);
                     const total = countNodes(tree);
                     referralCount.textContent = total;
 
-                    renderTree(tree);
+                    renderTree(tree, referralTreeContainer);
+                    // Also render full tree in referrals tab (same for now)
+                    renderTree(tree, referralTreeFull);
                 } catch (err) {
                     alert('❌ Error loading tree: ' + err.message);
                     referralTreeContainer.innerHTML = '<p class="text-muted">Unable to load referral tree.</p>';
+                    referralTreeFull.innerHTML = '<p class="text-muted">Unable to load referral tree.</p>';
                 }
             }
 
@@ -494,13 +651,13 @@
                 return count;
             }
 
-            function renderTree(tree) {
+            function renderTree(tree, container) {
                 if (!tree) {
-                    referralTreeContainer.innerHTML = '<p class="text-muted">No referrals yet.</p>';
+                    container.innerHTML = '<p class="text-muted">No referrals yet.</p>';
                     return;
                 }
                 const html = buildTreeHTML(tree);
-                referralTreeContainer.innerHTML = html;
+                container.innerHTML = html;
             }
 
             function buildTreeHTML(node) {
@@ -525,6 +682,139 @@
             }
 
             // =============================================================
+            // INVESTMENTS
+            // =============================================================
+            async function loadInvestments() {
+                if (!currentUser) return;
+                alert('📊 Loading investments...');
+                try {
+                    const { data, error } = await supabase
+                        .from('investments')
+                        .select('*')
+                        .eq('user_id', currentUser.id)
+                        .order('purchase_date', { ascending: false });
+
+                    if (error) throw error;
+
+                    const list = investmentList;
+                    if (!data || data.length === 0) {
+                        list.innerHTML = '<p class="text-muted">No investments yet.</p>';
+                        totalInvestment.textContent = '$0';
+                        return;
+                    }
+
+                    let total = 0;
+                    let html = '';
+                    data.forEach(inv => {
+                        total += parseFloat(inv.amount_invested || 0);
+                        const method = inv.payment_method === 'crypto' ? 'Crypto' : 'Credit Card';
+                        const date = new Date(inv.purchase_date).toLocaleDateString();
+                        html += `
+                            <div class="investment-item">
+                                <div>
+                                    <div class="investment-amount">$${parseFloat(inv.amount_invested).toFixed(2)}</div>
+                                    <div class="investment-meta">${date} • ${inv.gold_weight ? parseFloat(inv.gold_weight).toFixed(4)+' g' : '-'}</div>
+                                </div>
+                                <span class="payment-method">${method}</span>
+                            </div>
+                        `;
+                    });
+                    list.innerHTML = html;
+                    totalInvestment.textContent = `$${total.toFixed(2)}`;
+                } catch (err) {
+                    alert('❌ Error loading investments: ' + err.message);
+                }
+            }
+
+            async function addInvestment() {
+                if (!currentUser) {
+                    showToast('Please log in.');
+                    return;
+                }
+                const amount = parseFloat(investAmount.value);
+                if (!amount || amount <= 0) {
+                    showToast('Please enter a valid amount.');
+                    return;
+                }
+
+                const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'carte';
+
+                // Get current gold price
+                const price = await getGoldPrice();
+                if (!price) {
+                    showToast('Could not fetch gold price. Using fallback.');
+                }
+                const goldWeight = price ? amount / price : null;
+
+                const { error } = await supabase
+                    .from('investments')
+                    .insert([{
+                        user_id: currentUser.id,
+                        amount_invested: amount,
+                        gold_weight: goldWeight,
+                        purchase_price: price,
+                        payment_method: paymentMethod,
+                        purchase_date: new Date().toISOString(),
+                    }]);
+
+                if (error) {
+                    alert('❌ Insert investment error: ' + error.message);
+                    showToast('Error saving investment.');
+                } else {
+                    showToast('Investment of $' + amount + ' recorded!');
+                    investAmount.value = '';
+                    await loadInvestments();
+                }
+            }
+
+            // =============================================================
+            // GOLD PRICE API
+            // =============================================================
+            async function getGoldPrice() {
+                if (goldPriceCache) return goldPriceCache;
+                try {
+                    const response = await fetch('https://gold-price-api.omkar.cloud/price');
+                    const data = await response.json();
+                    goldPriceCache = data.price_usd || null;
+                    return goldPriceCache;
+                } catch (e) {
+                    alert('⚠️ API gold price error, using dummy value.');
+                    // Fallback dummy
+                    goldPriceCache = 85 + Math.random() * 5;
+                    return goldPriceCache;
+                }
+            }
+
+            // =============================================================
+            // PROFILE UPDATE
+            // =============================================================
+            async function updateProfile() {
+                if (!currentUser) return;
+                const firstName = profileFirstName.value.trim();
+                const lastName = profileLastName.value.trim();
+                const phone = profilePhone.value.trim();
+
+                if (!firstName || !lastName) {
+                    showToast('First and last name are required.');
+                    return;
+                }
+
+                const { error } = await supabase
+                    .from('users')
+                    .update({ first_name: firstName, last_name: lastName, phone: phone })
+                    .eq('id', currentUser.id);
+
+                if (error) {
+                    alert('❌ Update profile error: ' + error.message);
+                    showToast('Error updating profile.');
+                } else {
+                    showToast('Profile updated!');
+                    // Refresh user data
+                    await loadUserData(currentUser);
+                }
+            }
+
+            // =============================================================
             // CHECK AUTH
             // =============================================================
             async function checkAuth() {
@@ -540,6 +830,19 @@
             }
 
             // =============================================================
+            // NAVIGATION (menu)
+            // =============================================================
+            function switchPage(pageId) {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                const target = document.getElementById(pageId);
+                if (target) target.classList.add('active');
+
+                document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+                const menuBtn = document.querySelector(`.menu-item[data-page="${pageId}"]`);
+                if (menuBtn) menuBtn.classList.add('active');
+            }
+
+            // =============================================================
             // ATTACH EVENT LISTENERS
             // =============================================================
             alert('📌 Attaching event listeners...');
@@ -547,6 +850,17 @@
             authToggleBtn.addEventListener('click', toggleAuthMode);
             authSwitchLink.addEventListener('click', toggleAuthMode);
             logoutBtn.addEventListener('click', logoutUser);
+            investBtn.addEventListener('click', addInvestment);
+            profileSaveBtn.addEventListener('click', updateProfile);
+
+            // Menu clicks
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const pageId = this.dataset.page;
+                    if (pageId) switchPage(pageId);
+                });
+            });
+
             alert('✅ Event listeners attached');
 
             // =============================================================
@@ -557,10 +871,11 @@
                 checkAuth();
             });
 
-            // Expose functions
+            // Expose functions for debugging
             window.toggleAuthMode = toggleAuthMode;
             window.handleAuth = handleAuth;
             window.logoutUser = logoutUser;
+            window.addInvestment = addInvestment;
 
         } catch (error) {
             document.getElementById('errorMsg').classList.add('show');
@@ -569,4 +884,4 @@
     </script>
 
 </body>
-</html>
+    </html>

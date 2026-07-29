@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Stock Of - App</title>
-
     <style>
         /* ---------- RESET ---------- */
         * {
@@ -108,8 +107,12 @@
             font-weight: 700;
             cursor: pointer;
         }
-        .hidden-field {
-            display: none !important;
+        /* Extra fields initially hidden */
+        #signupExtra {
+            display: none;
+        }
+        #signupExtra.show {
+            display: block;
         }
         .name-row {
             display: flex;
@@ -343,24 +346,23 @@
 </head>
 <body>
 
-    <!-- TOAST (hidden by default) -->
+    <!-- TOAST -->
     <div id="toast"></div>
 
     <div class="app-container">
 
-        <!-- ============ AUTH (visible by default) ============ -->
+        <!-- ============ AUTH ============ -->
         <div id="authContainer">
             <div class="auth-box">
                 <h2>Welcome</h2>
                 <p class="sub">Log in or create an account.</p>
 
                 <div id="authForm">
-                    <!-- Always visible -->
                     <div class="auth-field"><input type="email" id="authEmail" placeholder="Email" /></div>
                     <div class="auth-field"><input type="password" id="authPassword" placeholder="Password" /></div>
 
                     <!-- Extra fields for Sign Up (hidden by default) -->
-                    <div id="signupExtra" class="hidden-field">
+                    <div id="signupExtra">
                         <div class="auth-field"><input type="password" id="authConfirm" placeholder="Confirm password" /></div>
                         <div class="name-row">
                             <div class="auth-field"><input type="text" id="authFirstName" placeholder="First name" /></div>
@@ -379,7 +381,7 @@
             </div>
         </div>
 
-        <!-- ============ HEADER (dashboard) ============ -->
+        <!-- ============ DASHBOARD (hidden until logged in) ============ -->
         <header class="app-header" id="appHeader">
             <div class="greeting">Hello</div>
             <div class="user-name" id="userNameDisplay">User <span class="badge">Premium</span></div>
@@ -400,7 +402,6 @@
             </div>
         </header>
 
-        <!-- ============ CONTENT (dashboard pages) ============ -->
         <div class="app-content" id="appContent">
             <div id="page-dashboard" class="page active">
                 <div class="card">
@@ -455,7 +456,6 @@
             </div>
         </div>
 
-        <!-- ============ BOTTOM MENU ============ -->
         <nav class="bottom-menu" id="bottomMenu">
             <button class="menu-item active" data-page="page-dashboard"><span class="icon">📊</span><span class="label">Dashboard</span></button>
             <button class="menu-item" data-page="page-investments"><span class="icon">💰</span><span class="label">Invest.</span></button>
@@ -520,28 +520,29 @@
             toast.textContent = msg;
             toast.classList.add('show');
             clearTimeout(toast._timer);
-            toast._timer = setTimeout(() => {
-                toast.classList.remove('show');
-            }, duration);
+            toast._timer = setTimeout(() => toast.classList.remove('show'), duration);
         }
 
         // =============================================================
-        // TOGGLE LOGIN / SIGN UP
+        // TOGGLE LOGIN / SIGN UP (with console log)
         // =============================================================
         function toggleAuthMode() {
+            console.log('toggleAuthMode called, isLoginMode:', isLoginMode);
             isLoginMode = !isLoginMode;
             if (isLoginMode) {
                 authActionBtn.textContent = 'Log in';
                 authToggleBtn.textContent = 'Create account';
                 authSwitchText.textContent = "Don't have an account?";
                 authSwitchLink.textContent = 'Sign up';
-                signupExtra.classList.add('hidden-field');
+                signupExtra.style.display = 'none';
+                console.log('Login mode - hidden extra fields');
             } else {
                 authActionBtn.textContent = 'Sign up';
                 authToggleBtn.textContent = 'Back to login';
                 authSwitchText.textContent = 'Already have an account?';
                 authSwitchLink.textContent = 'Log in';
-                signupExtra.classList.remove('hidden-field');
+                signupExtra.style.display = 'block';
+                console.log('Sign up mode - showing extra fields');
             }
         }
 
@@ -1000,10 +1001,8 @@
         // CHECK AUTH
         // =============================================================
         async function checkAuth() {
-            // Show login screen first (no popup)
             showAuthScreen();
 
-            // Then check if user is already logged in
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 await loadUserData(user);
@@ -1011,11 +1010,22 @@
         }
 
         // =============================================================
-        // EVENT LISTENERS
+        // EVENT LISTENERS (with console logs)
         // =============================================================
-        authActionBtn.addEventListener('click', handleAuth);
-        authToggleBtn.addEventListener('click', toggleAuthMode);
-        authSwitchLink.addEventListener('click', toggleAuthMode);
+        authActionBtn.addEventListener('click', function(e) {
+            console.log('Auth action button clicked');
+            handleAuth();
+        });
+
+        authToggleBtn.addEventListener('click', function(e) {
+            console.log('Toggle button clicked');
+            toggleAuthMode();
+        });
+
+        authSwitchLink.addEventListener('click', function(e) {
+            console.log('Switch link clicked');
+            toggleAuthMode();
+        });
 
         // =============================================================
         // START
@@ -1032,4 +1042,4 @@
     </script>
 
 </body>
-                        </html>
+                                                                                              </html>

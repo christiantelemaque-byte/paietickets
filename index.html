@@ -33,6 +33,8 @@
         .logout-btn { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 12px; border-radius: 16px; width: 100%; font-weight: 600; cursor: pointer; }
         .user-name { font-size: 22px; font-weight: 700; }
         .badge { background: #d4af37; padding: 2px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-left: 8px; }
+        #errorMsg { display: none; background: #fef2f2; border: 1px solid #fecaca; border-radius: 16px; padding: 16px; color: #b91c1c; margin-top: 16px; text-align: center; }
+        #errorMsg.show { display: block; }
     </style>
 </head>
 <body>
@@ -76,14 +78,21 @@
             <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
 
+        <!-- Message d'erreur -->
+        <div id="errorMsg">
+            <p><strong>⚠️ Impossible de charger Supabase</strong></p>
+            <p style="font-size:14px; margin-top:8px;">Vérifie ta connexion internet ou utilise un Wi-Fi.</p>
+            <button class="btn btn-outline" style="margin-top:12px;" onclick="location.reload()">Réessayer</button>
+        </div>
+
     </div>
 
     <div id="toast"></div>
 
     <!-- ============================================================ -->
-    <!-- CHARGEMENT DE SUPABASE VIA UNPKG (ALTERNATIVE)               -->
+    <!-- CHARGEMENT DE SUPABASE VIA CDN CLOUDFLARE                    -->
     <!-- ============================================================ -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.39.0/umd/supabase.min.js">
     </script>
 
     <!-- ============================================================ -->
@@ -93,13 +102,15 @@
         // =============================================================
         // ALERTE DE DÉMARRAGE
         // =============================================================
-        alert('🚀 Script chargé (CDN unpkg)');
+        alert('🚀 Script chargé (CDN Cloudflare)');
 
         try {
             // =============================================================
             // VÉRIFIER QUE SUPABASE EST BIEN CHARGÉ
             // =============================================================
             if (typeof window.supabase === 'undefined') {
+                // Afficher le message d'erreur
+                document.getElementById('errorMsg').classList.add('show');
                 throw new Error('Supabase library not loaded. Please check your internet connection or try a different network.');
             }
 
@@ -108,6 +119,9 @@
 
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             alert('✅ Supabase initialisé avec succès !');
+
+            // Masquer l'erreur si elle était affichée
+            document.getElementById('errorMsg').classList.remove('show');
 
             // =============================================================
             // DOM REFS
@@ -399,6 +413,7 @@
             window.logoutUser = logoutUser;
 
         } catch (error) {
+            document.getElementById('errorMsg').classList.add('show');
             alert('❌ ERREUR CRITIQUE : ' + error.message + '\n\n' + error.stack);
         }
     </script>

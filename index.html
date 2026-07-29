@@ -89,18 +89,18 @@
     <div id="toast"></div>
 
     <!-- ============================================================ -->
-    <!-- UTILISATION D'IMPORT MAP POUR SUPABASE (ES MODULES)          -->
+    <!-- IMPORT MAP – CORRECT URL POUR SUPABASE ESM                   -->
     <!-- ============================================================ -->
     <script type="importmap">
         {
             "imports": {
-                "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/module/supabase.js"
+                "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
             }
         }
     </script>
 
     <!-- ============================================================ -->
-    <!-- NOTRE SCRIPT PRINCIPAL (type="module")                       -->
+    <!-- SCRIPT PRINCIPAL (type="module")                             -->
     <!-- ============================================================ -->
     <script type="module">
         // =============================================================
@@ -110,10 +110,21 @@
 
         try {
             // =============================================================
-            // IMPORTER SUPABASE
+            // IMPORTER SUPABASE AVEC FALLBACK
             // =============================================================
-            const { createClient } = await import('@supabase/supabase-js');
-            alert('✅ Supabase importé avec succès !');
+            let createClient;
+            try {
+                // Tentative avec l'importmap
+                const module = await import('@supabase/supabase-js');
+                createClient = module.createClient;
+                alert('✅ Supabase importé via importmap !');
+            } catch (e) {
+                alert('⚠️ Échec importmap, tentative avec Skypack...');
+                // Fallback avec Skypack
+                const module = await import('https://cdn.skypack.dev/@supabase/supabase-js@2');
+                createClient = module.createClient;
+                alert('✅ Supabase importé via Skypack !');
+            }
 
             const SUPABASE_URL = 'https://iiceaseqdzcdfgkiinnx.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_VZxq4hifeXH7kyDdi91FJg_LlzNoCiL';
@@ -121,11 +132,10 @@
             const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             alert('✅ Supabase initialisé avec succès !');
 
-            // Masquer l'erreur
             document.getElementById('errorMsg').classList.remove('show');
 
             // =============================================================
-            // DOM REFS (comme avant)
+            // DOM REFS
             // =============================================================
             const $ = id => document.getElementById(id);
             const authContainer = $('authContainer');

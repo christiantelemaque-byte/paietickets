@@ -81,24 +81,26 @@
     <div id="toast"></div>
 
     <!-- ============================================================ -->
-    <!-- SCRIPTS AVEC GESTION D'ERREURS                               -->
+    <!-- CHARGEMENT DE SUPABASE VIA UNPKG (ALTERNATIVE)               -->
+    <!-- ============================================================ -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js">
+    </script>
+
+    <!-- ============================================================ -->
+    <!-- NOTRE SCRIPT PRINCIPAL                                        -->
     <!-- ============================================================ -->
     <script>
         // =============================================================
         // ALERTE DE DÉMARRAGE
         // =============================================================
-        alert('🚀 Script chargé (étape 1)');
+        alert('🚀 Script chargé (CDN unpkg)');
 
         try {
             // =============================================================
-            // CHARGER SUPABASE DYNAMIQUEMENT (en cas d'échec du CDN)
+            // VÉRIFIER QUE SUPABASE EST BIEN CHARGÉ
             // =============================================================
-            alert('📦 Tentative de chargement de Supabase...');
-            // On vérifie si supabase est déjà disponible via le CDN
             if (typeof window.supabase === 'undefined') {
-                alert('⚠️ Supabase non trouvé, tentative de chargement manuel...');
-                // On pourrait charger le script, mais on va plutôt signaler l'erreur
-                throw new Error('Supabase library not loaded. Please check your internet connection.');
+                throw new Error('Supabase library not loaded. Please check your internet connection or try a different network.');
             }
 
             const SUPABASE_URL = 'https://iiceaseqdzcdfgkiinnx.supabase.co';
@@ -397,9 +399,6 @@
             window.logoutUser = logoutUser;
 
         } catch (error) {
-            // =============================================================
-            // GLOBALE ERREUR CAPTURE
-            // =============================================================
             alert('❌ ERREUR CRITIQUE : ' + error.message + '\n\n' + error.stack);
         }
     </script>

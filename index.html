@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Stock Of - App</title>
     <style>
-        /* ---------- RESET & BASE ---------- */
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: 'Segoe UI', sans-serif;
@@ -27,7 +26,6 @@
             margin-bottom: 80px;
         }
 
-        /* ---------- AUTH ---------- */
         #authContainer { display:block; }
         .auth-box h2 { font-size:28px; margin-bottom:4px; }
         .auth-box .sub { color:#888; margin-bottom:24px; }
@@ -50,7 +48,6 @@
         .name-row { display:flex; gap:10px; }
         .name-row input { flex:1; }
 
-        /* ---------- TOAST ---------- */
         #toast {
             position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
             background:#0f0e17; color:white; padding:14px 28px; border-radius:40px;
@@ -59,7 +56,6 @@
         #toast.show { display:block; animation:fadeUp 0.4s ease; }
         @keyframes fadeUp { 0%{opacity:0;transform:translateX(-50%) translateY(20px);} 100%{opacity:1;transform:translateX(-50%) translateY(0);} }
 
-        /* ---------- DASHBOARD ---------- */
         #dashboard { display:none; margin-top:20px; }
         #dashboard.show { display:block; }
         .card {
@@ -78,7 +74,6 @@
         .badge { background:#d4af37; padding:2px 12px; border-radius:20px; font-size:10px; font-weight:700; text-transform:uppercase; margin-left:8px; }
         .text-muted { color:#888; font-size:14px; }
 
-        /* ---------- INVESTMENTS ---------- */
         .investment-item {
             display:flex; justify-content:space-between; padding:10px 0;
             border-bottom:1px solid #eee;
@@ -88,7 +83,6 @@
         .investment-meta { font-size:12px; color:#888; }
         .payment-method { font-size:11px; background:#e2ddd6; padding:2px 10px; border-radius:12px; }
 
-        /* ---------- TREE ---------- */
         .tree { list-style:none; padding-left:0; }
         .tree ul { list-style:none; padding-left:20px; }
         .tree li { padding:4px 0; border-left:1px dashed #ccc; margin-left:8px; padding-left:12px; }
@@ -97,16 +91,14 @@
         .tree .node .name { font-weight:500; }
         .tree .node .code { font-size:12px; color:#888; }
 
-        /* ---------- BOTTOM MENU (fixe) ---------- */
         .bottom-menu {
             position:fixed; bottom:0; left:50%; transform:translateX(-50%);
             max-width:420px; width:100%;
             background:rgba(255,255,255,0.95); backdrop-filter:blur(12px);
             border-top:1px solid #e2ddd6;
-            display:flex; justify-content:space-around;
+            display:none; justify-content:space-around;
             padding:8px 0 14px 0; z-index:100;
             box-shadow:0 -4px 20px rgba(0,0,0,0.04);
-            display:none; /* caché par défaut */
         }
         .bottom-menu.show { display:flex; }
         .bottom-menu .menu-item {
@@ -119,11 +111,9 @@
         .bottom-menu .menu-item .label { font-size:10px; font-weight:600; color:#0f0e17; text-transform:uppercase; letter-spacing:0.3px; }
         .bottom-menu .menu-item.active .label { color:#d4af37; }
 
-        /* ---------- PAGES (contenu) ---------- */
         .page { display:none; padding:16px 0; }
         .page.active { display:block; }
 
-        /* ---------- CHART WRAPPER ---------- */
         .chart-wrapper {
             width:100%;
             height:180px;
@@ -133,6 +123,8 @@
         .chart-placeholder {
             display:flex; align-items:center; justify-content:center;
             height:100%; color:#aaa; font-size:14px;
+            background:#f8f6f0;
+            border-radius:12px;
         }
 
         #errorMsg { display:none; background:#fef2f2; border:1px solid #fecaca; border-radius:16px; padding:16px; color:#b91c1c; margin-top:16px; text-align:center; }
@@ -170,9 +162,8 @@
             </div>
         </div>
 
-        <!-- ============ DASHBOARD ============ -->
+        <!-- DASHBOARD -->
         <div id="dashboard">
-            <!-- Header -->
             <div class="card">
                 <div class="user-name" id="userNameDisplay">User <span class="badge">Premium</span></div>
                 <div class="stat-item"><span>Email</span> <span id="profileEmail">-</span></div>
@@ -183,33 +174,27 @@
                 <div class="stat-item"><span>Current Portfolio Value</span> <span id="portfolioValue">$0</span></div>
             </div>
 
-            <!-- Pages -->
             <div id="page-dashboard" class="page active">
-                <!-- Graph 1: Investment value over time -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:4px;">📈 Portfolio Value (USD)</div>
                     <div style="font-size:12px; color:#888; margin-bottom:8px;">Current vs gold price</div>
-                    <div class="chart-wrapper" id="chartInvest"></div>
+                    <div class="chart-wrapper" id="chartInvest"><div class="chart-placeholder">Loading chart...</div></div>
                 </div>
-                <!-- Graph 2: 6-month forecast -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:4px;">🔮 6-Month Forecast</div>
                     <div style="font-size:12px; color:#888; margin-bottom:8px;">Based on gold price trend</div>
-                    <div class="chart-wrapper" id="chartForecast"></div>
+                    <div class="chart-wrapper" id="chartForecast"><div class="chart-placeholder">Loading chart...</div></div>
                 </div>
-                <!-- Graph 3: Referral growth -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:4px;">👥 Referral Growth</div>
                     <div style="font-size:12px; color:#888; margin-bottom:8px;">Cumulative referrals over time</div>
-                    <div class="chart-wrapper" id="chartReferral"></div>
+                    <div class="chart-wrapper" id="chartReferral"><div class="chart-placeholder">Loading chart...</div></div>
                 </div>
-                <!-- Graph 4: Referral projection -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:4px;">🚀 Referral Projection (6 mo)</div>
                     <div style="font-size:12px; color:#888; margin-bottom:8px;">Based on current growth rate</div>
-                    <div class="chart-wrapper" id="chartReferralForecast"></div>
+                    <div class="chart-wrapper" id="chartReferralForecast"><div class="chart-placeholder">Loading chart...</div></div>
                 </div>
-                <!-- Referral Tree -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:12px;">Referral Tree</div>
                     <div id="referralTreeContainer"><p class="text-muted">Loading tree...</p></div>
@@ -252,7 +237,6 @@
 
         </div>
 
-        <!-- Message d'erreur -->
         <div id="errorMsg">
             <p><strong>⚠️ Impossible de charger Supabase</strong></p>
             <p style="font-size:14px; margin-top:8px;">Vérifie ta connexion internet.</p>
@@ -261,12 +245,9 @@
 
     </div>
 
-    <!-- TOAST -->
     <div id="toast"></div>
 
-    <!-- ============================================================ -->
-    <!-- MENU BAS (FIXE) – caché par défaut                           -->
-    <!-- ============================================================ -->
+    <!-- MENU BAS -->
     <nav class="bottom-menu" id="bottomMenu">
         <button class="menu-item active" data-page="page-dashboard">
             <span class="icon">📊</span>
@@ -287,43 +268,7 @@
     </nav>
 
     <!-- ============================================================ -->
-    <!-- CHARGEMENT ROBUSTE DE LIGHTWEIGHT CHARTS                     -->
-    <!-- ============================================================ -->
-    <script>
-        // Fonction pour charger une bibliothèque en fallback
-        function loadScript(src, callback) {
-            var script = document.createElement('script');
-            script.src = src;
-            script.async = true;
-            script.onload = callback;
-            script.onerror = function() { console.warn('Failed to load: ' + src); };
-            document.head.appendChild(script);
-        }
-
-        // Vérifier si LightweightCharts est déjà chargé
-        if (typeof LightweightCharts === 'undefined') {
-            console.log('Loading LightweightCharts from cdnjs...');
-            loadScript('https://cdnjs.cloudflare.com/ajax/libs/lightweight-charts/4.0.0/lightweight-charts.standalone.js', function() {
-                console.log('LightweightCharts loaded from cdnjs');
-                // Si toujours pas défini, essayer unpkg
-                if (typeof LightweightCharts === 'undefined') {
-                    console.log('Fallback to unpkg...');
-                    loadScript('https://unpkg.com/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.js', function() {
-                        console.log('LightweightCharts loaded from unpkg');
-                        // Si toujours pas, on affiche un message
-                        if (typeof LightweightCharts === 'undefined') {
-                            document.querySelectorAll('.chart-wrapper').forEach(el => {
-                                el.innerHTML = '<div class="chart-placeholder">Chart library unavailable</div>';
-                            });
-                        }
-                    });
-                }
-            });
-        }
-    </script>
-
-    <!-- ============================================================ -->
-    <!-- IMPORT MAP (Supabase ESM)                                    -->
+    <!-- SUPABASE IMPORT MAP                                          -->
     <!-- ============================================================ -->
     <script type="importmap">
         {
@@ -334,7 +279,7 @@
     </script>
 
     <!-- ============================================================ -->
-    <!-- SCRIPT PRINCIPAL                                             -->
+    <!-- SCRIPT PRINCIPAL (MODULE)                                    -->
     <!-- ============================================================ -->
     <script type="module">
         // =============================================================
@@ -391,8 +336,6 @@
             const profilePhone = $('profilePhone');
             const profileSaveBtn = $('profileSaveBtn');
             const bottomMenu = $('bottomMenu');
-
-            // Chart containers
             const chartInvestEl = $('chartInvest');
             const chartForecastEl = $('chartForecast');
             const chartReferralEl = $('chartReferral');
@@ -404,9 +347,58 @@
             let investments = [];
             let goldPrices = [];
             let referrals = [];
-            let chartInstances = {};
+            let chartsReady = false;
 
             alert('✅ DOM refs prêtes');
+
+            // =============================================================
+            // CHARGEMENT DE LIGHTWEIGHT CHARTS (Promise)
+            // =============================================================
+            function loadScript(src, timeout = 5000) {
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.async = true;
+                    const timer = setTimeout(() => {
+                        script.onload = null;
+                        script.onerror = null;
+                        reject(new Error('Timeout loading ' + src));
+                    }, timeout);
+                    script.onload = () => {
+                        clearTimeout(timer);
+                        resolve();
+                    };
+                    script.onerror = () => {
+                        clearTimeout(timer);
+                        reject(new Error('Failed to load ' + src));
+                    };
+                    document.head.appendChild(script);
+                });
+            }
+
+            async function loadLightweightCharts() {
+                // Check if already loaded
+                if (typeof LightweightCharts !== 'undefined') return true;
+
+                const cdnList = [
+                    'https://cdnjs.cloudflare.com/ajax/libs/lightweight-charts/4.0.0/lightweight-charts.standalone.js',
+                    'https://unpkg.com/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.js',
+                    'https://cdn.jsdelivr.net/npm/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.js'
+                ];
+
+                for (const src of cdnList) {
+                    try {
+                        await loadScript(src, 4000);
+                        if (typeof LightweightCharts !== 'undefined') {
+                            console.log('✅ LightweightCharts loaded from', src);
+                            return true;
+                        }
+                    } catch (e) {
+                        console.warn('Failed to load from', src, e.message);
+                    }
+                }
+                return false;
+            }
 
             // =============================================================
             // TOAST
@@ -519,7 +511,6 @@
                             return;
                         }
 
-                        // Determine referrer
                         let referrerId = null;
                         if (referralCode) {
                             const { data: referrer, error: refError } = await supabase
@@ -551,7 +542,6 @@
                             }
                         }
 
-                        // Insert user
                         const { error: insertError } = await supabase
                             .from('users')
                             .insert([{
@@ -734,7 +724,8 @@
                     // Update UI
                     updateInvestmentList();
                     updateReferralTree();
-                    updateCharts();
+                    // Load charts after data is ready
+                    await loadCharts();
                 } catch (err) {
                     alert('❌ Error loading data: ' + err.message);
                 }
@@ -854,24 +845,30 @@
             }
 
             // =============================================================
-            // CHARTS (with LightweightCharts check)
+            // CHARTS (requires LightweightCharts)
             // =============================================================
-            function updateCharts() {
+            async function loadCharts() {
+                if (!chartsReady) {
+                    const loaded = await loadLightweightCharts();
+                    if (!loaded) {
+                        document.querySelectorAll('.chart-wrapper').forEach(el => {
+                            el.innerHTML = '<div class="chart-placeholder">Chart library unavailable</div>';
+                        });
+                        return;
+                    }
+                    chartsReady = true;
+                }
+                // Now render charts
+                renderAllCharts();
+            }
+
+            function renderAllCharts() {
                 if (typeof LightweightCharts === 'undefined') {
-                    // Show placeholder if library not loaded
-                    document.querySelectorAll('.chart-wrapper').forEach(el => {
-                        el.innerHTML = '<div class="chart-placeholder">Chart library loading...</div>';
-                    });
-                    // Try loading again after a delay
-                    setTimeout(() => {
-                        if (typeof LightweightCharts !== 'undefined') {
-                            updateCharts();
-                        }
-                    }, 2000);
+                    // Try to load again
+                    loadCharts();
                     return;
                 }
 
-                // Get current gold price
                 const currentPrice = goldPrices.length > 0 ? goldPrices[goldPrices.length - 1].price : 85;
 
                 // 1. Investment value over time
@@ -981,7 +978,6 @@
                     }
                 }
 
-                // Render each chart
                 renderChart(chartInvestEl, portfolioHistory, '#d4af37', 'Portfolio Value');
                 renderChart(chartForecastEl, forecastData, '#b8962f', 'Forecast');
                 renderChart(chartReferralEl, referralHistory, '#4f46e5', 'Referrals');
@@ -993,7 +989,6 @@
                     container.innerHTML = '<div class="chart-placeholder">Chart library unavailable</div>';
                     return;
                 }
-                // Destroy previous chart if exists
                 if (container._chart) {
                     container._chart.remove();
                 }
@@ -1012,12 +1007,14 @@
                 const series = chart.addLineSeries({ color: color, lineWidth: 2 });
                 series.setData(data);
                 container._chart = chart;
-                // Resize on window resize
-                window.addEventListener('resize', () => {
+                // Resize on resize
+                const resizeHandler = () => {
                     if (container._chart) {
                         container._chart.resize(container.clientWidth || 340, 180);
                     }
-                });
+                };
+                window.addEventListener('resize', resizeHandler);
+                // Store resize handler to remove later if needed (not critical)
             }
 
             // =============================================================

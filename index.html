@@ -128,6 +128,11 @@
             width:100%;
             height:180px;
             margin-top:8px;
+            position:relative;
+        }
+        .chart-placeholder {
+            display:flex; align-items:center; justify-content:center;
+            height:100%; color:#aaa; font-size:14px;
         }
 
         #errorMsg { display:none; background:#fef2f2; border:1px solid #fecaca; border-radius:16px; padding:16px; color:#b91c1c; margin-top:16px; text-align:center; }
@@ -204,7 +209,7 @@
                     <div style="font-size:12px; color:#888; margin-bottom:8px;">Based on current growth rate</div>
                     <div class="chart-wrapper" id="chartReferralForecast"></div>
                 </div>
-                <!-- Referral Tree (keep below graphs) -->
+                <!-- Referral Tree -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:12px;">Referral Tree</div>
                     <div id="referralTreeContainer"><p class="text-muted">Loading tree...</p></div>
@@ -282,9 +287,39 @@
     </nav>
 
     <!-- ============================================================ -->
-    <!-- LIGHTWEIGHT CHARTS CDN                                       -->
+    <!-- CHARGEMENT ROBUSTE DE LIGHTWEIGHT CHARTS                     -->
     <!-- ============================================================ -->
-    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.js">
+    <script>
+        // Fonction pour charger une bibliothèque en fallback
+        function loadScript(src, callback) {
+            var script = document.createElement('script');
+            script.src = src;
+            script.async = true;
+            script.onload = callback;
+            script.onerror = function() { console.warn('Failed to load: ' + src); };
+            document.head.appendChild(script);
+        }
+
+        // Vérifier si LightweightCharts est déjà chargé
+        if (typeof LightweightCharts === 'undefined') {
+            console.log('Loading LightweightCharts from cdnjs...');
+            loadScript('https://cdnjs.cloudflare.com/ajax/libs/lightweight-charts/4.0.0/lightweight-charts.standalone.js', function() {
+                console.log('LightweightCharts loaded from cdnjs');
+                // Si toujours pas défini, essayer unpkg
+                if (typeof LightweightCharts === 'undefined') {
+                    console.log('Fallback to unpkg...');
+                    loadScript('https://unpkg.com/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.js', function() {
+                        console.log('LightweightCharts loaded from unpkg');
+                        // Si toujours pas, on affiche un message
+                        if (typeof LightweightCharts === 'undefined') {
+                            document.querySelectorAll('.chart-wrapper').forEach(el => {
+                                el.innerHTML = '<div class="chart-placeholder">Chart library unavailable</div>';
+                            });
+                        }
+                    });
+                }
+            });
+        }
     </script>
 
     <!-- ============================================================ -->
@@ -369,7 +404,7 @@
             let investments = [];
             let goldPrices = [];
             let referrals = [];
-            let chartInvest = null, chartForecast = null, chartReferral = null, chartReferralForecast = null;
+            let chartInstances = {};
 
             alert('✅ DOM refs prêtes');
 
@@ -535,7 +570,6 @@
                             showToast('Account created but profile could not be saved.');
                         } else {
                             alert('✅ Profile saved with referral');
-                            // Insert into referrals table if referrer exists
                             if (referrerId) {
                                 const { error: refInsertError } = await supabase
                                     .from('referrals')
@@ -632,14 +666,14 @@
                 alert('📺 Showing auth screen');
                 authContainer.style.display = 'block';
                 dashboard.classList.remove('show');
-                bottomMenu.classList.remove('show'); // caché
+                bottomMenu.classList.remove('show');
             }
 
             function showDashboard() {
                 alert('📺 Showing dashboard');
                 authContainer.style.display = 'none';
                 dashboard.classList.add('show');
-                bottomMenu.classList.add('show'); // visible
+                bottomMenu.classList.add('show');
             }
 
             // =============================================================
@@ -657,7 +691,7 @@
             }
 
             // =============================================================
-            // LOAD ALL DATA (investments, gold_prices, referrals, users)
+            // LOAD ALL DATA
             // =============================================================
             async function loadAllData() {
                 alert('📦 Loading all data...');
@@ -671,7 +705,7 @@
                     if (invErr) throw invErr;
                     investments = invData || [];
 
-                    // Load gold prices (for charts)
+                    // Load gold prices
                     const { data: gpData, error: gpErr } = await supabase
                         .from('gold_prices')
                         .select('*')
@@ -680,7 +714,7 @@
                     if (gpErr) throw gpErr;
                     goldPrices = gpData || [];
 
-                    // Load referrals (for referral charts)
+                    // Load referrals
                     const { data: refData, error: refErr } = await supabase
                         .from('referrals')
                         .select('*, referred:referred_id(id, email, first_name, last_name)')
@@ -737,7 +771,6 @@
                 list.innerHTML = html;
                 totalInvestment.textContent = `$${total.toFixed(2)}`;
 
-                // Compute current portfolio value based on current gold price
                 const currentPrice = goldPrices.length > 0 ? goldPrices[goldPrices.length - 1].price : 85;
                 let portfolioTotal = 0;
                 investments.forEach(inv => {
@@ -821,25 +854,35 @@
             }
 
             // =============================================================
-            // CHARTS
+            // CHARTS (with LightweightCharts check)
             // =============================================================
             function updateCharts() {
-                // Get current gold price (last from goldPrices or dummy)
+                if (typeof LightweightCharts === 'undefined') {
+                    // Show placeholder if library not loaded
+                    document.querySelectorAll('.chart-wrapper').forEach(el => {
+                        el.innerHTML = '<div class="chart-placeholder">Chart library loading...</div>';
+                    });
+                    // Try loading again after a delay
+                    setTimeout(() => {
+                        if (typeof LightweightCharts !== 'undefined') {
+                            updateCharts();
+                        }
+                    }, 2000);
+                    return;
+                }
+
+                // Get current gold price
                 const currentPrice = goldPrices.length > 0 ? goldPrices[goldPrices.length - 1].price : 85;
 
-                // 1. Investment value over time (portfolio value per day)
-                // We'll compute daily portfolio value using gold prices
+                // 1. Investment value over time
                 let portfolioHistory = [];
                 if (goldPrices.length > 0 && investments.length > 0) {
-                    // For each gold price entry, compute total portfolio value
-                    // We need to compute total gold weight from all investments
                     const totalGoldWeight = investments.reduce((acc, inv) => acc + (inv.gold_weight || 0), 0);
                     portfolioHistory = goldPrices.map(gp => ({
                         time: Math.floor(new Date(gp.timestamp).getTime() / 1000),
                         value: totalGoldWeight * gp.price
                     }));
                 } else {
-                    // Dummy data
                     const base = currentPrice;
                     const now = Math.floor(Date.now() / 1000);
                     for (let i = 30; i >= 0; i--) {
@@ -849,7 +892,7 @@
                     }
                 }
 
-                // 2. Forecast: simple linear regression on gold prices
+                // 2. Forecast
                 let forecastData = [];
                 if (goldPrices.length >= 5) {
                     const prices = goldPrices.map(gp => gp.price);
@@ -866,17 +909,15 @@
                     const intercept = (sumY - slope * sumX) / n;
                     const lastTime = times[times.length - 1];
                     const lastPrice = prices[prices.length - 1];
-                    // Predict 6 months (180 days)
                     const days = 180;
                     const step = 86400;
                     for (let i = 0; i <= 30; i++) {
-                        const day = i * 6; // steps of 6 days for smoothness
+                        const day = i * 6;
                         const t = lastTime + day * step;
                         const val = lastPrice + slope * day;
                         forecastData.push({ time: t, value: Math.max(0, val) });
                     }
                 } else {
-                    // Dummy forecast
                     const base = currentPrice;
                     const now = Math.floor(Date.now() / 1000);
                     for (let i = 0; i <= 30; i++) {
@@ -886,7 +927,7 @@
                     }
                 }
 
-                // 3. Referral growth (cumulative over time)
+                // 3. Referral growth
                 let referralHistory = [];
                 if (referrals.length > 0) {
                     let cumulative = 0;
@@ -898,14 +939,13 @@
                         };
                     });
                 } else {
-                    // Dummy referrals
                     const now = Math.floor(Date.now() / 1000);
                     for (let i = 0; i < 10; i++) {
                         referralHistory.push({ time: now - (10 - i) * 86400, value: i + 1 });
                     }
                 }
 
-                // 4. Referral forecast: linear regression on referral counts
+                // 4. Referral forecast
                 let referralForecast = [];
                 if (referralHistory.length >= 3) {
                     const values = referralHistory.map(d => d.value);
@@ -931,7 +971,6 @@
                         referralForecast.push({ time: t, value: val });
                     }
                 } else {
-                    // Dummy forecast
                     const last = referralHistory.length > 0 ? referralHistory[referralHistory.length - 1] : { time: Math.floor(Date.now() / 1000), value: 0 };
                     const baseTime = last.time;
                     const baseVal = last.value;
@@ -942,7 +981,7 @@
                     }
                 }
 
-                // Render charts
+                // Render each chart
                 renderChart(chartInvestEl, portfolioHistory, '#d4af37', 'Portfolio Value');
                 renderChart(chartForecastEl, forecastData, '#b8962f', 'Forecast');
                 renderChart(chartReferralEl, referralHistory, '#4f46e5', 'Referrals');
@@ -950,16 +989,19 @@
             }
 
             function renderChart(container, data, color, label) {
+                if (typeof LightweightCharts === 'undefined') {
+                    container.innerHTML = '<div class="chart-placeholder">Chart library unavailable</div>';
+                    return;
+                }
                 // Destroy previous chart if exists
-                let chart = null;
                 if (container._chart) {
                     container._chart.remove();
                 }
                 if (data.length === 0) {
-                    container.innerHTML = '<p class="text-muted">No data</p>';
+                    container.innerHTML = '<div class="chart-placeholder">No data</div>';
                     return;
                 }
-                chart = LightweightCharts.createChart(container, {
+                const chart = LightweightCharts.createChart(container, {
                     width: container.clientWidth || 340,
                     height: 180,
                     layout: { textColor: '#333', background: { color: '#ffffff' } },
@@ -994,7 +1036,6 @@
 
                 const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'carte';
 
-                // Get current gold price
                 const price = await getGoldPrice();
                 if (!price) {
                     showToast('Could not fetch gold price. Using fallback.');
@@ -1023,7 +1064,7 @@
             }
 
             // =============================================================
-            // GOLD PRICE API (with cache)
+            // GOLD PRICE API
             // =============================================================
             let goldPriceCache = null;
             async function getGoldPrice() {
@@ -1084,7 +1125,7 @@
             }
 
             // =============================================================
-            // NAVIGATION (menu)
+            // NAVIGATION
             // =============================================================
             function switchPage(pageId) {
                 document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1095,7 +1136,6 @@
                 const menuBtn = document.querySelector(`.menu-item[data-page="${pageId}"]`);
                 if (menuBtn) menuBtn.classList.add('active');
 
-                // Resize charts if dashboard
                 if (pageId === 'page-dashboard') {
                     setTimeout(() => {
                         document.querySelectorAll('.chart-wrapper').forEach(el => {
@@ -1118,7 +1158,6 @@
             investBtn.addEventListener('click', addInvestment);
             profileSaveBtn.addEventListener('click', updateProfile);
 
-            // Menu clicks
             document.querySelectorAll('.menu-item').forEach(item => {
                 item.addEventListener('click', function() {
                     const pageId = this.dataset.page;
@@ -1136,7 +1175,7 @@
                 checkAuth();
             });
 
-            // Expose functions for debugging
+            // Expose functions
             window.toggleAuthMode = toggleAuthMode;
             window.handleAuth = handleAuth;
             window.logoutUser = logoutUser;
@@ -1149,4 +1188,4 @@
     </script>
 
 </body>
-                        </html>
+    </html>

@@ -78,10 +78,9 @@
             <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
 
-        <!-- Message d'erreur -->
         <div id="errorMsg">
             <p><strong>⚠️ Impossible de charger Supabase</strong></p>
-            <p style="font-size:14px; margin-top:8px;">Vérifie ta connexion internet ou utilise un Wi-Fi.</p>
+            <p style="font-size:14px; margin-top:8px;">Vérifie ta connexion internet ou utilise un VPN.</p>
             <button class="btn btn-outline" style="margin-top:12px;" onclick="location.reload()">Réessayer</button>
         </div>
 
@@ -90,41 +89,43 @@
     <div id="toast"></div>
 
     <!-- ============================================================ -->
-    <!-- CHARGEMENT DE SUPABASE VIA CDN CLOUDFLARE                    -->
+    <!-- UTILISATION D'IMPORT MAP POUR SUPABASE (ES MODULES)          -->
     <!-- ============================================================ -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.39.0/umd/supabase.min.js">
+    <script type="importmap">
+        {
+            "imports": {
+                "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/module/supabase.js"
+            }
+        }
     </script>
 
     <!-- ============================================================ -->
-    <!-- NOTRE SCRIPT PRINCIPAL                                        -->
+    <!-- NOTRE SCRIPT PRINCIPAL (type="module")                       -->
     <!-- ============================================================ -->
-    <script>
+    <script type="module">
         // =============================================================
         // ALERTE DE DÉMARRAGE
         // =============================================================
-        alert('🚀 Script chargé (CDN Cloudflare)');
+        alert('🚀 Script chargé (ES Module)');
 
         try {
             // =============================================================
-            // VÉRIFIER QUE SUPABASE EST BIEN CHARGÉ
+            // IMPORTER SUPABASE
             // =============================================================
-            if (typeof window.supabase === 'undefined') {
-                // Afficher le message d'erreur
-                document.getElementById('errorMsg').classList.add('show');
-                throw new Error('Supabase library not loaded. Please check your internet connection or try a different network.');
-            }
+            const { createClient } = await import('@supabase/supabase-js');
+            alert('✅ Supabase importé avec succès !');
 
             const SUPABASE_URL = 'https://iiceaseqdzcdfgkiinnx.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_VZxq4hifeXH7kyDdi91FJg_LlzNoCiL';
 
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             alert('✅ Supabase initialisé avec succès !');
 
-            // Masquer l'erreur si elle était affichée
+            // Masquer l'erreur
             document.getElementById('errorMsg').classList.remove('show');
 
             // =============================================================
-            // DOM REFS
+            // DOM REFS (comme avant)
             // =============================================================
             const $ = id => document.getElementById(id);
             const authContainer = $('authContainer');
@@ -419,4 +420,4 @@
     </script>
 
 </body>
-    </html>
+                                                   </html>

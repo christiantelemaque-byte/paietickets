@@ -5,12 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Stock Of - App</title>
 
-    <link rel="stylesheet" href="css/style.css" />
-    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.js">
-    </script>
-
     <style>
-        /* Reset and base */
+        /* ---------- RESET ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -36,7 +32,11 @@
             min-height: 90vh;
             padding: 20px;
         }
-        /* Auth box */
+
+        /* ---------- AUTH ---------- */
+        #authContainer {
+            display: block;
+        }
         .auth-box h2 {
             font-size: 28px;
             margin-bottom: 4px;
@@ -49,8 +49,7 @@
         .auth-field {
             margin-bottom: 12px;
         }
-        .auth-field input,
-        .auth-field select {
+        .auth-field input {
             width: 100%;
             padding: 14px 16px;
             border-radius: 16px;
@@ -60,8 +59,7 @@
             transition: 0.2s;
             color: #0f0e17;
         }
-        .auth-field input:focus,
-        .auth-field select:focus {
+        .auth-field input:focus {
             outline: none;
             border-color: #d4af37;
             background: white;
@@ -120,8 +118,9 @@
         .name-row input {
             flex: 1;
         }
-        /* Toast */
-        .toast {
+
+        /* ---------- TOAST ---------- */
+        #toast {
             position: fixed;
             bottom: 100px;
             left: 50%;
@@ -139,40 +138,139 @@
             text-align: center;
             border: 1px solid rgba(212, 175, 55, 0.15);
         }
-        .toast.show {
+        #toast.show {
             display: block;
-            animation: toastIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: fadeUp 0.4s ease;
         }
-        @keyframes toastIn {
+        @keyframes fadeUp {
             0% {
                 opacity: 0;
-                transform: translateX(-50%) translateY(20px) scale(0.95);
+                transform: translateX(-50%) translateY(20px);
             }
             100% {
                 opacity: 1;
-                transform: translateX(-50%) translateY(0) scale(1);
+                transform: translateX(-50%) translateY(0);
             }
         }
-        /* Dashboard header (hidden until logged in) */
-        #appHeader {
-            display: none;
-        }
-        #appHeader.show {
-            display: block;
-        }
-        .app-content {
-            display: none;
-        }
-        .app-content.show {
-            display: block;
-        }
+
+        /* ---------- DASHBOARD (hidden until logged in) ---------- */
+        #appHeader,
+        .app-content,
         .bottom-menu {
             display: none;
+        }
+        #appHeader.show,
+        .app-content.show,
+        .bottom-menu.show {
+            display: block;
         }
         .bottom-menu.show {
             display: flex;
         }
-        /* Quick menu */
+
+        /* ---------- HEADER ---------- */
+        .app-header {
+            background: linear-gradient(145deg, #0f0e17, #1a1a2e);
+            padding: 20px 20px 28px 20px;
+            color: white;
+            border-radius: 0 0 32px 32px;
+            border-bottom: 2px solid #d4af37;
+        }
+        .greeting {
+            font-size: 14px;
+            opacity: 0.7;
+            letter-spacing: 1px;
+        }
+        .user-name {
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .badge {
+            background: #d4af37;
+            color: #0f0e17;
+            font-size: 10px;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-left: 8px;
+        }
+        .balance-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+        }
+        .balance-row .amount {
+            font-size: 28px;
+            font-weight: 700;
+            color: #d4af37;
+        }
+        .balance-row .amount small {
+            font-size: 14px;
+            font-weight: 400;
+            opacity: 0.5;
+            color: white;
+        }
+        .stats-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .stat-item {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 10px 12px;
+        }
+        .stat-label {
+            font-size: 10px;
+            opacity: 0.5;
+            text-transform: uppercase;
+        }
+        .stat-value {
+            font-size: 17px;
+            font-weight: 700;
+            color: #d4af37;
+        }
+
+        /* ---------- CARDS ---------- */
+        .card {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 18px 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(212, 175, 55, 0.08);
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .badge-pill {
+            background: rgba(212, 175, 55, 0.12);
+            color: #b8962f;
+            font-size: 10px;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-weight: 600;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            text-transform: uppercase;
+        }
+        .chart-wrapper {
+            width: 100%;
+            height: 200px;
+        }
+        .text-muted {
+            color: #a09b94;
+            font-size: 13px;
+        }
+
+        /* ---------- BOTTOM MENU ---------- */
         .bottom-menu {
             position: fixed;
             bottom: 0;
@@ -217,111 +315,69 @@
         .bottom-menu .menu-item.active .label {
             color: #d4af37;
         }
-        /* Cards */
-        .card {
-            background: rgba(255, 255, 255, 0.65);
-            backdrop-filter: blur(8px);
-            border-radius: 24px;
-            padding: 18px 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-            border: 1px solid rgba(212, 175, 55, 0.08);
-            margin-bottom: 16px;
+
+        /* ---------- PAGES ---------- */
+        .page {
+            display: none;
+            padding: 16px 0;
         }
-        .card-title {
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 12px;
+        .page.active {
+            display: block;
+        }
+        .app-content {
+            padding-bottom: 80px;
+        }
+        .referral-list {
+            list-style: none;
+        }
+        .referral-list li {
             display: flex;
             justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f2f5;
         }
-        .badge-pill {
-            background: rgba(212, 175, 55, 0.12);
-            color: #b8962f;
-            font-size: 10px;
-            padding: 4px 14px;
-            border-radius: 30px;
-            font-weight: 600;
-            border: 1px solid rgba(212, 175, 55, 0.15);
-            text-transform: uppercase;
-        }
-        .chart-wrapper {
-            width: 100%;
-            height: 200px;
-        }
-        .text-muted {
-            color: #a09b94;
-            font-size: 13px;
-        }
-        .stats-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 14px;
-        }
-        .stat-item {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 14px;
-            padding: 10px 12px;
-        }
-        .stat-label {
-            font-size: 10px;
-            opacity: 0.5;
-            text-transform: uppercase;
-        }
-        .stat-value {
-            font-size: 17px;
-            font-weight: 700;
-            color: #d4af37;
-        }
-        .user-name {
-            font-size: 22px;
-            font-weight: 700;
-        }
-        .badge {
-            background: #d4af37;
-            color: #0f0e17;
-            font-size: 10px;
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-        .greeting {
-            font-size: 14px;
-            opacity: 0.7;
-            letter-spacing: 1px;
-        }
-        .balance-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 16px;
-        }
-        .balance-row .amount {
-            font-size: 28px;
-            font-weight: 700;
-            color: #d4af37;
-        }
-        .balance-row .amount small {
-            font-size: 14px;
-            font-weight: 400;
-            opacity: 0.5;
-        }
-        .app-header {
-            background: linear-gradient(145deg, #0f0e17, #1a1a2e);
-            padding: 20px 20px 28px 20px;
-            color: white;
-            border-radius: 0 0 32px 32px;
-            border-bottom: 2px solid #d4af37;
+        .referral-list li:last-child {
+            border-bottom: none;
         }
     </style>
 </head>
 <body>
 
-    <!-- TOAST -->
-    <div id="toast" class="toast"></div>
+    <!-- TOAST (hidden by default) -->
+    <div id="toast"></div>
 
     <div class="app-container">
+
+        <!-- ============ AUTH (visible by default) ============ -->
+        <div id="authContainer">
+            <div class="auth-box">
+                <h2>Welcome</h2>
+                <p class="sub">Log in or create an account.</p>
+
+                <div id="authForm">
+                    <!-- Always visible -->
+                    <div class="auth-field"><input type="email" id="authEmail" placeholder="Email" /></div>
+                    <div class="auth-field"><input type="password" id="authPassword" placeholder="Password" /></div>
+
+                    <!-- Extra fields for Sign Up (hidden by default) -->
+                    <div id="signupExtra" class="hidden-field">
+                        <div class="auth-field"><input type="password" id="authConfirm" placeholder="Confirm password" /></div>
+                        <div class="name-row">
+                            <div class="auth-field"><input type="text" id="authFirstName" placeholder="First name" /></div>
+                            <div class="auth-field"><input type="text" id="authLastName" placeholder="Last name" /></div>
+                        </div>
+                        <div class="auth-field"><input type="date" id="authBirthDate" /></div>
+                    </div>
+
+                    <button class="btn-primary" id="authActionBtn">Log in</button>
+                    <button class="btn-outline" id="authToggleBtn">Create account</button>
+                    <div class="switch-link">
+                        <span id="authSwitchText">Don't have an account?</span>
+                        <span id="authSwitchLink">Sign up</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- ============ HEADER (dashboard) ============ -->
         <header class="app-header" id="appHeader">
@@ -346,7 +402,7 @@
 
         <!-- ============ CONTENT (dashboard pages) ============ -->
         <div class="app-content" id="appContent">
-            <div id="page-dashboard" class="page">
+            <div id="page-dashboard" class="page active">
                 <div class="card">
                     <div class="card-title">Gold Price (USD/oz) <span class="badge-pill">Live</span></div>
                     <div class="chart-wrapper" id="chartContainer"></div>
@@ -364,7 +420,7 @@
                     </div>
                 </div>
             </div>
-            <div id="page-investments" class="page" style="display:none;">
+            <div id="page-investments" class="page">
                 <div class="card"><div class="card-title">My Investments</div><div id="investmentList"><p class="text-muted">No investments yet.</p></div></div>
                 <div class="card">
                     <div class="card-title">Add Investment</div>
@@ -376,7 +432,7 @@
                     <button class="btn-primary" onclick="addInvestment()">Invest</button>
                 </div>
             </div>
-            <div id="page-referrals" class="page" style="display:none;">
+            <div id="page-referrals" class="page">
                 <div class="card">
                     <div class="card-title">My Referral Code <span class="badge-pill" id="referralCodeDisplay">-</span></div>
                     <p style="font-size:14px; color:#555; margin-bottom:12px;">Share this code with friends. They sign up, you earn!</p>
@@ -387,7 +443,7 @@
                     <ul class="referral-list" id="referralList"><li style="padding:12px 0; color:#888;">No referrals yet.</li></ul>
                 </div>
             </div>
-            <div id="page-profile" class="page" style="display:none;">
+            <div id="page-profile" class="page">
                 <div class="card">
                     <div class="card-title">My Profile</div>
                     <p><strong>Name</strong><br /><span id="profileName">-</span></p>
@@ -406,37 +462,6 @@
             <button class="menu-item" data-page="page-referrals"><span class="icon">👥</span><span class="label">Referrals</span></button>
             <button class="menu-item" data-page="page-profile"><span class="icon">👤</span><span class="label">Profile</span></button>
         </nav>
-
-        <!-- ============ AUTH (Login / Sign Up) ============ -->
-        <div id="authContainer">
-            <div class="auth-box">
-                <h2>Welcome</h2>
-                <p class="sub">Log in or create an account.</p>
-
-                <div id="authForm">
-                    <!-- Always visible -->
-                    <div class="auth-field"><input type="email" id="authEmail" placeholder="Email" /></div>
-                    <div class="auth-field"><input type="password" id="authPassword" placeholder="Password" /></div>
-
-                    <!-- Extra fields for Sign Up (hidden by default) -->
-                    <div id="signupExtra" class="hidden-field">
-                        <div class="auth-field"><input type="password" id="authConfirmPassword" placeholder="Confirm password" /></div>
-                        <div class="name-row">
-                            <div class="auth-field"><input type="text" id="authFirstName" placeholder="First name" /></div>
-                            <div class="auth-field"><input type="text" id="authLastName" placeholder="Last name" /></div>
-                        </div>
-                        <div class="auth-field"><input type="date" id="authBirthDate" /></div>
-                    </div>
-
-                    <button class="btn-primary" id="authActionBtn">Log in</button>
-                    <button class="btn-outline" id="authToggleBtn">Create account</button>
-                    <div class="switch-link">
-                        <span id="authSwitchText">Don't have an account?</span>
-                        <span id="authSwitchLink">Sign up</span>
-                    </div>
-                </div>
-            </div>
-        </div>
 
     </div>
 
@@ -472,7 +497,7 @@
 
         const authEmail = $('authEmail');
         const authPassword = $('authPassword');
-        const authConfirm = $('authConfirmPassword');
+        const authConfirm = $('authConfirm');
         const authFirstName = $('authFirstName');
         const authLastName = $('authLastName');
         const authBirthDate = $('authBirthDate');
@@ -495,7 +520,9 @@
             toast.textContent = msg;
             toast.classList.add('show');
             clearTimeout(toast._timer);
-            toast._timer = setTimeout(() => toast.classList.remove('show'), duration);
+            toast._timer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
         }
 
         // =============================================================
@@ -557,7 +584,6 @@
                         return;
                     }
 
-                    // 1. Create auth user
                     const { data, error } = await supabase.auth.signUp({
                         email,
                         password,
@@ -575,7 +601,6 @@
                         return;
                     }
 
-                    // 2. Insert into users table
                     const { error: insertError } = await supabase
                         .from('users')
                         .insert([{
@@ -689,9 +714,9 @@
         });
 
         function switchPage(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             const target = $(pageId);
-            if (target) target.style.display = 'block';
+            if (target) target.classList.add('active');
             currentPage = pageId;
 
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
@@ -975,9 +1000,14 @@
         // CHECK AUTH
         // =============================================================
         async function checkAuth() {
+            // Show login screen first (no popup)
             showAuthScreen();
+
+            // Then check if user is already logged in
             const { data: { user } } = await supabase.auth.getUser();
-            if (user) await loadUserData(user);
+            if (user) {
+                await loadUserData(user);
+            }
         }
 
         // =============================================================

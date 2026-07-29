@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Of - Test UI</title>
+    <title>Stock Of - App</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: #f8f6f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; }
@@ -81,104 +81,287 @@
     <div id="toast"></div>
 
     <!-- ============================================================ -->
-    <!-- SCRIPTS (AUCUN SUPABASE, que du JS pur)                     -->
+    <!-- SCRIPTS AVEC SUPABASE                                        -->
     <!-- ============================================================ -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
     <script>
-        // Alerte de confirmation
-        alert('🔵 Script chargé ! (sans Supabase)');
+        // =============================================================
+        // ALERTE DE CONFIRMATION
+        // =============================================================
+        alert('🔵 Script chargé (avec Supabase)');
 
-        // DOM refs
+        // =============================================================
+        // CONFIGURATION SUPABASE
+        // =============================================================
+        const SUPABASE_URL = 'https://iiceaseqdzcdfgkiinnx.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_VZxq4hifeXH7kyDdi91FJg_LlzNoCiL';
+
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            alert('✅ Supabase initialisé avec succès');
+        } catch (e) {
+            alert('❌ Erreur d\'initialisation Supabase : ' + e.message);
+        }
+
+        // =============================================================
+        // DOM REFS
+        // =============================================================
         const $ = id => document.getElementById(id);
         const authContainer = $('authContainer');
         const dashboard = $('dashboard');
         const extra = $('extra');
+        const authEmail = $('authEmail');
+        const authPassword = $('authPassword');
+        const authConfirm = $('authConfirm');
+        const authFirstName = $('authFirstName');
+        const authLastName = $('authLastName');
+        const authBirthDate = $('authBirthDate');
         const authActionBtn = $('authActionBtn');
         const authToggleBtn = $('authToggleBtn');
+        const authSwitchText = $('authSwitchText');
         const authSwitchLink = $('authSwitchLink');
-        const logoutBtn = $('logoutBtn');
         const toast = $('toast');
+        const userNameDisplay = $('userNameDisplay');
+        const profileEmail = $('profileEmail');
+        const referralCount = $('referralCount');
+        const memberSince = $('memberSince');
+        const logoutBtn = $('logoutBtn');
 
         let isLoginMode = true;
         let currentUser = null;
 
-        // Toast simulé
-        function showToast(msg) {
+        alert('✅ DOM refs prêtes');
+
+        // =============================================================
+        // TOAST
+        // =============================================================
+        function showToast(msg, duration = 3000) {
             toast.textContent = msg;
             toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => toast.classList.remove('show'), duration);
         }
 
-        // Basculer entre Login et Sign Up
+        // =============================================================
+        // TOGGLE LOGIN / SIGN UP
+        // =============================================================
         function toggleAuthMode() {
             alert('🔄 toggleAuthMode called, isLoginMode=' + isLoginMode);
             isLoginMode = !isLoginMode;
             if (isLoginMode) {
                 authActionBtn.textContent = 'Log in';
                 authToggleBtn.textContent = 'Create account';
-                document.getElementById('authSwitchText').textContent = "Don't have an account?";
-                document.getElementById('authSwitchLink').textContent = 'Sign up';
+                authSwitchText.textContent = "Don't have an account?";
+                authSwitchLink.textContent = 'Sign up';
                 extra.style.display = 'none';
                 alert('✅ Login mode');
             } else {
                 authActionBtn.textContent = 'Sign up';
                 authToggleBtn.textContent = 'Back to login';
-                document.getElementById('authSwitchText').textContent = 'Already have an account?';
-                document.getElementById('authSwitchLink').textContent = 'Log in';
+                authSwitchText.textContent = 'Already have an account?';
+                authSwitchLink.textContent = 'Log in';
                 extra.style.display = 'block';
                 alert('✅ Sign up mode - fields shown');
             }
         }
 
-        // Simuler l'authentification
-        function handleAuth() {
-            alert('📝 handleAuth called (simulé)');
-            const email = document.getElementById('authEmail').value.trim();
-            const password = document.getElementById('authPassword').value.trim();
+        // =============================================================
+        // HANDLE AUTH
+        // =============================================================
+        async function handleAuth() {
+            alert('📝 handleAuth called');
+            const email = authEmail.value.trim();
+            const password = authPassword.value.trim();
+
             if (!email || !password) {
                 showToast('Please fill in email and password.');
                 alert('❌ Empty fields');
                 return;
             }
-            if (isLoginMode) {
-                alert('🔑 Login simulation : ' + email);
-                showToast('Login successful (simulated)');
-                // Afficher le dashboard simulé
-                showDashboard();
-            } else {
-                const firstName = document.getElementById('authFirstName').value.trim();
-                const lastName = document.getElementById('authLastName').value.trim();
-                const confirm = document.getElementById('authConfirm').value.trim();
-                const birthDate = document.getElementById('authBirthDate').value;
-                if (!firstName || !lastName) { showToast('Please enter first and last name.'); alert('❌ Missing name'); return; }
-                if (password !== confirm) { showToast('Passwords do not match.'); alert('❌ Password mismatch'); return; }
-                if (!birthDate) { showToast('Please enter date of birth.'); alert('❌ Missing birth date'); return; }
-                alert('📝 Sign up simulation : ' + firstName + ' ' + lastName);
-                showToast('Account created (simulated)');
-                showDashboard();
+
+            try {
+                if (isLoginMode) {
+                    alert('🔑 Attempting login...');
+                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    alert('✅ Login successful');
+                    showToast('Login successful!');
+                    await loadUserData(data.user);
+                } else {
+                    alert('📝 Attempting sign up...');
+                    const firstName = authFirstName.value.trim();
+                    const lastName = authLastName.value.trim();
+                    const confirm = authConfirm.value.trim();
+                    const birthDate = authBirthDate.value;
+
+                    if (!firstName || !lastName) {
+                        showToast('Please enter your first and last name.');
+                        alert('❌ Missing first/last name');
+                        return;
+                    }
+                    if (password !== confirm) {
+                        showToast('Passwords do not match.');
+                        alert('❌ Password mismatch');
+                        return;
+                    }
+                    if (!birthDate) {
+                        showToast('Please enter your date of birth.');
+                        alert('❌ Missing birth date');
+                        return;
+                    }
+
+                    const { data, error } = await supabase.auth.signUp({
+                        email,
+                        password,
+                        options: { data: { first_name: firstName, last_name: lastName } }
+                    });
+                    if (error) throw error;
+                    alert('✅ Auth signup successful');
+
+                    const user = data.user;
+                    if (!user) {
+                        showToast('Account created. Please check your email to confirm, then log in.');
+                        alert('📧 Confirmation email sent');
+                        isLoginMode = true;
+                        toggleAuthMode();
+                        return;
+                    }
+
+                    const { error: insertError } = await supabase
+                        .from('users')
+                        .insert([{
+                            id: user.id,
+                            email: user.email,
+                            first_name: firstName,
+                            last_name: lastName,
+                            birth_date: birthDate,
+                            referral_code: generateReferralCode(),
+                            is_verified: true,
+                        }]);
+
+                    if (insertError) {
+                        alert('❌ Insert error: ' + insertError.message);
+                        showToast('Account created but profile could not be saved.');
+                    } else {
+                        alert('✅ Profile saved');
+                        showToast('Account created successfully!');
+                    }
+                    await loadUserData(user);
+                }
+            } catch (err) {
+                alert('❌ Error: ' + err.message);
+                showToast('Error: ' + err.message);
             }
         }
 
-        // Afficher le dashboard
-        function showDashboard() {
-            alert('📺 Showing dashboard (simulé)');
-            authContainer.style.display = 'none';
-            dashboard.classList.add('show');
-            // Mettre à jour les infos (simulé)
-            document.getElementById('userNameDisplay').innerHTML = 'Simulated User <span class="badge">Premium</span>';
-            document.getElementById('profileEmail').textContent = document.getElementById('authEmail').value || 'sim@test.com';
-            document.getElementById('referralCount').textContent = '0';
-            document.getElementById('memberSince').textContent = new Date().toLocaleDateString();
+        // =============================================================
+        // LOGOUT
+        // =============================================================
+        async function logoutUser() {
+            alert('🚪 Logging out');
+            await supabase.auth.signOut();
+            currentUser = null;
+            showToast('Logged out.');
+            showAuthScreen();
         }
 
-        // Déconnexion simulée
-        function logoutUser() {
-            alert('🚪 Logout (simulé)');
-            showToast('Logged out.');
+        // =============================================================
+        // LOAD USER DATA
+        // =============================================================
+        async function loadUserData(user) {
+            alert('📥 Loading user data');
+            if (!user) return;
+            currentUser = user;
+
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            if (error && error.code === 'PGRST116') {
+                alert('⚠️ User not found in table, creating...');
+                const { error: insertError } = await supabase
+                    .from('users')
+                    .insert([{
+                        id: user.id,
+                        email: user.email,
+                        referral_code: generateReferralCode(),
+                        is_verified: true,
+                    }]);
+                if (insertError) {
+                    alert('❌ Insert error');
+                    showToast('Error loading profile.');
+                    return;
+                }
+                const { data: newData } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+                if (newData) currentUser = { ...user, ...newData };
+            } else if (data) {
+                currentUser = { ...user, ...data };
+            }
+
+            alert('✅ User data loaded: ' + currentUser.email);
+            showDashboard();
+            updateDashboard();
+        }
+
+        function generateReferralCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        // =============================================================
+        // SCREEN MANAGEMENT
+        // =============================================================
+        function showAuthScreen() {
+            alert('📺 Showing auth screen');
             authContainer.style.display = 'block';
             dashboard.classList.remove('show');
         }
 
-        // Attacher les événements
+        function showDashboard() {
+            alert('📺 Showing dashboard');
+            authContainer.style.display = 'none';
+            dashboard.classList.add('show');
+        }
+
+        // =============================================================
+        // UPDATE DASHBOARD
+        // =============================================================
+        function updateDashboard() {
+            if (!currentUser) return;
+            const firstName = currentUser.first_name || '';
+            const lastName = currentUser.last_name || '';
+            const fullName = (firstName + ' ' + lastName).trim() || currentUser.email.split('@')[0];
+            userNameDisplay.innerHTML = `${fullName} <span class="badge">Premium</span>`;
+            profileEmail.textContent = currentUser.email || '-';
+            referralCount.textContent = currentUser.referral_count || 0;
+            memberSince.textContent = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() : '-';
+        }
+
+        // =============================================================
+        // CHECK AUTH
+        // =============================================================
+        async function checkAuth() {
+            alert('🔍 Checking auth...');
+            showAuthScreen();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                alert('✅ User already logged in: ' + user.email);
+                await loadUserData(user);
+            } else {
+                alert('👤 No user logged in.');
+            }
+        }
+
+        // =============================================================
+        // ATTACH EVENT LISTENERS
+        // =============================================================
         alert('📌 Attaching event listeners...');
         authActionBtn.addEventListener('click', function() {
             alert('🖱️ Auth button clicked');
@@ -198,12 +381,18 @@
         });
         alert('✅ Event listeners attached');
 
-        // Initialisation
-        alert('📄 DOM ready, starting');
-        // On affiche l'écran de connexion
-        authContainer.style.display = 'block';
-        dashboard.classList.remove('show');
-    </script>
+        // =============================================================
+        // INIT
+        // =============================================================
+        window.addEventListener('DOMContentLoaded', function() {
+            alert('📄 DOM ready, starting checkAuth');
+            checkAuth();
+        });
 
+        // Expose functions globally
+        window.toggleAuthMode = toggleAuthMode;
+        window.handleAuth = handleAuth;
+        window.logoutUser = logoutUser;
+    </script>
 </body>
     </html>

@@ -1,222 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Of - App</title>
-
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f8f6f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 16px;
-        }
-        .app-container {
-            max-width: 420px;
-            width: 100%;
-            background: white;
-            border-radius: 32px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
-            padding: 20px;
-        }
-
-        /* AUTH */
-        #authContainer {
-            display: block;
-        }
-        .auth-box h2 {
-            font-size: 28px;
-            margin-bottom: 4px;
-            color: #0f0e17;
-        }
-        .auth-box .sub {
-            color: #888;
-            margin-bottom: 24px;
-        }
-        .auth-field {
-            margin-bottom: 12px;
-        }
-        .auth-field input {
-            width: 100%;
-            padding: 14px 16px;
-            border-radius: 16px;
-            border: 2px solid #e2ddd6;
-            font-size: 15px;
-            background: #faf9f7;
-            color: #0f0e17;
-        }
-        .auth-field input:focus {
-            outline: none;
-            border-color: #d4af37;
-            background: white;
-        }
-        .btn-primary {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(145deg, #d4af37, #b8962f);
-            color: #0f0e17;
-            border: none;
-            border-radius: 16px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-        .btn-outline {
-            width: 100%;
-            padding: 14px;
-            background: transparent;
-            color: #0f0e17;
-            border: 2px solid #e2ddd6;
-            border-radius: 16px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 8px;
-        }
-        .switch-link {
-            text-align: center;
-            margin-top: 16px;
-            color: #888;
-            font-size: 14px;
-        }
-        .switch-link span {
-            color: #d4af37;
-            font-weight: 700;
-            cursor: pointer;
-        }
-        #signupExtra {
-            display: none;
-        }
-        #signupExtra.show {
-            display: block;
-        }
-        .name-row {
-            display: flex;
-            gap: 10px;
-        }
-        .name-row input {
-            flex: 1;
-        }
-
-        /* TOAST */
-        #toast {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #0f0e17;
-            color: white;
-            padding: 14px 28px;
-            border-radius: 40px;
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-            z-index: 999;
-            display: none;
-            max-width: 90%;
-            text-align: center;
-        }
-        #toast.show {
-            display: block;
-            animation: fadeUp 0.4s ease;
-        }
-        @keyframes fadeUp {
-            0% {
-                opacity: 0;
-                transform: translateX(-50%) translateY(20px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
-        }
-
-        /* DASHBOARD */
-        #dashboard {
-            display: none;
-            margin-top: 20px;
-        }
-        #dashboard.show {
-            display: block;
-        }
-        .card {
-            background: #f8f6f0;
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-        .user-name {
-            font-size: 22px;
-            font-weight: 700;
-        }
-        .badge {
-            background: #d4af37;
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-left: 8px;
-        }
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #ddd;
-        }
-        .stat-item:last-child {
-            border-bottom: none;
-        }
-        .logout-btn {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #b91c1c;
-            padding: 12px;
-            border-radius: 16px;
-            width: 100%;
-            font-weight: 600;
-            cursor: pointer;
-        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f8f6f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; }
+        .container { max-width: 420px; width: 100%; background: white; border-radius: 32px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); }
+        .auth-box h2 { font-size: 28px; margin-bottom: 4px; }
+        .auth-box .sub { color: #888; margin-bottom: 24px; }
+        .field { margin-bottom: 12px; }
+        .field input { width: 100%; padding: 14px 16px; border-radius: 16px; border: 2px solid #e2ddd6; font-size: 15px; background: #faf9f7; }
+        .field input:focus { outline: none; border-color: #d4af37; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 16px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+        .btn-primary { background: linear-gradient(145deg, #d4af37, #b8962f); color: #0f0e17; }
+        .btn-outline { background: transparent; border: 2px solid #e2ddd6; color: #0f0e17; }
+        .switch-link { text-align: center; margin-top: 16px; color: #888; font-size: 14px; }
+        .switch-link span { color: #d4af37; font-weight: 700; cursor: pointer; }
+        #extra { display: none; }
+        #extra.show { display: block; }
+        .name-row { display: flex; gap: 10px; }
+        .name-row input { flex: 1; }
+        #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #0f0e17; color: white; padding: 14px 28px; border-radius: 40px; display: none; z-index: 999; }
+        #toast.show { display: block; animation: fadeUp 0.4s ease; }
+        @keyframes fadeUp { 0% { opacity:0; transform: translateX(-50%) translateY(20px); } 100% { opacity:1; transform: translateX(-50%) translateY(0); } }
+        #dashboard { display: none; margin-top: 20px; }
+        #dashboard.show { display: block; }
+        .card { background: #f8f6f0; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+        .stat-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ddd; }
+        .stat-item:last-child { border-bottom: none; }
+        .logout-btn { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 12px; border-radius: 16px; width: 100%; font-weight: 600; cursor: pointer; }
+        .user-name { font-size: 22px; font-weight: 700; }
+        .badge { background: #d4af37; padding: 2px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-left: 8px; }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="container">
 
         <!-- AUTH -->
         <div id="authContainer">
             <div class="auth-box">
                 <h2>Welcome</h2>
                 <p class="sub">Log in or create an account.</p>
-
                 <div id="authForm">
-                    <div class="auth-field"><input type="email" id="authEmail" placeholder="Email" /></div>
-                    <div class="auth-field"><input type="password" id="authPassword" placeholder="Password" /></div>
-
-                    <!-- Extra fields for Sign Up -->
-                    <div id="signupExtra">
-                        <div class="auth-field"><input type="password" id="authConfirm" placeholder="Confirm password" /></div>
+                    <div class="field"><input type="email" id="authEmail" placeholder="Email" /></div>
+                    <div class="field"><input type="password" id="authPassword" placeholder="Password" /></div>
+                    <div id="extra">
+                        <div class="field"><input type="password" id="authConfirm" placeholder="Confirm password" /></div>
                         <div class="name-row">
-                            <div class="auth-field"><input type="text" id="authFirstName" placeholder="First name" /></div>
-                            <div class="auth-field"><input type="text" id="authLastName" placeholder="Last name" /></div>
+                            <div class="field"><input type="text" id="authFirstName" placeholder="First name" /></div>
+                            <div class="field"><input type="text" id="authLastName" placeholder="Last name" /></div>
                         </div>
-                        <div class="auth-field"><input type="date" id="authBirthDate" /></div>
+                        <div class="field"><input type="date" id="authBirthDate" /></div>
                     </div>
-
-                    <button class="btn-primary" onclick="handleAuth()">Log in</button>
-                    <button class="btn-outline" onclick="toggleAuthMode()">Create account</button>
+                    <button class="btn btn-primary" id="authActionBtn">Log in</button>
+                    <button class="btn btn-outline" id="authToggleBtn">Create account</button>
                     <div class="switch-link">
                         <span id="authSwitchText">Don't have an account?</span>
-                        <span id="authSwitchLink" onclick="toggleAuthMode()">Sign up</span>
+                        <span id="authSwitchLink">Sign up</span>
                     </div>
                 </div>
             </div>
@@ -230,12 +73,11 @@
                 <div class="stat-item"><span>Referrals</span> <span id="referralCount">0</span></div>
                 <div class="stat-item"><span>Member since</span> <span id="memberSince">-</span></div>
             </div>
-            <button class="logout-btn" onclick="logoutUser()">Logout</button>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
 
     </div>
 
-    <!-- TOAST -->
     <div id="toast"></div>
 
     <!-- ============================================================ -->
@@ -243,12 +85,11 @@
     <!-- ============================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
-
     <script>
         // =============================================================
-        // ALERTE DE CONFIRMATION
+        // ALERTE DE CONFIRMATION (doit s'afficher)
         // =============================================================
-        alert('✅ Script chargé avec succès !');
+        alert('🔵 Script chargé !');
 
         // =============================================================
         // CONFIG SUPABASE
@@ -259,18 +100,18 @@
         let supabase;
         try {
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            alert('✅ Supabase initialisé !');
+            alert('✅ Supabase initialisé');
         } catch (e) {
-            alert('❌ Erreur Supabase : ' + e.message);
+            alert('❌ Erreur Supabase: ' + e.message);
         }
 
         // =============================================================
         // DOM REFS
         // =============================================================
-        const $ = (id) => document.getElementById(id);
+        const $ = id => document.getElementById(id);
         const authContainer = $('authContainer');
         const dashboard = $('dashboard');
-        const signupExtra = $('signupExtra');
+        const extra = $('extra');
         const authEmail = $('authEmail');
         const authPassword = $('authPassword');
         const authConfirm = $('authConfirm');
@@ -286,11 +127,12 @@
         const profileEmail = $('profileEmail');
         const referralCount = $('referralCount');
         const memberSince = $('memberSince');
+        const logoutBtn = $('logoutBtn');
 
         let isLoginMode = true;
         let currentUser = null;
 
-        alert('✅ DOM refs prêtes');
+        alert('✅ DOM refs ready');
 
         // =============================================================
         // TOAST
@@ -306,22 +148,22 @@
         // TOGGLE LOGIN / SIGN UP
         // =============================================================
         function toggleAuthMode() {
-            alert('🔄 toggleAuthMode appelée ! (mode actuel : ' + (isLoginMode ? 'Login' : 'Sign Up') + ')');
+            alert('🔄 toggleAuthMode called, isLoginMode=' + isLoginMode);
             isLoginMode = !isLoginMode;
             if (isLoginMode) {
                 authActionBtn.textContent = 'Log in';
                 authToggleBtn.textContent = 'Create account';
                 authSwitchText.textContent = "Don't have an account?";
                 authSwitchLink.textContent = 'Sign up';
-                signupExtra.style.display = 'none';
-                alert('✅ Mode Login activé');
+                extra.style.display = 'none';
+                alert('✅ Login mode');
             } else {
                 authActionBtn.textContent = 'Sign up';
                 authToggleBtn.textContent = 'Back to login';
                 authSwitchText.textContent = 'Already have an account?';
                 authSwitchLink.textContent = 'Log in';
-                signupExtra.style.display = 'block';
-                alert('✅ Mode Sign Up activé - champs affichés');
+                extra.style.display = 'block';
+                alert('✅ Sign up mode - fields shown');
             }
         }
 
@@ -329,46 +171,34 @@
         // HANDLE AUTH
         // =============================================================
         async function handleAuth() {
-            alert('📝 handleAuth appelée !');
+            alert('📝 handleAuth called');
             const email = authEmail.value.trim();
             const password = authPassword.value.trim();
 
             if (!email || !password) {
                 showToast('Please fill in email and password.');
-                alert('❌ Champs vides');
+                alert('❌ Empty fields');
                 return;
             }
 
             try {
                 if (isLoginMode) {
-                    alert('🔑 Tentative de connexion...');
+                    alert('🔑 Logging in...');
                     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                     if (error) throw error;
-                    alert('✅ Connexion réussie !');
+                    alert('✅ Login success');
                     showToast('Login successful!');
                     await loadUserData(data.user);
                 } else {
-                    alert('📝 Tentative d\'inscription...');
+                    alert('📝 Signing up...');
                     const firstName = authFirstName.value.trim();
                     const lastName = authLastName.value.trim();
                     const confirm = authConfirm.value.trim();
                     const birthDate = authBirthDate.value;
 
-                    if (!firstName || !lastName) {
-                        showToast('Please enter your first and last name.');
-                        alert('❌ Prénom ou nom manquant');
-                        return;
-                    }
-                    if (password !== confirm) {
-                        showToast('Passwords do not match.');
-                        alert('❌ Mots de passe différents');
-                        return;
-                    }
-                    if (!birthDate) {
-                        showToast('Please enter your date of birth.');
-                        alert('❌ Date de naissance manquante');
-                        return;
-                    }
+                    if (!firstName || !lastName) { showToast('Please enter first and last name.'); alert('❌ Missing name'); return; }
+                    if (password !== confirm) { showToast('Passwords do not match.'); alert('❌ Password mismatch'); return; }
+                    if (!birthDate) { showToast('Please enter date of birth.'); alert('❌ Missing birth date'); return; }
 
                     const { data, error } = await supabase.auth.signUp({
                         email,
@@ -376,12 +206,12 @@
                         options: { data: { first_name: firstName, last_name: lastName } }
                     });
                     if (error) throw error;
-                    alert('✅ Compte créé dans Auth');
+                    alert('✅ Auth signup done');
 
                     const user = data.user;
                     if (!user) {
-                        showToast('Account created. Please check your email to confirm, then log in.');
-                        alert('📧 Confirmation par email requise');
+                        showToast('Account created. Please check your email to confirm.');
+                        alert('📧 Confirmation email sent');
                         isLoginMode = true;
                         toggleAuthMode();
                         return;
@@ -400,17 +230,16 @@
                         }]);
 
                     if (insertError) {
-                        alert('❌ Erreur insertion profil : ' + insertError.message);
+                        alert('❌ Insert error: ' + insertError.message);
                         showToast('Account created but profile could not be saved.');
                     } else {
-                        alert('✅ Profil enregistré');
+                        alert('✅ Profile saved');
                         showToast('Account created successfully!');
                     }
-
                     await loadUserData(user);
                 }
             } catch (err) {
-                alert('❌ Erreur : ' + err.message);
+                alert('❌ Error: ' + err.message);
                 showToast('Error: ' + err.message);
             }
         }
@@ -419,7 +248,7 @@
         // LOGOUT
         // =============================================================
         async function logoutUser() {
-            alert('🚪 Déconnexion');
+            alert('🚪 Logout');
             await supabase.auth.signOut();
             currentUser = null;
             showToast('Logged out.');
@@ -430,7 +259,7 @@
         // LOAD USER DATA
         // =============================================================
         async function loadUserData(user) {
-            alert('📥 Chargement des données utilisateur');
+            alert('📥 Loading user data');
             if (!user) return;
             currentUser = user;
 
@@ -441,7 +270,7 @@
                 .single();
 
             if (error && error.code === 'PGRST116') {
-                alert('⚠️ Création du profil utilisateur...');
+                alert('⚠️ Creating user profile...');
                 const { error: insertError } = await supabase
                     .from('users')
                     .insert([{
@@ -451,7 +280,7 @@
                         is_verified: true,
                     }]);
                 if (insertError) {
-                    alert('❌ Erreur création profil');
+                    alert('❌ Insert error');
                     showToast('Error loading profile.');
                     return;
                 }
@@ -465,7 +294,7 @@
                 currentUser = { ...user, ...data };
             }
 
-            alert('✅ Données chargées : ' + currentUser.email);
+            alert('✅ User data loaded: ' + currentUser.email);
             showDashboard();
             updateDashboard();
         }
@@ -478,13 +307,13 @@
         // SCREEN MANAGEMENT
         // =============================================================
         function showAuthScreen() {
-            alert('📺 Affichage écran de connexion');
+            alert('📺 Showing auth screen');
             authContainer.style.display = 'block';
             dashboard.classList.remove('show');
         }
 
         function showDashboard() {
-            alert('📺 Affichage dashboard');
+            alert('📺 Showing dashboard');
             authContainer.style.display = 'none';
             dashboard.classList.add('show');
         }
@@ -507,33 +336,52 @@
         // CHECK AUTH
         // =============================================================
         async function checkAuth() {
-            alert('🔍 Vérification de l\'authentification...');
+            alert('🔍 Checking auth...');
             showAuthScreen();
-
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                alert('✅ Utilisateur déjà connecté : ' + user.email);
+                alert('✅ User already logged in: ' + user.email);
                 await loadUserData(user);
             } else {
-                alert('👤 Aucun utilisateur connecté.');
+                alert('👤 No user logged in.');
             }
         }
 
         // =============================================================
+        // ATTACH EVENT LISTENERS (addEventListener)
+        // =============================================================
+        alert('📌 Attaching event listeners...');
+        authActionBtn.addEventListener('click', function(e) {
+            alert('🖱️ Auth button clicked');
+            handleAuth();
+        });
+        authToggleBtn.addEventListener('click', function(e) {
+            alert('🖱️ Toggle button clicked');
+            toggleAuthMode();
+        });
+        authSwitchLink.addEventListener('click', function(e) {
+            alert('🖱️ Switch link clicked');
+            toggleAuthMode();
+        });
+        logoutBtn.addEventListener('click', function(e) {
+            alert('🖱️ Logout clicked');
+            logoutUser();
+        });
+        alert('✅ Event listeners attached');
+
+        // =============================================================
         // INIT
         // =============================================================
-        alert('✅ Tous les écouteurs sont prêts via onclick');
-
         window.addEventListener('DOMContentLoaded', function() {
-            alert('📄 DOM prêt, lancement de checkAuth()');
+            alert('📄 DOM ready, starting checkAuth');
             checkAuth();
         });
 
-        // Exposer les fonctions pour les attributs onclick
+        // Expose functions globally (just in case)
         window.toggleAuthMode = toggleAuthMode;
         window.handleAuth = handleAuth;
         window.logoutUser = logoutUser;
     </script>
 
 </body>
-    </html>
+</html>

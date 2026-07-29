@@ -35,6 +35,15 @@
         .badge { background: #d4af37; padding: 2px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-left: 8px; }
         #errorMsg { display: none; background: #fef2f2; border: 1px solid #fecaca; border-radius: 16px; padding: 16px; color: #b91c1c; margin-top: 16px; text-align: center; }
         #errorMsg.show { display: block; }
+
+        /* Tree styles */
+        .tree { list-style: none; padding-left: 0; }
+        .tree ul { list-style: none; padding-left: 20px; }
+        .tree li { padding: 4px 0; border-left: 1px dashed #ccc; margin-left: 8px; padding-left: 12px; }
+        .tree li:last-child { border-left: none; }
+        .tree .node { display: flex; align-items: center; gap: 6px; }
+        .tree .node .name { font-weight: 500; }
+        .tree .node .code { font-size: 12px; color: #888; }
     </style>
 </head>
 <body>
@@ -56,7 +65,6 @@
                             <div class="field"><input type="text" id="authLastName" placeholder="Last name" /></div>
                         </div>
                         <div class="field"><input type="date" id="authBirthDate" /></div>
-                        <!-- NEW: Referral code field -->
                         <div class="field"><input type="text" id="authReferralCode" placeholder="Referral Code (optional)" /></div>
                     </div>
                     <button class="btn btn-primary" id="authActionBtn">Log in</button>
@@ -74,16 +82,25 @@
             <div class="card">
                 <div class="user-name" id="userNameDisplay">User <span class="badge">Premium</span></div>
                 <div class="stat-item"><span>Email</span> <span id="profileEmail">-</span></div>
-                <div class="stat-item"><span>Referrals</span> <span id="referralCount">0</span></div>
                 <div class="stat-item"><span>Member since</span> <span id="memberSince">-</span></div>
                 <div class="stat-item"><span>My Referral Code</span> <span id="myReferralCode">-</span></div>
+                <div class="stat-item"><span>Total Referrals</span> <span id="referralCount">0</span></div>
             </div>
+
+            <!-- Referral Tree -->
+            <div class="card">
+                <div style="font-weight:600; margin-bottom:12px;">Referral Tree</div>
+                <div id="referralTreeContainer">
+                    <p class="text-muted">Loading tree...</p>
+                </div>
+            </div>
+
             <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
 
         <div id="errorMsg">
             <p><strong>⚠️ Impossible de charger Supabase</strong></p>
-            <p style="font-size:14px; margin-top:8px;">Vérifie ta connexion internet ou utilise un VPN.</p>
+            <p style="font-size:14px; margin-top:8px;">Vérifie ta connexion internet.</p>
             <button class="btn btn-outline" style="margin-top:12px;" onclick="location.reload()">Réessayer</button>
         </div>
 
@@ -107,14 +124,11 @@
     <!-- ============================================================ -->
     <script type="module">
         // =============================================================
-        // ALERTE DE DÉMARRAGE
+        // CONFIG
         // =============================================================
         alert('🚀 Script chargé (ES Module)');
 
         try {
-            // =============================================================
-            // IMPORTER SUPABASE
-            // =============================================================
             const { createClient } = await import('@supabase/supabase-js');
             alert('✅ Supabase importé avec succès !');
 
@@ -139,7 +153,7 @@
             const authFirstName = $('authFirstName');
             const authLastName = $('authLastName');
             const authBirthDate = $('authBirthDate');
-            const authReferralCode = $('authReferralCode'); // new
+            const authReferralCode = $('authReferralCode');
             const authActionBtn = $('authActionBtn');
             const authToggleBtn = $('authToggleBtn');
             const authSwitchText = $('authSwitchText');
@@ -150,10 +164,12 @@
             const referralCount = $('referralCount');
             const memberSince = $('memberSince');
             const myReferralCode = $('myReferralCode');
+            const referralTreeContainer = $('referralTreeContainer');
             const logoutBtn = $('logoutBtn');
 
             let isLoginMode = true;
             let currentUser = null;
+            let allUsers = [];
 
             alert('✅ DOM refs prêtes');
 
@@ -171,7 +187,7 @@
             // TOGGLE LOGIN / SIGN UP
             // =============================================================
             function toggleAuthMode() {
-                alert('🔄 toggleAuthMode called, isLoginMode=' + isLoginMode);
+                alert('🔄 toggleAuthMode called');
                 isLoginMode = !isLoginMode;
                 if (isLoginMode) {
                     authActionBtn.textContent = 'Log in';
@@ -179,14 +195,12 @@
                     authSwitchText.textContent = "Don't have an account?";
                     authSwitchLink.textContent = 'Sign up';
                     extra.style.display = 'none';
-                    alert('✅ Login mode');
                 } else {
                     authActionBtn.textContent = 'Sign up';
                     authToggleBtn.textContent = 'Back to login';
                     authSwitchText.textContent = 'Already have an account?';
                     authSwitchLink.textContent = 'Log in';
                     extra.style.display = 'block';
-                    alert('✅ Sign up mode - fields shown');
                 }
             }
 
@@ -194,26 +208,17 @@
             // GET DEFAULT REFERRER (ADMIN)
             // =============================================================
             async function getDefaultReferrer() {
-                // Try to find admin user by email 'admin@stockof.com'
                 const { data, error } = await supabase
                     .from('users')
                     .select('id')
                     .eq('email', 'admin@stockof.com')
                     .maybeSingle();
-
-                if (error) {
-                    alert('⚠️ Erreur recherche admin: ' + error.message);
-                    return null;
-                }
-                if (data) {
-                    return data.id;
-                }
-                // If no admin exists, we'll create one automatically when the first user signs up
-                return null;
+                if (error) return null;
+                return data ? data.id : null;
             }
 
             // =============================================================
-            // HANDLE AUTH (avec parrainage)
+            // HANDLE AUTH
             // =============================================================
             async function handleAuth() {
                 alert('📝 handleAuth called');
@@ -242,7 +247,6 @@
                         const birthDate = authBirthDate.value;
                         const referralCode = authReferralCode.value.trim().toUpperCase();
 
-                        // Vérifications
                         if (!firstName || !lastName) {
                             showToast('Please enter first and last name.');
                             alert('❌ Missing name');
@@ -259,7 +263,6 @@
                             return;
                         }
 
-                        // 1. Créer l'utilisateur Auth
                         const { data, error } = await supabase.auth.signUp({
                             email,
                             password,
@@ -277,17 +280,13 @@
                             return;
                         }
 
-                        // 2. Déterminer le parrain (referred_by)
                         let referrerId = null;
-
                         if (referralCode) {
-                            // Chercher l'utilisateur avec ce code
                             const { data: referrer, error: refError } = await supabase
                                 .from('users')
                                 .select('id')
                                 .eq('referral_code', referralCode)
                                 .maybeSingle();
-
                             if (refError) {
                                 alert('❌ Erreur recherche parrain: ' + refError.message);
                                 showToast('Error finding referral code.');
@@ -297,26 +296,22 @@
                                 referrerId = referrer.id;
                                 alert('✅ Parrain trouvé avec le code: ' + referralCode);
                             } else {
-                                // Code invalide : on ignore et on utilise le défaut
                                 alert('⚠️ Code de parrainage invalide, utilisation du parrain par défaut.');
                             }
                         }
 
-                        // Si pas de code ou code invalide, on utilise le parrain par défaut (admin)
                         if (!referrerId) {
                             const defaultId = await getDefaultReferrer();
                             if (defaultId) {
                                 referrerId = defaultId;
                                 alert('✅ Parrain par défaut (admin) utilisé.');
                             } else {
-                                // Aucun admin n'existe encore : ce sera le premier utilisateur (admin)
-                                // On le laissera sans parrain (referred_by null) et on le définira comme admin plus tard
                                 alert('ℹ️ Aucun admin trouvé, ce compte sera l\'admin (sans parrain).');
                                 referrerId = null;
                             }
                         }
 
-                        // 3. Insérer le profil dans la table users
+                        // Insertion
                         const { error: insertError } = await supabase
                             .from('users')
                             .insert([{
@@ -336,14 +331,6 @@
                         } else {
                             alert('✅ Profile saved with referral');
                             showToast('Account created successfully!');
-                        }
-
-                        // Si c'était le premier utilisateur, on le définit comme admin
-                        if (!referrerId) {
-                            // On pourrait le marquer comme admin via un champ, mais on utilise juste l'email
-                            // On met à jour son email pour qu'il soit 'admin@stockof.com'? Pas nécessaire.
-                            // On garde son email actuel, mais on le considérera comme admin pour le default referrer.
-                            // Pour l'instant, on ne fait rien de plus.
                         }
 
                         await loadUserData(user);
@@ -390,7 +377,7 @@
                             is_verified: true,
                         }]);
                     if (insertError) {
-                        alert('❌ Insert error');
+                        alert('❌ Insert error: ' + insertError.message);
                         showToast('Error loading profile.');
                         return;
                     }
@@ -407,10 +394,8 @@
                 alert('✅ User data loaded: ' + currentUser.email);
                 showDashboard();
                 updateDashboard();
-
-                // Si c'est le premier utilisateur (admin), on le définit comme admin par défaut
-                // On peut vérifier s'il n'y a pas d'admin et que cet utilisateur est le seul
-                // Mais on laisse le système fonctionner.
+                // Load the referral tree
+                await loadReferralTree();
             }
 
             function generateReferralCode() {
@@ -442,9 +427,104 @@
                 const fullName = (firstName + ' ' + lastName).trim() || currentUser.email.split('@')[0];
                 userNameDisplay.innerHTML = `${fullName} <span class="badge">Premium</span>`;
                 profileEmail.textContent = currentUser.email || '-';
-                referralCount.textContent = currentUser.referral_count || 0;
                 memberSince.textContent = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() : '-';
                 myReferralCode.textContent = currentUser.referral_code || 'N/A';
+                // Count will be updated via tree
+            }
+
+            // =============================================================
+            // REFERRAL TREE
+            // =============================================================
+            async function loadReferralTree() {
+                alert('🌳 Loading referral tree...');
+                try {
+                    // Fetch all users (or at least those needed)
+                    const { data, error } = await supabase
+                        .from('users')
+                        .select('id, first_name, last_name, email, referral_code, referred_by')
+                        .order('created_at', { ascending: true });
+
+                    if (error) throw error;
+                    allUsers = data;
+
+                    // Build tree starting from current user
+                    const tree = buildTree(currentUser.id);
+                    const total = countNodes(tree);
+                    referralCount.textContent = total;
+
+                    // Render tree
+                    renderTree(tree);
+                } catch (err) {
+                    alert('❌ Error loading tree: ' + err.message);
+                    referralTreeContainer.innerHTML = '<p class="text-muted">Unable to load referral tree.</p>';
+                }
+            }
+
+            function buildTree(rootId) {
+                // Create a map of user by id
+                const userMap = {};
+                allUsers.forEach(u => userMap[u.id] = u);
+
+                // Build children map
+                const childrenMap = {};
+                allUsers.forEach(u => {
+                    if (u.referred_by) {
+                        if (!childrenMap[u.referred_by]) childrenMap[u.referred_by] = [];
+                        childrenMap[u.referred_by].push(u);
+                    }
+                });
+
+                // Recursive function to build tree node
+                function buildNode(userId) {
+                    const user = userMap[userId];
+                    if (!user) return null;
+                    const children = (childrenMap[userId] || []).map(child => buildNode(child.id)).filter(c => c !== null);
+                    return {
+                        user: user,
+                        children: children
+                    };
+                }
+
+                return buildNode(rootId);
+            }
+
+            function countNodes(node) {
+                if (!node) return 0;
+                let count = node.children.length;
+                node.children.forEach(child => {
+                    count += countNodes(child);
+                });
+                return count;
+            }
+
+            function renderTree(tree) {
+                if (!tree) {
+                    referralTreeContainer.innerHTML = '<p class="text-muted">No referrals yet.</p>';
+                    return;
+                }
+                const html = buildTreeHTML(tree);
+                referralTreeContainer.innerHTML = html;
+            }
+
+            function buildTreeHTML(node) {
+                if (!node) return '';
+                const user = node.user;
+                const name = (user.first_name + ' ' + user.last_name).trim() || user.email;
+                const code = user.referral_code || '';
+                let html = `<li>
+                    <div class="node">
+                        <span class="name">${name}</span>
+                        <span class="code">(${code})</span>
+                    </div>`;
+                if (node.children.length > 0) {
+                    html += '<ul>';
+                    node.children.forEach(child => {
+                        html += buildTreeHTML(child);
+                    });
+                    html += '</ul>';
+                }
+                html += '</li>';
+                return html;
             }
 
             // =============================================================
@@ -466,22 +546,10 @@
             // ATTACH EVENT LISTENERS
             // =============================================================
             alert('📌 Attaching event listeners...');
-            authActionBtn.addEventListener('click', function() {
-                alert('🖱️ Auth button clicked');
-                handleAuth();
-            });
-            authToggleBtn.addEventListener('click', function() {
-                alert('🖱️ Toggle button clicked');
-                toggleAuthMode();
-            });
-            authSwitchLink.addEventListener('click', function() {
-                alert('🖱️ Switch link clicked');
-                toggleAuthMode();
-            });
-            logoutBtn.addEventListener('click', function() {
-                alert('🖱️ Logout clicked');
-                logoutUser();
-            });
+            authActionBtn.addEventListener('click', handleAuth);
+            authToggleBtn.addEventListener('click', toggleAuthMode);
+            authSwitchLink.addEventListener('click', toggleAuthMode);
+            logoutBtn.addEventListener('click', logoutUser);
             alert('✅ Event listeners attached');
 
             // =============================================================
@@ -492,7 +560,7 @@
                 checkAuth();
             });
 
-            // Expose functions globally (just in case)
+            // Expose functions
             window.toggleAuthMode = toggleAuthMode;
             window.handleAuth = handleAuth;
             window.logoutUser = logoutUser;

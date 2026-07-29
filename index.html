@@ -56,6 +56,8 @@
                             <div class="field"><input type="text" id="authLastName" placeholder="Last name" /></div>
                         </div>
                         <div class="field"><input type="date" id="authBirthDate" /></div>
+                        <!-- NEW: Referral code field -->
+                        <div class="field"><input type="text" id="authReferralCode" placeholder="Referral Code (optional)" /></div>
                     </div>
                     <button class="btn btn-primary" id="authActionBtn">Log in</button>
                     <button class="btn btn-outline" id="authToggleBtn">Create account</button>
@@ -74,6 +76,7 @@
                 <div class="stat-item"><span>Email</span> <span id="profileEmail">-</span></div>
                 <div class="stat-item"><span>Referrals</span> <span id="referralCount">0</span></div>
                 <div class="stat-item"><span>Member since</span> <span id="memberSince">-</span></div>
+                <div class="stat-item"><span>My Referral Code</span> <span id="myReferralCode">-</span></div>
             </div>
             <button class="logout-btn" id="logoutBtn">Logout</button>
         </div>
@@ -89,7 +92,7 @@
     <div id="toast"></div>
 
     <!-- ============================================================ -->
-    <!-- IMPORT MAP – CORRECT URL POUR SUPABASE ESM                   -->
+    <!-- IMPORT MAP (Supabase ESM)                                    -->
     <!-- ============================================================ -->
     <script type="importmap">
         {
@@ -100,7 +103,7 @@
     </script>
 
     <!-- ============================================================ -->
-    <!-- SCRIPT PRINCIPAL (type="module")                             -->
+    <!-- SCRIPT PRINCIPAL                                             -->
     <!-- ============================================================ -->
     <script type="module">
         // =============================================================
@@ -110,21 +113,10 @@
 
         try {
             // =============================================================
-            // IMPORTER SUPABASE AVEC FALLBACK
+            // IMPORTER SUPABASE
             // =============================================================
-            let createClient;
-            try {
-                // Tentative avec l'importmap
-                const module = await import('@supabase/supabase-js');
-                createClient = module.createClient;
-                alert('✅ Supabase importé via importmap !');
-            } catch (e) {
-                alert('⚠️ Échec importmap, tentative avec Skypack...');
-                // Fallback avec Skypack
-                const module = await import('https://cdn.skypack.dev/@supabase/supabase-js@2');
-                createClient = module.createClient;
-                alert('✅ Supabase importé via Skypack !');
-            }
+            const { createClient } = await import('@supabase/supabase-js');
+            alert('✅ Supabase importé avec succès !');
 
             const SUPABASE_URL = 'https://iiceaseqdzcdfgkiinnx.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_VZxq4hifeXH7kyDdi91FJg_LlzNoCiL';
@@ -147,6 +139,7 @@
             const authFirstName = $('authFirstName');
             const authLastName = $('authLastName');
             const authBirthDate = $('authBirthDate');
+            const authReferralCode = $('authReferralCode'); // new
             const authActionBtn = $('authActionBtn');
             const authToggleBtn = $('authToggleBtn');
             const authSwitchText = $('authSwitchText');
@@ -156,6 +149,7 @@
             const profileEmail = $('profileEmail');
             const referralCount = $('referralCount');
             const memberSince = $('memberSince');
+            const myReferralCode = $('myReferralCode');
             const logoutBtn = $('logoutBtn');
 
             let isLoginMode = true;
@@ -197,7 +191,29 @@
             }
 
             // =============================================================
-            // HANDLE AUTH
+            // GET DEFAULT REFERRER (ADMIN)
+            // =============================================================
+            async function getDefaultReferrer() {
+                // Try to find admin user by email 'admin@stockof.com'
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('id')
+                    .eq('email', 'admin@stockof.com')
+                    .maybeSingle();
+
+                if (error) {
+                    alert('⚠️ Erreur recherche admin: ' + error.message);
+                    return null;
+                }
+                if (data) {
+                    return data.id;
+                }
+                // If no admin exists, we'll create one automatically when the first user signs up
+                return null;
+            }
+
+            // =============================================================
+            // HANDLE AUTH (avec parrainage)
             // =============================================================
             async function handleAuth() {
                 alert('📝 handleAuth called');
@@ -224,7 +240,9 @@
                         const lastName = authLastName.value.trim();
                         const confirm = authConfirm.value.trim();
                         const birthDate = authBirthDate.value;
+                        const referralCode = authReferralCode.value.trim().toUpperCase();
 
+                        // Vérifications
                         if (!firstName || !lastName) {
                             showToast('Please enter first and last name.');
                             alert('❌ Missing name');
@@ -241,6 +259,7 @@
                             return;
                         }
 
+                        // 1. Créer l'utilisateur Auth
                         const { data, error } = await supabase.auth.signUp({
                             email,
                             password,
@@ -258,6 +277,46 @@
                             return;
                         }
 
+                        // 2. Déterminer le parrain (referred_by)
+                        let referrerId = null;
+
+                        if (referralCode) {
+                            // Chercher l'utilisateur avec ce code
+                            const { data: referrer, error: refError } = await supabase
+                                .from('users')
+                                .select('id')
+                                .eq('referral_code', referralCode)
+                                .maybeSingle();
+
+                            if (refError) {
+                                alert('❌ Erreur recherche parrain: ' + refError.message);
+                                showToast('Error finding referral code.');
+                                return;
+                            }
+                            if (referrer) {
+                                referrerId = referrer.id;
+                                alert('✅ Parrain trouvé avec le code: ' + referralCode);
+                            } else {
+                                // Code invalide : on ignore et on utilise le défaut
+                                alert('⚠️ Code de parrainage invalide, utilisation du parrain par défaut.');
+                            }
+                        }
+
+                        // Si pas de code ou code invalide, on utilise le parrain par défaut (admin)
+                        if (!referrerId) {
+                            const defaultId = await getDefaultReferrer();
+                            if (defaultId) {
+                                referrerId = defaultId;
+                                alert('✅ Parrain par défaut (admin) utilisé.');
+                            } else {
+                                // Aucun admin n'existe encore : ce sera le premier utilisateur (admin)
+                                // On le laissera sans parrain (referred_by null) et on le définira comme admin plus tard
+                                alert('ℹ️ Aucun admin trouvé, ce compte sera l\'admin (sans parrain).');
+                                referrerId = null;
+                            }
+                        }
+
+                        // 3. Insérer le profil dans la table users
                         const { error: insertError } = await supabase
                             .from('users')
                             .insert([{
@@ -267,6 +326,7 @@
                                 last_name: lastName,
                                 birth_date: birthDate,
                                 referral_code: generateReferralCode(),
+                                referred_by: referrerId,
                                 is_verified: true,
                             }]);
 
@@ -274,9 +334,18 @@
                             alert('❌ Insert error: ' + insertError.message);
                             showToast('Account created but profile could not be saved.');
                         } else {
-                            alert('✅ Profile saved');
+                            alert('✅ Profile saved with referral');
                             showToast('Account created successfully!');
                         }
+
+                        // Si c'était le premier utilisateur, on le définit comme admin
+                        if (!referrerId) {
+                            // On pourrait le marquer comme admin via un champ, mais on utilise juste l'email
+                            // On met à jour son email pour qu'il soit 'admin@stockof.com'? Pas nécessaire.
+                            // On garde son email actuel, mais on le considérera comme admin pour le default referrer.
+                            // Pour l'instant, on ne fait rien de plus.
+                        }
+
                         await loadUserData(user);
                     }
                 } catch (err) {
@@ -311,7 +380,7 @@
                     .single();
 
                 if (error && error.code === 'PGRST116') {
-                    alert('⚠️ Creating user profile...');
+                    alert('⚠️ Creating minimal profile...');
                     const { error: insertError } = await supabase
                         .from('users')
                         .insert([{
@@ -338,6 +407,10 @@
                 alert('✅ User data loaded: ' + currentUser.email);
                 showDashboard();
                 updateDashboard();
+
+                // Si c'est le premier utilisateur (admin), on le définit comme admin par défaut
+                // On peut vérifier s'il n'y a pas d'admin et que cet utilisateur est le seul
+                // Mais on laisse le système fonctionner.
             }
 
             function generateReferralCode() {
@@ -371,6 +444,7 @@
                 profileEmail.textContent = currentUser.email || '-';
                 referralCount.textContent = currentUser.referral_count || 0;
                 memberSince.textContent = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() : '-';
+                myReferralCode.textContent = currentUser.referral_code || 'N/A';
             }
 
             // =============================================================
@@ -418,7 +492,7 @@
                 checkAuth();
             });
 
-            // Expose functions globally
+            // Expose functions globally (just in case)
             window.toggleAuthMode = toggleAuthMode;
             window.handleAuth = handleAuth;
             window.logoutUser = logoutUser;

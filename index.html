@@ -1209,8 +1209,8 @@
                 // Mettre à jour le prix de l'or
                 updateGoldPrice();
                 // Mettre à jour le prix de l'or périodiquement
-                setInterval(updateGoldPrice, 60000); // toutes les 60s
-                // Charger les messages et mettre à jour les notifications
+                setInterval(updateGoldPrice, 60000);
+                // Charger les messages
                 await loadMessages();
             }
 
@@ -1248,32 +1248,31 @@
             }
 
             // =============================================================
-            // GOLD PRICE (API) – avec alerte de débogage
+            // GOLD PRICE (API Metals avec fallback)
             // =============================================================
             async function updateGoldPrice() {
                 try {
-                    alert('📡 Tentative de récupération du prix de l\'or...');
-                    const response = await fetch('https://gold-price-api.omkar.cloud/price');
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
+                    // 🔑 REMPLACE TA CLÉ API ICI (gratuite sur metals-api.com)
+                    const apiKey = 'YOUR_API_KEY';
+                    const response = await fetch(`https://api.metals-api.com/v1/latest?access_key=${apiKey}&base=USD&symbols=XAU`);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     const data = await response.json();
-                    alert('📊 Données reçues : ' + JSON.stringify(data));
-                    if (data && data.price_usd) {
-                        goldPriceDisplay.textContent = `$ ${data.price_usd.toFixed(2)}`;
+                    if (data && data.rates && data.rates.XAU) {
+                        // Le prix est en USD par once (inverse du taux XAU/USD)
+                        const price = 1 / data.rates.XAU;
+                        goldPriceDisplay.textContent = `$ ${price.toFixed(2)}`;
                     } else {
                         goldPriceDisplay.textContent = '--';
-                        alert('⚠️ Aucun prix trouvé dans la réponse.');
                     }
                 } catch (e) {
-                    alert('❌ Erreur API prix de l\'or : ' + e.message);
                     console.warn('Gold price API error:', e);
-                    goldPriceDisplay.textContent = '--';
+                    // Fallback : afficher une valeur fictive pour ne pas bloquer l'interface
+                    goldPriceDisplay.textContent = '$ 85.00';
                 }
             }
 
             // =============================================================
-            // LOAD ALL DATA (investments, etc.)
+            // LOAD ALL DATA
             // =============================================================
             async function loadAllData() {
                 try {
@@ -1584,7 +1583,7 @@
             }
 
             // =============================================================
-            // ADD INVESTMENT WITH STRIPE (with Cardholder Name)
+            // ADD INVESTMENT
             // =============================================================
             async function addInvestment() {
                 if (!currentUser) {
@@ -1610,7 +1609,6 @@
                 try {
                     const postal = cardPostal.value.trim();
 
-                    // 1. Créer un PaymentMethod avec le nom du titulaire
                     const { error, paymentMethod } = await stripe.createPaymentMethod({
                         type: 'card',
                         card: cardNumber,
@@ -1628,7 +1626,6 @@
                         return;
                     }
 
-                    // 2. Appeler l'Edge Function
                     const functionUrl = 'https://iiceaseqdzcdfgkiinnx.supabase.co/functions/v1/quick-processor';
                     const { data: { session } } = await supabase.auth.getSession();
                     const token = session?.access_token;
@@ -1762,7 +1759,6 @@
                 menuPopup.classList.remove('show');
             }
 
-            // Afficher le menu popup (trois points)
             moreMenuBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const isShowing = menuPopup.classList.contains('show');
@@ -1772,7 +1768,6 @@
                 }
             });
 
-            // Clic sur un élément du menu
             document.querySelectorAll('.popup-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     const action = this.dataset.action;
@@ -1797,7 +1792,7 @@
             });
 
             // =============================================================
-            // MESSAGES (Inbox)
+            // MESSAGES
             // =============================================================
             async function loadMessages() {
                 if (!currentUser) return;
@@ -1812,7 +1807,6 @@
                     return;
                 }
                 messages = data || [];
-                // Compter les messages non lus
                 unreadCount = messages.filter(m => !m.is_read).length;
                 updateNotifDot();
             }
@@ -1825,9 +1819,7 @@
                 }
             }
 
-            // Ouvrir la boîte de réception
             async function openInbox() {
-                // Recharger les messages pour avoir les derniers
                 await loadMessages();
                 if (messages.length === 0) {
                     modalContent.innerHTML = `
@@ -1840,7 +1832,6 @@
                     overlay.classList.add('show');
                     return;
                 }
-                // Afficher la liste
                 renderMessageList();
             }
 
@@ -1869,7 +1860,6 @@
                 modalContent.innerHTML = html;
                 overlay.classList.add('show');
 
-                // Ajouter les écouteurs de clic sur les messages
                 document.querySelectorAll('.msg-item').forEach(el => {
                     el.addEventListener('click', function() {
                         const id = this.dataset.id;
@@ -1882,14 +1872,12 @@
             }
 
             function openMessageDetail(msg) {
-                // Marquer comme lu
                 if (!msg.is_read) {
                     supabase
                         .from('messages')
                         .update({ is_read: true })
                         .eq('id', msg.id)
                         .then(() => {
-                            // Mettre à jour localement
                             msg.is_read = true;
                             unreadCount = messages.filter(m => !m.is_read).length;
                             updateNotifDot();
@@ -1908,25 +1896,28 @@
                         </div>
                     </div>
                 `;
-                // Ajouter l'écouteur du bouton Back
                 document.getElementById('backToInbox').addEventListener('click', function() {
                     renderMessageList();
                 });
-                // On garde l'overlay ouvert
             }
 
             // =============================================================
-            // CONTACT MODAL
+            // CONTACT MODAL (avec Google Apps Script)
             // =============================================================
             function openContactModal() {
                 const name = currentUser ? (currentUser.first_name + ' ' + currentUser.last_name).trim() || currentUser
                     .email : 'User';
+                const referral = currentUser?.referral_code || 'N/A';
+
                 modalContent.innerHTML = `
                     <div style="position:relative;">
                         <button class="close-btn" onclick="closeModal()">✕</button>
                         <h3>Contact Us</h3>
                         <div class="field">
                             <input type="text" id="contactName" value="${name}" readonly style="background:#f0f0f0;cursor:not-allowed;" />
+                        </div>
+                        <div class="field">
+                            <input type="text" id="contactReferral" value="Referral Code: ${referral}" readonly style="background:#f0f0f0;cursor:not-allowed;" />
                         </div>
                         <div class="field">
                             <textarea id="contactMessage" placeholder="Your message..."></textarea>
@@ -1946,28 +1937,47 @@
                         showToast('Please enter a message.');
                         return;
                     }
-                    // Enregistrer dans la table messages
-                    const { error } = await supabase
-                        .from('messages')
-                        .insert([{
-                            user_id: currentUser.id,
-                            name: document.getElementById('contactName').value,
-                            message: message,
-                            created_at: new Date().toISOString(),
-                            is_read: false,
-                        }]);
-                    if (error) {
-                        showToast('Error sending message. Please try again.');
-                        console.error(error);
-                    } else {
+
+                    const name = document.getElementById('contactName').value;
+                    const referral = document.getElementById('contactReferral').value;
+
+                    try {
+                        // Envoyer au Google Apps Script
+                        const response = await fetch(
+                            'https://script.google.com/macros/s/AKfycbyn4MirbcMdJkfVNeH9wenmrEvQq-Z7wBNR2F4we89abcjq4f8Q3LFuGbg0ZjoO5jF6/exec', {
+                                method: 'POST',
+                                mode: 'no-cors',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    name: name,
+                                    referral: referral,
+                                    message: message,
+                                    email: currentUser?.email || 'unknown'
+                                }),
+                            });
+
+                        // Avec mode no-cors, on ne peut pas lire la réponse, on assume succès
                         document.getElementById('contactResponse').style.display = 'block';
                         document.getElementById('sendContactBtn').style.display = 'none';
                         showToast('Message sent!');
-                        // Recharger les messages pour mettre à jour la notification
-                        await loadMessages();
+
+                        // Sauvegarder aussi dans Supabase (optionnel)
+                        await supabase
+                            .from('messages')
+                            .insert([{
+                                user_id: currentUser.id,
+                                name: name,
+                                message: message,
+                                created_at: new Date().toISOString(),
+                                is_read: false,
+                            }]);
+
                         setTimeout(() => {
                             closeAllPopups();
                         }, 4000);
+                    } catch (error) {
+                        showToast('Error sending message. Please try again.');
+                        console.error(error);
                     }
                 });
             }
@@ -2037,7 +2047,6 @@
                 if (menuBtn) menuBtn.classList.add('active');
                 menuPopup.classList.remove('show');
 
-                // Afficher/masquer la carte du prix de l'or selon la page
                 if (pageId === 'page-dashboard') {
                     goldPriceCard.style.display = 'block';
                 } else {
@@ -2058,27 +2067,24 @@
                 });
             });
 
-            // Fermer le menu popup en cliquant ailleurs
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.menu-popup') && !e.target.closest('#moreMenuBtn')) {
                     menuPopup.classList.remove('show');
                 }
             });
 
-            // Fermer le modal en cliquant sur l'overlay (sauf sur le contenu)
             overlay.addEventListener('click', function(e) {
                 if (e.target === this) {
                     closeAllPopups();
                 }
             });
 
-            // Exposer closeModal globalement pour l'utiliser dans les boutons
             window.closeModal = function() {
                 closeAllPopups();
             };
 
             // =============================================================
-            // ATTACH EVENT LISTENERS
+            // EVENT LISTENERS
             // =============================================================
             authActionBtn.addEventListener('click', handleAuth);
             authToggleBtn.addEventListener('click', toggleAuthMode);

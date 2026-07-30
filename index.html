@@ -140,6 +140,37 @@
             }
         }
 
+        /* ---------- OVERLAY DE CHARGEMENT (spinner) ---------- */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+        }
+        .loading-overlay.show {
+            display: flex;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #d4af37;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         /* ---------- DASHBOARD ---------- */
         #dashboard {
             display: none;
@@ -651,6 +682,11 @@
 </head>
 <body>
 
+    <!-- Overlay de chargement (spinner) -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
     <div class="container">
 
         <!-- AUTH -->
@@ -976,6 +1012,7 @@
             const profilePhone = $('profilePhone');
             const profileSaveBtn = $('profileSaveBtn');
             const bottomMenu = $('bottomMenu');
+            const loadingOverlay = $('loadingOverlay');
 
             // Withdraw
             const withdrawAmount = $('withdrawAmount');
@@ -1012,6 +1049,7 @@
             let goldPrices = [];
             let referrals = [];
             let chartInstances = {};
+            let unreadCount = 0; // DÉCLARATION GLOBALE
 
             // ---------- CACHE DES MESSAGES ----------
             let messagesCache = [];
@@ -1028,6 +1066,17 @@
                 toast.classList.add('show');
                 clearTimeout(toast._timer);
                 toast._timer = setTimeout(() => toast.classList.remove('show'), duration);
+            }
+
+            // =============================================================
+            // LOADING OVERLAY
+            // =============================================================
+            function showLoading() {
+                loadingOverlay.classList.add('show');
+            }
+
+            function hideLoading() {
+                loadingOverlay.classList.remove('show');
             }
 
             // =============================================================
@@ -1065,7 +1114,7 @@
             }
 
             // =============================================================
-            // HANDLE AUTH
+            // HANDLE AUTH (avec spinner)
             // =============================================================
             async function handleAuth() {
                 const email = authEmail.value.trim();
@@ -1075,6 +1124,7 @@
                     return;
                 }
 
+                showLoading();
                 try {
                     if (isLoginMode) {
                         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -1090,14 +1140,17 @@
 
                         if (!firstName || !lastName) {
                             showToast('Please enter first and last name.');
+                            hideLoading();
                             return;
                         }
                         if (password !== confirm) {
                             showToast('Passwords do not match.');
+                            hideLoading();
                             return;
                         }
                         if (!birthDate) {
                             showToast('Please enter date of birth.');
+                            hideLoading();
                             return;
                         }
 
@@ -1113,6 +1166,7 @@
                             showToast('Account created. Please check your email to confirm, then log in.');
                             isLoginMode = true;
                             toggleAuthMode();
+                            hideLoading();
                             return;
                         }
 
@@ -1159,6 +1213,8 @@
                     }
                 } catch (err) {
                     showToast('Error: ' + err.message);
+                } finally {
+                    hideLoading();
                 }
             }
 
@@ -1211,10 +1267,8 @@
                 profileFirstName.value = currentUser.first_name || '';
                 profileLastName.value = currentUser.last_name || '';
                 profilePhone.value = currentUser.phone || '';
-                // Prix de l'or
                 updateGoldPrice();
                 setInterval(updateGoldPrice, 60000);
-                // Charger les messages (cache)
                 await loadMessages();
             }
 
@@ -1271,7 +1325,7 @@
             }
 
             // =============================================================
-            // LOAD ALL DATA (investments, tree, etc.)
+            // LOAD ALL DATA
             // =============================================================
             async function loadAllData() {
                 try {
@@ -1791,18 +1845,16 @@
             });
 
             // =============================================================
-            // MESSAGES (avec cache)
+            // MESSAGES (avec cache et alerte pour debug)
             // =============================================================
             async function loadMessages(force = false) {
                 if (!currentUser) return;
                 const now = Date.now();
                 if (!force && messagesCache.length > 0 && (now - messagesLastFetch) < CACHE_DURATION) {
-                    // Utiliser le cache
                     unreadCount = messagesCache.filter(m => !m.is_read).length;
-                    updateNotifDot();
+                    try { updateNotifDot(); } catch (e) { console.warn('updateNotifDot error:', e); }
                     return messagesCache;
                 }
-                // Sinon, recharger depuis Supabase
                 const { data, error } = await supabase
                     .from('messages')
                     .select('*')
@@ -1816,7 +1868,7 @@
                 messagesCache = data || [];
                 messagesLastFetch = now;
                 unreadCount = messagesCache.filter(m => !m.is_read).length;
-                updateNotifDot();
+                try { updateNotifDot(); } catch (e) { console.warn('updateNotifDot error:', e); }
                 return messagesCache;
             }
 
@@ -1828,8 +1880,10 @@
                 }
             }
 
+            // Fonction Inbox avec alerte pour déboguer
             async function openInbox() {
-                // Forcer le rafraîchissement si l'utilisateur ouvre l'inbox
+                alert('📨 Inbox ouverte !');
+                // Forcer le rafraîchissement
                 await loadMessages(true);
                 if (messagesCache.length === 0) {
                     modalContent.innerHTML = `
@@ -1914,7 +1968,7 @@
             }
 
             // =============================================================
-            // CONTACT MODAL (avec cache + Supabase)
+            // CONTACT MODAL (avec spinner et cache)
             // =============================================================
             function openContactModal() {
                 const name = currentUser ? (currentUser.first_name + ' ' + currentUser.last_name).trim() || currentUser
@@ -1954,6 +2008,7 @@
                     const referral = document.getElementById('contactReferral').value;
                     const fullMessage = `${message}\n\n---\nReferral Code: ${referral}`;
 
+                    showLoading();
                     try {
                         // Envoyer au Google Apps Script
                         await fetch(
@@ -1969,7 +2024,7 @@
                                 }),
                             });
 
-                        // Sauvegarder dans Supabase (et mettre à jour le cache)
+                        // Sauvegarder dans Supabase
                         const { data: newMsg, error } = await supabase
                             .from('messages')
                             .insert([{
@@ -1985,7 +2040,6 @@
                             console.error('Error saving message:', error);
                             showToast('Message sent but could not save locally.');
                         } else {
-                            // Ajouter au cache
                             if (newMsg && newMsg.length > 0) {
                                 messagesCache.unshift(newMsg[0]);
                                 messagesLastFetch = Date.now();
@@ -2004,6 +2058,8 @@
                     } catch (error) {
                         showToast('Error sending message. Please try again.');
                         console.error(error);
+                    } finally {
+                        hideLoading();
                     }
                 });
             }

@@ -491,7 +491,7 @@
                     <div id="investmentList"><p class="text-muted">No investments yet.</p></div>
                 </div>
 
-                <!-- Invest with Stripe (champs séparés) -->
+                <!-- Invest with Stripe -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:12px;">💳 Invest with Credit Card</div>
                     <div class="field">
@@ -610,13 +610,12 @@
             document.getElementById('errorMsg').classList.remove('show');
 
             // =============================================================
-            // STRIPE SETUP (avec champs séparés)
+            // STRIPE SETUP
             // =============================================================
             // 🔑 Remplace par ta clé publique Stripe (pk_test_...)
             const stripe = Stripe('pk_test_K6URFQ24ytJNJCIJSHXy9E27');
             const elements = stripe.elements();
 
-            // Créer les éléments séparés
             const cardNumber = elements.create('cardNumber', {
                 style: {
                     base: {
@@ -652,7 +651,6 @@
 
             const cardErrors = document.getElementById('card-errors');
 
-            // Gestion des erreurs
             [cardNumber, cardExpiry, cardCvc].forEach(el => {
                 el.on('change', function(event) {
                     if (event.error) {
@@ -715,10 +713,8 @@
             const withdrawBankLabel = $('withdrawBankLabel');
             const withdrawBtcLabel = $('withdrawBtcLabel');
 
-            // Postal code
             const cardPostal = $('card-postal');
 
-            // Charts
             const canvasInvest = $('chartInvest');
             const canvasForecast = $('chartForecast');
             const canvasReferral = $('chartReferral');
@@ -1271,7 +1267,7 @@
             }
 
             // =============================================================
-            // ADD INVESTMENT WITH STRIPE (CORRIGÉ : quick-processor)
+            // ADD INVESTMENT WITH STRIPE (using fetch for debugging)
             // =============================================================
             async function addInvestment() {
                 alert('🔵 addInvestment appelée');
@@ -1298,16 +1294,13 @@
                     const postal = cardPostal.value.trim();
                     alert('📦 Création du PaymentMethod Stripe...');
 
-                    // 1. Créer un PaymentMethod
                     const { error, paymentMethod } = await stripe.createPaymentMethod({
                         type: 'card',
                         card: cardNumber,
                         billing_details: {
                             email: currentUser.email,
                             name: currentUser.first_name + ' ' + currentUser.last_name,
-                            address: {
-                                postal_code: postal || undefined,
-                            },
+                            address: { postal_code: postal || undefined },
                         },
                     });
 
@@ -1320,35 +1313,51 @@
                     }
                     alert('✅ PaymentMethod créé : ' + paymentMethod.id);
 
-                    // 2. Appeler l'Edge Function avec le bon nom : quick-processor
-                    alert('📡 Appel de la fonction quick-processor...');
-                    const { data, error: functionError } = await supabase.functions.invoke('quick-processor', {
-                        body: {
-                            paymentMethodId: paymentMethod.id,
-                            amount: amount,
-                            userId: currentUser.id,
-                            email: currentUser.email,
-                        },
-                    });
+                    // Utiliser fetch direct au lieu de invoke
+                    const functionUrl = 'https://iiceaseqdzcdfgkiinnx.supabase.co/functions/v1/quick-processor';
+                    alert('📡 Appel direct avec fetch vers : ' + functionUrl);
 
-                    if (functionError) {
-                        alert('❌ Erreur Edge Function : ' + functionError.message);
-                        showToast('Server error: ' + functionError.message);
+                    // Récupérer le token d'authentification
+                    const { data: { session } } = await supabase.auth.getSession();
+                    const token = session?.access_token;
+
+                    if (!token) {
+                        alert('❌ Pas de token d\'authentification !');
+                        showToast('Authentication error.');
                         investBtn.disabled = false;
                         investBtn.textContent = 'Invest Now';
                         return;
                     }
 
-                    alert('✅ Réponse reçue : ' + JSON.stringify(data));
+                    const response = await fetch(functionUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({
+                            paymentMethodId: paymentMethod.id,
+                            amount: amount,
+                            userId: currentUser.id,
+                            email: currentUser.email,
+                        }),
+                    });
 
-                    if (data && data.success) {
+                    const status = response.status;
+                    const responseText = await response.text();
+                    let data;
+                    try { data = JSON.parse(responseText); } catch (e) { data = { raw: responseText }; }
+
+                    alert('📊 Statut HTTP : ' + status + '\nRéponse : ' + JSON.stringify(data, null, 2));
+
+                    if (response.ok && data && data.success) {
                         alert('🎉 Investissement de $' + amount + ' enregistré !');
                         showToast('Investment of $' + amount + ' recorded!');
                         investAmount.value = '';
                         cardPostal.value = '';
                         await loadAllData();
                     } else {
-                        alert('❌ Échec du paiement : ' + (data?.error || 'Unknown error'));
+                        alert('❌ Échec du paiement : ' + (data?.error || data?.raw || 'Unknown error'));
                         showToast('Payment failed: ' + (data?.error || 'Unknown error'));
                     }
                 } catch (err) {
@@ -1547,4 +1556,4 @@
     </script>
 
 </body>
-                                           </html>
+    </html>

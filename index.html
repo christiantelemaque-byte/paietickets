@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -408,6 +407,7 @@
             font-weight: 700;
             letter-spacing: -2px;
         }
+        /* Notification dot */
         .bottom-menu .menu-item .notif-dot {
             position: absolute;
             top: 0;
@@ -418,6 +418,7 @@
             border-radius: 50%;
             border: 2px solid white;
             display: none;
+            z-index: 5;
         }
         .bottom-menu .menu-item .notif-dot.show {
             display: block;
@@ -663,20 +664,23 @@
         .msg-item.unread .msg-title {
             font-weight: 700;
         }
+        /* Back button (just an arrow) */
         .back-btn {
             background: none;
             border: none;
-            font-size: 16px;
+            font-size: 28px;
             color: #4f46e5;
             cursor: pointer;
             padding: 4px 0;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: flex-start;
+            width: 100%;
+            outline: none;
         }
-        .back-btn:hover {
-            text-decoration: underline;
+        .back-btn:active {
+            opacity: 0.6;
         }
     </style>
 </head>
@@ -1958,7 +1962,8 @@
                 modalContent.innerHTML = `
                     <div style="position:relative;">
                         <button class="close-btn" onclick="closeModal()">✕</button>
-                        <button class="back-btn" id="backToInbox">← Back</button>
+                        <!-- Back button (flèche uniquement) -->
+                        <button class="back-btn" id="backToInbox">←</button>
                         <h3>📄 Message</h3>
                         <p style="color:#888;font-size:14px;">${date}</p>
                         <div style="margin-top:12px;padding:12px 0;border-top:1px solid #f0ede8;">

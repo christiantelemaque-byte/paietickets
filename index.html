@@ -407,13 +407,14 @@
             font-weight: 700;
             letter-spacing: -2px;
         }
-        /* Notification dot */
+        /* Notification dot - centré sur le bouton */
         .bottom-menu .menu-item .notif-dot {
             position: absolute;
-            top: 0;
-            right: -4px;
-            width: 12px;
-            height: 12px;
+            top: -2px;
+            right: -2px;
+            transform: translateX(50%);
+            width: 14px;
+            height: 14px;
             background: #f44336;
             border-radius: 50%;
             border: 2px solid white;
@@ -1853,14 +1854,14 @@
             });
 
             // =============================================================
-            // MESSAGES (avec mise à jour is_read et gestion d'erreur)
+            // MESSAGES (avec re-rendu après lecture)
             // =============================================================
             async function loadMessages(force = false) {
                 if (!currentUser) return;
                 const now = Date.now();
                 if (!force && messagesCache.length > 0 && (now - messagesLastFetch) < CACHE_DURATION) {
                     unreadCount = messagesCache.filter(m => !m.is_read).length;
-                    alert('🔍 loadMessages (cache) - unreadCount = ' + unreadCount);
+                    // Pas d'alerte ici pour éviter les spams
                     try { updateNotifDot(); } catch (e) { console.warn('updateNotifDot error:', e); }
                     return messagesCache;
                 }
@@ -1881,24 +1882,19 @@
                 messagesCache = data || [];
                 messagesLastFetch = now;
                 unreadCount = messagesCache.filter(m => !m.is_read).length;
-                alert('🔍 loadMessages (fresh) - unreadCount = ' + unreadCount + '  (total messages: ' + messagesCache.length + ')');
                 try { updateNotifDot(); } catch (e) { console.warn('updateNotifDot error:', e); }
                 return messagesCache;
             }
 
             function updateNotifDot() {
-                alert('🔴 updateNotifDot called with unreadCount = ' + unreadCount);
                 if (unreadCount > 0) {
                     moreNotifDot.classList.add('show');
-                    alert('✅ Dot should be visible now.');
                 } else {
                     moreNotifDot.classList.remove('show');
-                    alert('✅ Dot hidden.');
                 }
             }
 
             async function openInbox() {
-                alert('📨 Inbox opened.');
                 await loadMessages(true);
                 if (messagesCache.length === 0) {
                     modalContent.innerHTML = `
@@ -1951,8 +1947,10 @@
             }
 
             function openMessageDetail(msg) {
-                if (!msg.is_read) {
-                    // Mettre à jour dans la base de données
+                // Marquer comme lu immédiatement (optimiste)
+                const wasUnread = !msg.is_read;
+                if (wasUnread) {
+                    // Mise à jour dans la base
                     supabase
                         .from('messages')
                         .update({ is_read: true })
@@ -1961,16 +1959,24 @@
                             if (error) {
                                 alert('❌ Error updating is_read: ' + error.message);
                                 console.error('Update error:', error);
-                                // Si erreur, on ne met pas à jour le cache
+                                // En cas d'erreur, on remet à false dans le cache
+                                msg.is_read = false;
+                                const idx = messagesCache.findIndex(m => m.id === msg.id);
+                                if (idx !== -1) messagesCache[idx].is_read = false;
+                                unreadCount = messagesCache.filter(m => !m.is_read).length;
+                                updateNotifDot();
+                                // On re-rend la liste pour refléter l'état
+                                renderMessageList();
                                 return;
                             }
-                            // Succès : mettre à jour le cache
+                            // Succès
                             msg.is_read = true;
                             const idx = messagesCache.findIndex(m => m.id === msg.id);
                             if (idx !== -1) messagesCache[idx].is_read = true;
                             unreadCount = messagesCache.filter(m => !m.is_read).length;
-                            alert('🔴 After reading (success), unreadCount = ' + unreadCount);
                             updateNotifDot();
+                            // Re-rendre la liste pour enlever le gras
+                            renderMessageList();
                         });
                 }
 
@@ -2068,7 +2074,6 @@
                                 messagesCache.unshift(newMsg[0]);
                                 messagesLastFetch = Date.now();
                                 unreadCount = messagesCache.filter(m => !m.is_read).length;
-                                alert('🟢 New message sent. unreadCount = ' + unreadCount);
                                 updateNotifDot();
                             }
                         }

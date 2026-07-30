@@ -377,6 +377,21 @@
             font-weight: 700;
             letter-spacing: -2px;
         }
+        /* Notification dot */
+        .bottom-menu .menu-item .notif-dot {
+            position: absolute;
+            top: 0;
+            right: -4px;
+            width: 10px;
+            height: 10px;
+            background: #f44336;
+            border-radius: 50%;
+            border: 2px solid white;
+            display: none;
+        }
+        .bottom-menu .menu-item .notif-dot.show {
+            display: block;
+        }
 
         /* ---------- POPUPS ---------- */
         .overlay {
@@ -589,6 +604,47 @@
         .card-row .field {
             flex: 1;
         }
+
+        /* ---------- MESSAGES LIST ---------- */
+        .msg-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0ede8;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .msg-item:last-child {
+            border-bottom: none;
+        }
+        .msg-item:hover {
+            background: #f8f6f0;
+        }
+        .msg-item .msg-title {
+            font-weight: 600;
+            font-size: 15px;
+            color: #0f0e17;
+        }
+        .msg-item .msg-date {
+            font-size: 12px;
+            color: #888;
+        }
+        .msg-item.unread .msg-title {
+            font-weight: 700;
+        }
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            color: #4f46e5;
+            cursor: pointer;
+            padding: 4px 0;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .back-btn:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -634,8 +690,8 @@
                 <div class="stat-item"><span>Current Portfolio Value</span> <span id="portfolioValue">$0</span></div>
             </div>
 
-            <!-- Gold Price Display -->
-            <div class="card">
+            <!-- Gold Price (visible only on dashboard) -->
+            <div id="goldPriceCard" class="card">
                 <div class="gold-price-label">Current Gold Price (USD/oz)</div>
                 <div class="gold-price-display" id="goldPriceDisplay">$ --</div>
             </div>
@@ -674,7 +730,6 @@
                     <div id="investmentList"><p class="text-muted">No investments yet.</p></div>
                 </div>
 
-                <!-- Invest with Stripe (with Cardholder Name) -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:12px;">💳 Invest with Credit Card</div>
                     <div class="field">
@@ -702,7 +757,6 @@
                     <div style="margin-top:12px; font-size:12px; color:#888; text-align:center;">Secured by Stripe</div>
                 </div>
 
-                <!-- Withdraw -->
                 <div class="card">
                     <div style="font-weight:600; margin-bottom:12px;">💰 Withdraw</div>
                     <div class="field">
@@ -798,6 +852,7 @@
         <button class="menu-item" id="moreMenuBtn">
             <span class="icon more-icon">⋮</span>
             <span class="label">More</span>
+            <span class="notif-dot" id="moreNotifDot"></span>
         </button>
     </nav>
 
@@ -906,6 +961,7 @@
             const totalInvestment = $('totalInvestment');
             const portfolioValue = $('portfolioValue');
             const goldPriceDisplay = $('goldPriceDisplay');
+            const goldPriceCard = $('goldPriceCard');
             const referralTreeContainer = $('referralTreeContainer');
             const referralTreeFull = $('referralTreeFull');
             const investmentList = $('investmentList');
@@ -940,6 +996,7 @@
             const modalContent = $('modalContent');
             const menuPopup = $('menuPopup');
             const moreMenuBtn = $('moreMenuBtn');
+            const moreNotifDot = $('moreNotifDot');
 
             const canvasInvest = $('chartInvest');
             const canvasForecast = $('chartForecast');
@@ -953,6 +1010,8 @@
             let goldPrices = [];
             let referrals = [];
             let chartInstances = {};
+            let messages = [];
+            let unreadCount = 0;
 
             console.log('✅ DOM ready');
 
@@ -1151,6 +1210,8 @@
                 updateGoldPrice();
                 // Mettre à jour le prix de l'or périodiquement
                 setInterval(updateGoldPrice, 60000); // toutes les 60s
+                // Charger les messages et mettre à jour les notifications
+                await loadMessages();
             }
 
             function generateReferralCode() {
@@ -1205,7 +1266,7 @@
             }
 
             // =============================================================
-            // LOAD ALL DATA
+            // LOAD ALL DATA (investments, etc.)
             // =============================================================
             async function loadAllData() {
                 try {
@@ -1717,7 +1778,7 @@
                             shareReferral();
                             break;
                         case 'inbox':
-                            showToast('Inbox: No new messages.');
+                            openInbox();
                             break;
                         case 'logout':
                             logoutUser();
@@ -1728,13 +1789,134 @@
                 });
             });
 
-            // Ouvrir le modal de contact
+            // =============================================================
+            // MESSAGES (Inbox)
+            // =============================================================
+            async function loadMessages() {
+                if (!currentUser) return;
+                const { data, error } = await supabase
+                    .from('messages')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('Error loading messages:', error);
+                    return;
+                }
+                messages = data || [];
+                // Compter les messages non lus
+                unreadCount = messages.filter(m => !m.is_read).length;
+                updateNotifDot();
+            }
+
+            function updateNotifDot() {
+                if (unreadCount > 0) {
+                    moreNotifDot.classList.add('show');
+                } else {
+                    moreNotifDot.classList.remove('show');
+                }
+            }
+
+            // Ouvrir la boîte de réception
+            async function openInbox() {
+                // Recharger les messages pour avoir les derniers
+                await loadMessages();
+                if (messages.length === 0) {
+                    modalContent.innerHTML = `
+                        <div style="position:relative;">
+                            <button class="close-btn" onclick="closeModal()">✕</button>
+                            <h3>📥 Inbox</h3>
+                            <p class="text-muted" style="text-align:center;padding:20px 0;">You have no messages.</p>
+                        </div>
+                    `;
+                    overlay.classList.add('show');
+                    return;
+                }
+                // Afficher la liste
+                renderMessageList();
+            }
+
+            function renderMessageList() {
+                let html = `
+                    <div style="position:relative;">
+                        <button class="close-btn" onclick="closeModal()">✕</button>
+                        <h3>📥 Inbox</h3>
+                        <div id="messageList">
+                `;
+                messages.forEach(msg => {
+                    const isUnread = !msg.is_read;
+                    const date = new Date(msg.created_at).toLocaleDateString();
+                    const title = msg.message.length > 50 ? msg.message.substring(0, 50) + '...' : msg.message;
+                    html += `
+                        <div class="msg-item ${isUnread ? 'unread' : ''}" data-id="${msg.id}">
+                            <div class="msg-title">${title}</div>
+                            <div class="msg-date">${date}</div>
+                        </div>
+                    `;
+                });
+                html += `
+                        </div>
+                    </div>
+                `;
+                modalContent.innerHTML = html;
+                overlay.classList.add('show');
+
+                // Ajouter les écouteurs de clic sur les messages
+                document.querySelectorAll('.msg-item').forEach(el => {
+                    el.addEventListener('click', function() {
+                        const id = this.dataset.id;
+                        const msg = messages.find(m => m.id === id);
+                        if (msg) {
+                            openMessageDetail(msg);
+                        }
+                    });
+                });
+            }
+
+            function openMessageDetail(msg) {
+                // Marquer comme lu
+                if (!msg.is_read) {
+                    supabase
+                        .from('messages')
+                        .update({ is_read: true })
+                        .eq('id', msg.id)
+                        .then(() => {
+                            // Mettre à jour localement
+                            msg.is_read = true;
+                            unreadCount = messages.filter(m => !m.is_read).length;
+                            updateNotifDot();
+                        });
+                }
+
+                const date = new Date(msg.created_at).toLocaleString();
+                modalContent.innerHTML = `
+                    <div style="position:relative;">
+                        <button class="close-btn" onclick="closeModal()">✕</button>
+                        <button class="back-btn" id="backToInbox">← Back</button>
+                        <h3>📄 Message</h3>
+                        <p style="color:#888;font-size:14px;">${date}</p>
+                        <div style="margin-top:12px;padding:12px 0;border-top:1px solid #f0ede8;">
+                            <p style="white-space:pre-wrap;word-wrap:break-word;">${msg.message}</p>
+                        </div>
+                    </div>
+                `;
+                // Ajouter l'écouteur du bouton Back
+                document.getElementById('backToInbox').addEventListener('click', function() {
+                    renderMessageList();
+                });
+                // On garde l'overlay ouvert
+            }
+
+            // =============================================================
+            // CONTACT MODAL
+            // =============================================================
             function openContactModal() {
                 const name = currentUser ? (currentUser.first_name + ' ' + currentUser.last_name).trim() || currentUser
                     .email : 'User';
                 modalContent.innerHTML = `
                     <div style="position:relative;">
-                        <button class="close-btn" onclick="document.getElementById('overlay').classList.remove('show')">✕</button>
+                        <button class="close-btn" onclick="closeModal()">✕</button>
                         <h3>Contact Us</h3>
                         <div class="field">
                             <input type="text" id="contactName" value="${name}" readonly style="background:#f0f0f0;cursor:not-allowed;" />
@@ -1751,7 +1933,6 @@
                 `;
                 overlay.classList.add('show');
 
-                // Gérer l'envoi du message
                 document.getElementById('sendContactBtn').addEventListener('click', async function() {
                     const message = document.getElementById('contactMessage').value.trim();
                     if (!message) {
@@ -1766,24 +1947,27 @@
                             name: document.getElementById('contactName').value,
                             message: message,
                             created_at: new Date().toISOString(),
+                            is_read: false,
                         }]);
                     if (error) {
                         showToast('Error sending message. Please try again.');
                         console.error(error);
                     } else {
-                        // Cacher le formulaire, afficher le remerciement
-                        document.querySelector('#contactModalForm')?.style?.display('none') ;
                         document.getElementById('contactResponse').style.display = 'block';
+                        document.getElementById('sendContactBtn').style.display = 'none';
                         showToast('Message sent!');
-                        // Fermer automatiquement après 5 secondes
+                        // Recharger les messages pour mettre à jour la notification
+                        await loadMessages();
                         setTimeout(() => {
-                            overlay.classList.remove('show');
-                        }, 5000);
+                            closeAllPopups();
+                        }, 4000);
                     }
                 });
             }
 
-            // Partager le code de parrainage
+            // =============================================================
+            // SHARE REFERRAL
+            // =============================================================
             function shareReferral() {
                 const code = currentUser?.referral_code || 'N/A';
                 const text = `Join me on Stock Of! My referral code: ${code}`;
@@ -1793,7 +1977,6 @@
                         text: text,
                     }).catch(() => {});
                 } else {
-                    // Fallback : copier dans le presse-papiers
                     navigator.clipboard.writeText(text).then(() => {
                         showToast('Referral code copied to clipboard!');
                     }).catch(() => {
@@ -1845,8 +2028,14 @@
                 document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
                 const menuBtn = document.querySelector(`.menu-item[data-page="${pageId}"]`);
                 if (menuBtn) menuBtn.classList.add('active');
-                // Fermer le menu popup si ouvert
                 menuPopup.classList.remove('show');
+
+                // Afficher/masquer la carte du prix de l'or selon la page
+                if (pageId === 'page-dashboard') {
+                    goldPriceCard.style.display = 'block';
+                } else {
+                    goldPriceCard.style.display = 'none';
+                }
 
                 if (pageId === 'page-dashboard') {
                     setTimeout(() => {
@@ -1876,6 +2065,11 @@
                 }
             });
 
+            // Exposer closeModal globalement pour l'utiliser dans les boutons
+            window.closeModal = function() {
+                closeAllPopups();
+            };
+
             // =============================================================
             // ATTACH EVENT LISTENERS
             // =============================================================
@@ -1899,10 +2093,7 @@
             window.handleAuth = handleAuth;
             window.logoutUser = logoutUser;
             window.addInvestment = addInvestment;
-            // Expose pour le bouton de fermeture du modal (inline)
-            window.closeModal = function() {
-                overlay.classList.remove('show');
-            };
+            window.closeModal = closeAllPopups;
 
         } catch (error) {
             document.getElementById('errorMsg').classList.add('show');

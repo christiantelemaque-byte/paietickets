@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js">
     </script>
     <style>
-        /* ---------- RESET ---------- */
+        /* ---------- RESET & BASE ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -407,7 +407,7 @@
             font-weight: 700;
             letter-spacing: -2px;
         }
-        /* Notification dot - positionnée sur le bord supérieur droit du bouton */
+        /* Notification dot - positionnée sur le coin supérieur droit du bouton */
         .bottom-menu .menu-item .notif-dot {
             position: absolute;
             top: -2px;
@@ -1853,7 +1853,7 @@
             });
 
             // =============================================================
-            // MESSAGES (avec re-rendu après lecture)
+            // MESSAGES
             // =============================================================
             async function loadMessages(force = false) {
                 if (!currentUser) return;
@@ -1918,7 +1918,6 @@
                     const isUnread = !msg.is_read;
                     const date = new Date(msg.created_at).toLocaleDateString();
                     const title = msg.message.length > 50 ? msg.message.substring(0, 50) + '...' : msg.message;
-                    // Application de la classe 'unread' si le message n'est pas lu
                     const unreadClass = isUnread ? 'unread' : '';
                     html += `
                         <div class="msg-item ${unreadClass}" data-id="${msg.id}">

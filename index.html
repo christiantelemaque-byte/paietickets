@@ -1248,18 +1248,25 @@
             }
 
             // =============================================================
-            // GOLD PRICE (API)
+            // GOLD PRICE (API) – avec alerte de débogage
             // =============================================================
             async function updateGoldPrice() {
                 try {
+                    alert('📡 Tentative de récupération du prix de l\'or...');
                     const response = await fetch('https://gold-price-api.omkar.cloud/price');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
                     const data = await response.json();
+                    alert('📊 Données reçues : ' + JSON.stringify(data));
                     if (data && data.price_usd) {
                         goldPriceDisplay.textContent = `$ ${data.price_usd.toFixed(2)}`;
                     } else {
                         goldPriceDisplay.textContent = '--';
+                        alert('⚠️ Aucun prix trouvé dans la réponse.');
                     }
                 } catch (e) {
+                    alert('❌ Erreur API prix de l\'or : ' + e.message);
                     console.warn('Gold price API error:', e);
                     goldPriceDisplay.textContent = '--';
                 }

@@ -407,12 +407,11 @@
             font-weight: 700;
             letter-spacing: -2px;
         }
-        /* Notification dot - centré sur le bouton */
+        /* Notification dot - positionnée sur le bord supérieur droit du bouton */
         .bottom-menu .menu-item .notif-dot {
             position: absolute;
             top: -2px;
-            right: -2px;
-            transform: translateX(50%);
+            right: -4px;
             width: 14px;
             height: 14px;
             background: #f44336;
@@ -420,7 +419,7 @@
             border: 2px solid white;
             display: none;
             z-index: 20;
-            box-shadow: 0 0 6px rgba(244, 67, 54, 0.5);
+            box-shadow: 0 0 8px rgba(244, 67, 54, 0.6);
         }
         .bottom-menu .menu-item .notif-dot.show {
             display: block;
@@ -1861,7 +1860,6 @@
                 const now = Date.now();
                 if (!force && messagesCache.length > 0 && (now - messagesLastFetch) < CACHE_DURATION) {
                     unreadCount = messagesCache.filter(m => !m.is_read).length;
-                    // Pas d'alerte ici pour éviter les spams
                     try { updateNotifDot(); } catch (e) { console.warn('updateNotifDot error:', e); }
                     return messagesCache;
                 }
@@ -1873,7 +1871,6 @@
 
                 if (error) {
                     console.error('Error loading messages:', error);
-                    alert('❌ Error loading messages: ' + error.message);
                     if (error.code === '42501') {
                         alert('⚠️ RLS policy issue – run the SQL in Supabase.');
                     }
@@ -1921,8 +1918,10 @@
                     const isUnread = !msg.is_read;
                     const date = new Date(msg.created_at).toLocaleDateString();
                     const title = msg.message.length > 50 ? msg.message.substring(0, 50) + '...' : msg.message;
+                    // Application de la classe 'unread' si le message n'est pas lu
+                    const unreadClass = isUnread ? 'unread' : '';
                     html += `
-                        <div class="msg-item ${isUnread ? 'unread' : ''}" data-id="${msg.id}">
+                        <div class="msg-item ${unreadClass}" data-id="${msg.id}">
                             <div class="msg-title">${title}</div>
                             <div class="msg-date">${date}</div>
                         </div>
@@ -1947,10 +1946,9 @@
             }
 
             function openMessageDetail(msg) {
-                // Marquer comme lu immédiatement (optimiste)
                 const wasUnread = !msg.is_read;
                 if (wasUnread) {
-                    // Mise à jour dans la base
+                    // Mettre à jour dans la base
                     supabase
                         .from('messages')
                         .update({ is_read: true })
@@ -1965,7 +1963,6 @@
                                 if (idx !== -1) messagesCache[idx].is_read = false;
                                 unreadCount = messagesCache.filter(m => !m.is_read).length;
                                 updateNotifDot();
-                                // On re-rend la liste pour refléter l'état
                                 renderMessageList();
                                 return;
                             }

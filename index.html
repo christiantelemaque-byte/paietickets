@@ -412,13 +412,14 @@
             position: absolute;
             top: 0;
             right: -4px;
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             background: #f44336;
             border-radius: 50%;
             border: 2px solid white;
             display: none;
-            z-index: 10;
+            z-index: 20;
+            box-shadow: 0 0 6px rgba(244, 67, 54, 0.5);
         }
         .bottom-menu .menu-item .notif-dot.show {
             display: block;
@@ -1852,7 +1853,7 @@
             });
 
             // =============================================================
-            // MESSAGES (avec alertes de débogage)
+            // MESSAGES (avec mise à jour is_read et gestion d'erreur)
             // =============================================================
             async function loadMessages(force = false) {
                 if (!currentUser) return;
@@ -1873,7 +1874,6 @@
                     console.error('Error loading messages:', error);
                     alert('❌ Error loading messages: ' + error.message);
                     if (error.code === '42501') {
-                        console.warn('RLS policy may be blocking SELECT. Please run SQL: CREATE POLICY "Users can read their own messages" ON messages FOR SELECT USING (auth.uid() = user_id);');
                         alert('⚠️ RLS policy issue – run the SQL in Supabase.');
                     }
                     return messagesCache;
@@ -1952,16 +1952,24 @@
 
             function openMessageDetail(msg) {
                 if (!msg.is_read) {
+                    // Mettre à jour dans la base de données
                     supabase
                         .from('messages')
                         .update({ is_read: true })
                         .eq('id', msg.id)
-                        .then(() => {
+                        .then(({ error }) => {
+                            if (error) {
+                                alert('❌ Error updating is_read: ' + error.message);
+                                console.error('Update error:', error);
+                                // Si erreur, on ne met pas à jour le cache
+                                return;
+                            }
+                            // Succès : mettre à jour le cache
                             msg.is_read = true;
                             const idx = messagesCache.findIndex(m => m.id === msg.id);
                             if (idx !== -1) messagesCache[idx].is_read = true;
                             unreadCount = messagesCache.filter(m => !m.is_read).length;
-                            alert('🔴 After reading, unreadCount = ' + unreadCount);
+                            alert('🔴 After reading (success), unreadCount = ' + unreadCount);
                             updateNotifDot();
                         });
                 }

@@ -117,6 +117,8 @@
             border-radius: 40px;
             display: none;
             z-index: 999;
+            max-width: 90%;
+            text-align: center;
         }
         #toast.show {
             display: block;
@@ -596,24 +598,23 @@
         // =============================================================
         // CONFIG
         // =============================================================
-        alert('🚀 Script chargé');
+        console.log('🚀 Script chargé');
 
         try {
             const { createClient } = await import('@supabase/supabase-js');
-            alert('✅ Supabase importé');
+            console.log('✅ Supabase importé');
 
             const SUPABASE_URL = 'https://iiceaseqdzcdfgkiinnx.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_VZxq4hifeXH7kyDdi91FJg_LlzNoCiL';
             const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            alert('✅ Supabase initialisé');
+            console.log('✅ Supabase initialisé');
 
             document.getElementById('errorMsg').classList.remove('show');
 
             // =============================================================
-            // STRIPE SETUP
+            // STRIPE SETUP (clé LIVE)
             // =============================================================
-            // 🔑 Remplace par ta clé publique Stripe (pk_test_...)
-            const stripe = Stripe('pk_test_K6URFQ24ytJNJCIJSHXy9E27');
+            const stripe = Stripe('pk_live_Z3DOEXDkQ29anfNUNNsk2XNb');
             const elements = stripe.elements();
 
             const cardNumber = elements.create('cardNumber', {
@@ -728,7 +729,7 @@
             let referrals = [];
             let chartInstances = {};
 
-            alert('✅ DOM ready');
+            console.log('✅ DOM ready');
 
             // =============================================================
             // TOAST
@@ -1267,33 +1268,27 @@
             }
 
             // =============================================================
-            // ADD INVESTMENT WITH STRIPE (using fetch for debugging)
+            // ADD INVESTMENT WITH STRIPE (fetch direct)
             // =============================================================
             async function addInvestment() {
-                alert('🔵 addInvestment appelée');
-
                 if (!currentUser) {
-                    alert('❌ Utilisateur non connecté');
                     showToast('Please log in.');
                     return;
                 }
-                alert('✅ Utilisateur connecté : ' + currentUser.email);
 
                 const amount = parseFloat(investAmount.value);
                 if (!amount || amount <= 0) {
-                    alert('❌ Montant invalide');
                     showToast('Please enter a valid amount.');
                     return;
                 }
-                alert('✅ Montant : ' + amount);
 
                 investBtn.disabled = true;
                 investBtn.textContent = 'Processing...';
 
                 try {
                     const postal = cardPostal.value.trim();
-                    alert('📦 Création du PaymentMethod Stripe...');
 
+                    // 1. Créer un PaymentMethod
                     const { error, paymentMethod } = await stripe.createPaymentMethod({
                         type: 'card',
                         card: cardNumber,
@@ -1305,25 +1300,19 @@
                     });
 
                     if (error) {
-                        alert('❌ Erreur Stripe : ' + error.message);
                         showToast('Payment error: ' + error.message);
                         investBtn.disabled = false;
                         investBtn.textContent = 'Invest Now';
                         return;
                     }
-                    alert('✅ PaymentMethod créé : ' + paymentMethod.id);
 
-                    // Utiliser fetch direct au lieu de invoke
+                    // 2. Appeler l'Edge Function
                     const functionUrl = 'https://iiceaseqdzcdfgkiinnx.supabase.co/functions/v1/quick-processor';
-                    alert('📡 Appel direct avec fetch vers : ' + functionUrl);
-
-                    // Récupérer le token d'authentification
                     const { data: { session } } = await supabase.auth.getSession();
                     const token = session?.access_token;
 
                     if (!token) {
-                        alert('❌ Pas de token d\'authentification !');
-                        showToast('Authentication error.');
+                        showToast('Authentication error. Please log out and log in again.');
                         investBtn.disabled = false;
                         investBtn.textContent = 'Invest Now';
                         return;
@@ -1343,25 +1332,18 @@
                         }),
                     });
 
-                    const status = response.status;
-                    const responseText = await response.text();
-                    let data;
-                    try { data = JSON.parse(responseText); } catch (e) { data = { raw: responseText }; }
-
-                    alert('📊 Statut HTTP : ' + status + '\nRéponse : ' + JSON.stringify(data, null, 2));
+                    const data = await response.json();
 
                     if (response.ok && data && data.success) {
-                        alert('🎉 Investissement de $' + amount + ' enregistré !');
                         showToast('Investment of $' + amount + ' recorded!');
                         investAmount.value = '';
                         cardPostal.value = '';
                         await loadAllData();
                     } else {
-                        alert('❌ Échec du paiement : ' + (data?.error || data?.raw || 'Unknown error'));
                         showToast('Payment failed: ' + (data?.error || 'Unknown error'));
                     }
                 } catch (err) {
-                    alert('❌ Erreur inattendue : ' + err.message);
+                    console.error(err);
                     showToast('Error: ' + err.message);
                 }
 

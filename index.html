@@ -418,7 +418,7 @@
             border-radius: 50%;
             border: 2px solid white;
             display: none;
-            z-index: 5;
+            z-index: 10;
         }
         .bottom-menu .menu-item .notif-dot.show {
             display: block;
@@ -664,7 +664,6 @@
         .msg-item.unread .msg-title {
             font-weight: 700;
         }
-        /* Back button (just an arrow) */
         .back-btn {
             background: none;
             border: none;
@@ -1853,13 +1852,14 @@
             });
 
             // =============================================================
-            // MESSAGES
+            // MESSAGES (avec alertes de débogage)
             // =============================================================
             async function loadMessages(force = false) {
                 if (!currentUser) return;
                 const now = Date.now();
                 if (!force && messagesCache.length > 0 && (now - messagesLastFetch) < CACHE_DURATION) {
                     unreadCount = messagesCache.filter(m => !m.is_read).length;
+                    alert('🔍 loadMessages (cache) - unreadCount = ' + unreadCount);
                     try { updateNotifDot(); } catch (e) { console.warn('updateNotifDot error:', e); }
                     return messagesCache;
                 }
@@ -1871,27 +1871,34 @@
 
                 if (error) {
                     console.error('Error loading messages:', error);
+                    alert('❌ Error loading messages: ' + error.message);
                     if (error.code === '42501') {
                         console.warn('RLS policy may be blocking SELECT. Please run SQL: CREATE POLICY "Users can read their own messages" ON messages FOR SELECT USING (auth.uid() = user_id);');
+                        alert('⚠️ RLS policy issue – run the SQL in Supabase.');
                     }
                     return messagesCache;
                 }
                 messagesCache = data || [];
                 messagesLastFetch = now;
                 unreadCount = messagesCache.filter(m => !m.is_read).length;
+                alert('🔍 loadMessages (fresh) - unreadCount = ' + unreadCount + '  (total messages: ' + messagesCache.length + ')');
                 try { updateNotifDot(); } catch (e) { console.warn('updateNotifDot error:', e); }
                 return messagesCache;
             }
 
             function updateNotifDot() {
+                alert('🔴 updateNotifDot called with unreadCount = ' + unreadCount);
                 if (unreadCount > 0) {
                     moreNotifDot.classList.add('show');
+                    alert('✅ Dot should be visible now.');
                 } else {
                     moreNotifDot.classList.remove('show');
+                    alert('✅ Dot hidden.');
                 }
             }
 
             async function openInbox() {
+                alert('📨 Inbox opened.');
                 await loadMessages(true);
                 if (messagesCache.length === 0) {
                     modalContent.innerHTML = `
@@ -1954,6 +1961,7 @@
                             const idx = messagesCache.findIndex(m => m.id === msg.id);
                             if (idx !== -1) messagesCache[idx].is_read = true;
                             unreadCount = messagesCache.filter(m => !m.is_read).length;
+                            alert('🔴 After reading, unreadCount = ' + unreadCount);
                             updateNotifDot();
                         });
                 }
@@ -1962,7 +1970,6 @@
                 modalContent.innerHTML = `
                     <div style="position:relative;">
                         <button class="close-btn" onclick="closeModal()">✕</button>
-                        <!-- Back button (flèche uniquement) -->
                         <button class="back-btn" id="backToInbox">←</button>
                         <h3>📄 Message</h3>
                         <p style="color:#888;font-size:14px;">${date}</p>
@@ -2053,6 +2060,7 @@
                                 messagesCache.unshift(newMsg[0]);
                                 messagesLastFetch = Date.now();
                                 unreadCount = messagesCache.filter(m => !m.is_read).length;
+                                alert('🟢 New message sent. unreadCount = ' + unreadCount);
                                 updateNotifDot();
                             }
                         }

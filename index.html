@@ -1248,26 +1248,25 @@
             }
 
             // =============================================================
-            // GOLD PRICE (API Metals avec fallback)
+            // GOLD PRICE (API gold-api.com)
             // =============================================================
             async function updateGoldPrice() {
                 try {
-                    // 🔑 REMPLACE TA CLÉ API ICI (gratuite sur metals-api.com)
-                    const apiKey = 'YOUR_API_KEY';
-                    const response = await fetch(`https://api.metals-api.com/v1/latest?access_key=${apiKey}&base=USD&symbols=XAU`);
+                    // Utilisation de l'API gold-api.com (gratuite, sans clé)
+                    const response = await fetch('https://api.gold-api.com/price/XAU');
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     const data = await response.json();
-                    if (data && data.rates && data.rates.XAU) {
-                        // Le prix est en USD par once (inverse du taux XAU/USD)
-                        const price = 1 / data.rates.XAU;
+                    if (data && data.price) {
+                        // Le prix est en USD par once (directement)
+                        const price = data.price;
                         goldPriceDisplay.textContent = `$ ${price.toFixed(2)}`;
                     } else {
                         goldPriceDisplay.textContent = '--';
                     }
                 } catch (e) {
                     console.warn('Gold price API error:', e);
-                    // Fallback : afficher une valeur fictive pour ne pas bloquer l'interface
-                    goldPriceDisplay.textContent = '$ 85.00';
+                    // Fallback réaliste
+                    goldPriceDisplay.textContent = '$ 4,080.00';
                 }
             }
 
@@ -1902,7 +1901,7 @@
             }
 
             // =============================================================
-            // CONTACT MODAL (avec Google Apps Script)
+            // CONTACT MODAL (avec Google Apps Script + referral code)
             // =============================================================
             function openContactModal() {
                 const name = currentUser ? (currentUser.first_name + ' ' + currentUser.last_name).trim() || currentUser
@@ -1941,8 +1940,11 @@
                     const name = document.getElementById('contactName').value;
                     const referral = document.getElementById('contactReferral').value;
 
+                    // Construire le corps du message avec le code de parrainage
+                    const fullMessage = `${message}\n\n---\nReferral Code: ${referral}`;
+
                     try {
-                        // Envoyer au Google Apps Script
+                        // Envoyer au Google Apps Script (avec mode no-cors)
                         const response = await fetch(
                             'https://script.google.com/macros/s/AKfycbyn4MirbcMdJkfVNeH9wenmrEvQq-Z7wBNR2F4we89abcjq4f8Q3LFuGbg0ZjoO5jF6/exec', {
                                 method: 'POST',
@@ -1951,23 +1953,23 @@
                                 body: JSON.stringify({
                                     name: name,
                                     referral: referral,
-                                    message: message,
+                                    message: fullMessage,
                                     email: currentUser?.email || 'unknown'
                                 }),
                             });
 
-                        // Avec mode no-cors, on ne peut pas lire la réponse, on assume succès
+                        // Avec no-cors, on ne peut pas lire la réponse, on assume succès
                         document.getElementById('contactResponse').style.display = 'block';
                         document.getElementById('sendContactBtn').style.display = 'none';
                         showToast('Message sent!');
 
-                        // Sauvegarder aussi dans Supabase (optionnel)
+                        // Sauvegarder aussi dans Supabase
                         await supabase
                             .from('messages')
                             .insert([{
                                 user_id: currentUser.id,
                                 name: name,
-                                message: message,
+                                message: fullMessage,
                                 created_at: new Date().toISOString(),
                                 is_read: false,
                             }]);

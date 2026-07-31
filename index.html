@@ -24,6 +24,7 @@
             align-items: flex-start;
             min-height: 100vh;
             padding: 12px 12px 0 12px;
+            overscroll-behavior: none; /* 🔥 DISABLE PULL-TO-REFRESH */
         }
         .container {
             max-width: 420px;
@@ -1374,7 +1375,7 @@
     </script>
 
     <!-- ============================================================ -->
-    <!-- MAIN SCRIPT – WITH FIXED GOLD CHANGE                        -->
+    <!-- MAIN SCRIPT – ALL FIXES INCLUDED                            -->
     <!-- ============================================================ -->
     <script type="module">
         // =============================================================
@@ -1777,7 +1778,7 @@
             // =============================================================
             // GOLD PRICE – FIXED CHANGE CALCULATION
             // =============================================================
-            let lastGoldPrice = null; // Will store previous price to compute change
+            let lastGoldPrice = null;
             let lastGoldChange = '+0.00 (+0.00%)';
 
             async function updateGoldPrice() {
@@ -1787,14 +1788,12 @@
                     const data = await response.json();
                     if (data && data.price) {
                         const price = parseFloat(data.price);
-                        // Compute change from previous price
                         let change = 0;
                         let changePct = 0;
                         if (lastGoldPrice !== null) {
                             change = price - lastGoldPrice;
                             changePct = (change / lastGoldPrice) * 100;
                         }
-                        // Update the last price for next call
                         lastGoldPrice = price;
 
                         const sign = change >= 0 ? '+' : '';
@@ -1802,18 +1801,13 @@
                         const formattedPct = `${sign}${changePct.toFixed(2)}%`;
                         lastGoldChange = `${formattedChange} (${formattedPct})`;
 
-                        // Update UI
                         goldPriceDisplay.innerHTML = `$${price.toFixed(2)} <span class="currency">USD/oz</span>`;
                         goldChangeDisplay.textContent = lastGoldChange;
                         goldChangeDisplay.className = 'gold-change' + (change >= 0 ? '' : ' negative');
                         goldTimestamp.textContent = new Date().toLocaleDateString();
-                    } else {
-                        // Fallback: use last known price and keep change as-is
-                        console.warn('Invalid API response, using fallback');
                     }
                 } catch (e) {
                     console.warn('Gold price API error:', e);
-                    // Keep last known values
                 }
             }
 

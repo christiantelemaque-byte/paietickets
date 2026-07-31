@@ -23,7 +23,7 @@
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
-            padding: 12px 12px 0 12px; /* removed bottom padding */
+            padding: 12px 12px 0 12px;
         }
         .container {
             max-width: 420px;
@@ -32,7 +32,7 @@
             border-radius: 28px;
             padding: 16px 16px 8px 16px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-            margin-bottom: 0; /* removed margin */
+            margin-bottom: 0;
         }
 
         /* ========== SCROLLBAR ========== */
@@ -629,7 +629,6 @@
             padding: 6px 0 10px 0;
             z-index: 100;
             box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
-            /* removed border-radius to avoid white gap */
         }
         .bottom-menu.show {
             display: flex;
@@ -1144,7 +1143,7 @@
                 <div class="gold-label">LIVE GOLD PRICE</div>
                 <div class="gold-price-row">
                     <span class="gold-price" id="goldPriceDisplay">$4,114.30 <span class="currency">USD/oz</span></span>
-                    <span class="gold-change" id="goldChangeDisplay">+38.65 (+0.95%)</span>
+                    <span class="gold-change" id="goldChangeDisplay">+0.00 (+0.00%)</span>
                 </div>
                 <div class="gold-sub">
                     <span class="live">LIVE</span>
@@ -1375,7 +1374,7 @@
     </script>
 
     <!-- ============================================================ -->
-    <!-- MAIN SCRIPT – WITH ALL FIXES                                 -->
+    <!-- MAIN SCRIPT – WITH FIXED GOLD CHANGE                        -->
     <!-- ============================================================ -->
     <script type="module">
         // =============================================================
@@ -1701,7 +1700,6 @@
                 showToast('Logged out.');
                 showAuthScreen();
                 closeAllPopups();
-                // Optionally clear saved credentials? We'll keep them for convenience.
             }
 
             // =============================================================
@@ -1777,10 +1775,10 @@
             }
 
             // =============================================================
-            // GOLD PRICE
+            // GOLD PRICE – FIXED CHANGE CALCULATION
             // =============================================================
-            let lastGoldPrice = 4114.30;
-            let lastGoldChange = '+38.65 (+0.95%)';
+            let lastGoldPrice = null; // Will store previous price to compute change
+            let lastGoldChange = '+0.00 (+0.00%)';
 
             async function updateGoldPrice() {
                 try {
@@ -1788,21 +1786,34 @@
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const data = await response.json();
                     if (data && data.price) {
-                        const price = data.price;
+                        const price = parseFloat(data.price);
+                        // Compute change from previous price
+                        let change = 0;
+                        let changePct = 0;
+                        if (lastGoldPrice !== null) {
+                            change = price - lastGoldPrice;
+                            changePct = (change / lastGoldPrice) * 100;
+                        }
+                        // Update the last price for next call
                         lastGoldPrice = price;
-                        const change = data.change || 0;
-                        const changePct = data.change_percent || 0;
+
                         const sign = change >= 0 ? '+' : '';
-                        lastGoldChange = `${sign}${change.toFixed(2)} (${sign}${changePct.toFixed(2)}%)`;
+                        const formattedChange = `${sign}${change.toFixed(2)}`;
+                        const formattedPct = `${sign}${changePct.toFixed(2)}%`;
+                        lastGoldChange = `${formattedChange} (${formattedPct})`;
+
+                        // Update UI
                         goldPriceDisplay.innerHTML = `$${price.toFixed(2)} <span class="currency">USD/oz</span>`;
                         goldChangeDisplay.textContent = lastGoldChange;
                         goldChangeDisplay.className = 'gold-change' + (change >= 0 ? '' : ' negative');
                         goldTimestamp.textContent = new Date().toLocaleDateString();
+                    } else {
+                        // Fallback: use last known price and keep change as-is
+                        console.warn('Invalid API response, using fallback');
                     }
                 } catch (e) {
                     console.warn('Gold price API error:', e);
-                    goldPriceDisplay.innerHTML = `$${lastGoldPrice.toFixed(2)} <span class="currency">USD/oz</span>`;
-                    goldChangeDisplay.textContent = lastGoldChange;
+                    // Keep last known values
                 }
             }
 
@@ -1877,9 +1888,8 @@
                 list.innerHTML = html;
                 totalInvestment.textContent = `$${total.toFixed(2)}`;
 
-                // ✅ FIX: convert price from USD/oz to USD/gram
                 const OUNCE_TO_GRAM = 31.1035;
-                const currentPricePerOunce = goldPrices.length > 0 ? goldPrices[goldPrices.length - 1].price : lastGoldPrice;
+                const currentPricePerOunce = goldPrices.length > 0 ? goldPrices[goldPrices.length - 1].price : (lastGoldPrice || 4114.30);
                 const currentPricePerGram = currentPricePerOunce / OUNCE_TO_GRAM;
 
                 let portfolioTotal = 0;
@@ -1977,7 +1987,7 @@
                 Object.values(chartInstances).forEach(chart => { if (chart) chart.destroy(); });
                 chartInstances = {};
 
-                const currentPrice = goldPrices.length > 0 ? goldPrices[goldPrices.length - 1].price : lastGoldPrice;
+                const currentPrice = goldPrices.length > 0 ? goldPrices[goldPrices.length - 1].price : (lastGoldPrice || 4114.30);
 
                 let histLabels = [],
                     histData = [];
@@ -2282,7 +2292,6 @@
             function closeAllPopups() {
                 overlay.classList.remove('show');
                 menuPopup.classList.remove('show');
-                // Remove active class from More button
                 moreMenuBtn.classList.remove('active');
             }
 
@@ -2292,12 +2301,10 @@
                 closeAllPopups();
                 if (!isShowing) {
                     menuPopup.classList.add('show');
-                    // Highlight the More button
                     moreMenuBtn.classList.add('active');
                 }
             });
 
-            // Close popup when clicking outside
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.menu-popup') && !e.target.closest('#moreMenuBtn')) {
                     menuPopup.classList.remove('show');
@@ -2348,7 +2355,7 @@
             // =============================================================
             // MESSAGES – with delayed read marking
             // =============================================================
-            let pendingMessageId = null; // track which message to mark read on back
+            let pendingMessageId = null;
 
             async function loadMessages(force = false) {
                 if (!currentUser) return;
@@ -2442,7 +2449,6 @@
             }
 
             function openMessageDetail(msg) {
-                // Display message detail WITHOUT marking as read yet
                 const date = new Date(msg.created_at).toLocaleString();
                 modalContent.innerHTML = `
                     <div style="position:relative;">
@@ -2455,27 +2461,22 @@
                         </div>
                     </div>
                 `;
-                // Store the message id to mark as read when back is pressed
                 pendingMessageId = msg.id;
 
                 document.getElementById('backToInbox').addEventListener('click', async function() {
-                    // Mark as read if it was unread
                     if (pendingMessageId) {
                         const targetMsg = messagesCache.find(m => m.id === pendingMessageId);
                         if (targetMsg && !targetMsg.is_read) {
-                            // Update in Supabase
                             await supabase
                                 .from('messages')
                                 .update({ is_read: true })
                                 .eq('id', pendingMessageId);
-                            // Update cache
                             targetMsg.is_read = true;
                             unreadCount = messagesCache.filter(m => !m.is_read).length;
                             updateNotifDots();
                         }
                         pendingMessageId = null;
                     }
-                    // Re-render the list
                     renderMessageList();
                 });
             }

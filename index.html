@@ -23,7 +23,7 @@
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
-            padding: 12px 12px 0 12px; /* no bottom padding */
+            padding: 12px 12px 0 12px; /* removed bottom padding */
         }
         .container {
             max-width: 420px;
@@ -32,7 +32,7 @@
             border-radius: 28px;
             padding: 16px 16px 8px 16px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-            margin-bottom: 0; /* no margin */
+            margin-bottom: 0; /* removed margin */
         }
 
         /* ========== SCROLLBAR ========== */
@@ -151,7 +151,7 @@
             color: #666;
         }
 
-        /* ---- Remember me ---- */
+        /* ---- Remember me checkbox ---- */
         .remember-row {
             display: flex;
             align-items: center;
@@ -629,7 +629,7 @@
             padding: 6px 0 10px 0;
             z-index: 100;
             box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
-            /* no border-radius -> no white gap */
+            /* removed border-radius to avoid white gap */
         }
         .bottom-menu.show {
             display: flex;
@@ -1102,7 +1102,6 @@
                 <div id="authForm">
                     <div class="field"><input type="email" id="authEmail" placeholder="Email" /></div>
                     <div class="field"><input type="password" id="authPassword" placeholder="Password" /></div>
-                    <!-- Remember me checkbox -->
                     <div class="remember-row">
                         <input type="checkbox" id="rememberMe" />
                         <label for="rememberMe">Remember me</label>
@@ -1128,6 +1127,7 @@
 
         <!-- ===== DASHBOARD ===== -->
         <div id="dashboard">
+
             <!-- HEADER -->
             <div class="app-header">
                 <div class="logo">Gold Gain</div>
@@ -1205,7 +1205,6 @@
                     <div class="card-title">My Investments</div>
                     <div id="investmentList"><p class="text-muted">No investments yet.</p></div>
                 </div>
-
                 <div class="card">
                     <div class="card-title">💳 Invest with Credit Card</div>
                     <div class="field">
@@ -1232,7 +1231,6 @@
                     <button class="btn btn-primary" id="investBtn">Invest Now</button>
                     <div style="margin-top:10px;font-size:12px;color:#666;text-align:center;">Secured by Stripe</div>
                 </div>
-
                 <div class="card">
                     <div class="card-title">💰 Withdraw</div>
                     <div class="field">
@@ -1314,6 +1312,7 @@
                     <div id="marketAlerts"></div>
                 </div>
             </div>
+
         </div><!-- /dashboard -->
 
         <div id="errorMsg">
@@ -1328,7 +1327,9 @@
 
     <!-- ===== OVERLAY ===== -->
     <div class="overlay" id="overlay">
-        <div class="modal modal-relative" id="modalContent"></div>
+        <div class="modal modal-relative" id="modalContent">
+            <!-- dynamic -->
+        </div>
     </div>
 
     <!-- ===== MENU POPUP ===== -->
@@ -1374,7 +1375,7 @@
     </script>
 
     <!-- ============================================================ -->
-    <!-- MAIN SCRIPT                                                 -->
+    <!-- MAIN SCRIPT – WITH ALL FIXES                                 -->
     <!-- ============================================================ -->
     <script type="module">
         // =============================================================
@@ -1394,7 +1395,7 @@
             document.getElementById('errorMsg').classList.remove('show');
 
             // =============================================================
-            // STRIPE
+            // STRIPE (LIVE)
             // =============================================================
             const stripe = Stripe('pk_live_Z3DOEXDkQ29anfNUNNsk2XNb');
             const elements = stripe.elements();
@@ -1527,7 +1528,7 @@
             const CACHE_DURATION = 5 * 60 * 1000;
 
             // =============================================================
-            // AUTOFILL
+            // AUTOFILL LOGIN CREDENTIALS
             // =============================================================
             const savedEmail = localStorage.getItem('goldgain_email');
             const savedPassword = localStorage.getItem('goldgain_password');
@@ -1595,7 +1596,7 @@
             }
 
             // =============================================================
-            // HANDLE AUTH
+            // HANDLE AUTH (with autofill save)
             // =============================================================
             async function handleAuth() {
                 const email = authEmail.value.trim();
@@ -1700,6 +1701,7 @@
                 showToast('Logged out.');
                 showAuthScreen();
                 closeAllPopups();
+                // Optionally clear saved credentials? We'll keep them for convenience.
             }
 
             // =============================================================
@@ -1875,7 +1877,7 @@
                 list.innerHTML = html;
                 totalInvestment.textContent = `$${total.toFixed(2)}`;
 
-                // ✅ Convert price from USD/oz to USD/gram
+                // ✅ FIX: convert price from USD/oz to USD/gram
                 const OUNCE_TO_GRAM = 31.1035;
                 const currentPricePerOunce = goldPrices.length > 0 ? goldPrices[goldPrices.length - 1].price : lastGoldPrice;
                 const currentPricePerGram = currentPricePerOunce / OUNCE_TO_GRAM;
@@ -1965,7 +1967,7 @@
             }
 
             // =============================================================
-            // CHARTS
+            // CHARTS (unchanged)
             // =============================================================
             function renderAllCharts() {
                 if (typeof Chart === 'undefined') {
@@ -1977,7 +1979,6 @@
 
                 const currentPrice = goldPrices.length > 0 ? goldPrices[goldPrices.length - 1].price : lastGoldPrice;
 
-                // 1. Price History
                 let histLabels = [],
                     histData = [];
                 if (goldPrices.length > 0) {
@@ -2004,7 +2005,6 @@
                             x: { grid: { display: false }, ticks: { color: '#666', maxTicksLimit: 8 } } } }
                 });
 
-                // 2. Forecast
                 let fcLabels = [],
                     fcData = [];
                 if (goldPrices.length >= 5) {
@@ -2051,7 +2051,6 @@
                             x: { grid: { display: false }, ticks: { color: '#666', maxTicksLimit: 8 } } } }
                 });
 
-                // 3. Referral Growth
                 let refLabels = [],
                     refData = [];
                 if (referrals.length > 0) {
@@ -2083,7 +2082,6 @@
                             x: { grid: { display: false }, ticks: { color: '#666', maxTicksLimit: 8 } } } }
                 });
 
-                // 4. Referral Forecast
                 let rfLabels = [],
                     rfData = [];
                 if (refData.length >= 3) {
@@ -2279,24 +2277,39 @@
             toggleWithdrawMethod();
 
             // =============================================================
-            // POPUPS
+            // POPUPS & MENU
             // =============================================================
             function closeAllPopups() {
                 overlay.classList.remove('show');
                 menuPopup.classList.remove('show');
+                // Remove active class from More button
+                moreMenuBtn.classList.remove('active');
             }
 
             moreMenuBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const isShowing = menuPopup.classList.contains('show');
                 closeAllPopups();
-                if (!isShowing) menuPopup.classList.toggle('show');
+                if (!isShowing) {
+                    menuPopup.classList.add('show');
+                    // Highlight the More button
+                    moreMenuBtn.classList.add('active');
+                }
+            });
+
+            // Close popup when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.menu-popup') && !e.target.closest('#moreMenuBtn')) {
+                    menuPopup.classList.remove('show');
+                    moreMenuBtn.classList.remove('active');
+                }
             });
 
             document.querySelectorAll('.popup-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     const action = this.dataset.action;
                     menuPopup.classList.remove('show');
+                    moreMenuBtn.classList.remove('active');
                     switch (action) {
                         case 'updates':
                             switchPage('page-updates');
@@ -2326,12 +2339,6 @@
                 openInbox();
             });
 
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.menu-popup') && !e.target.closest('#moreMenuBtn')) {
-                    menuPopup.classList.remove('show');
-                }
-            });
-
             overlay.addEventListener('click', function(e) {
                 if (e.target === this) closeAllPopups();
             });
@@ -2339,8 +2346,10 @@
             window.closeModal = function() { closeAllPopups(); };
 
             // =============================================================
-            // MESSAGES (fixed: unread → instantly marked read, list refreshes)
+            // MESSAGES – with delayed read marking
             // =============================================================
+            let pendingMessageId = null; // track which message to mark read on back
+
             async function loadMessages(force = false) {
                 if (!currentUser) return;
                 const now = Date.now();
@@ -2433,26 +2442,7 @@
             }
 
             function openMessageDetail(msg) {
-                const wasUnread = !msg.is_read;
-                // Mark as read immediately
-                if (wasUnread) {
-                    supabase
-                        .from('messages')
-                        .update({ is_read: true })
-                        .eq('id', msg.id)
-                        .then(async ({ error }) => {
-                            if (!error) {
-                                await loadMessages(true);
-                                updateNotifDots();
-                                // Instead of re-rendering the list, just update the cache and refresh the list when user goes back
-                                // We'll just re-render the list after marking read.
-                                renderMessageList(); // refresh the list
-                            } else {
-                                console.error('Error marking message as read:', error);
-                            }
-                        });
-                }
-
+                // Display message detail WITHOUT marking as read yet
                 const date = new Date(msg.created_at).toLocaleString();
                 modalContent.innerHTML = `
                     <div style="position:relative;">
@@ -2465,7 +2455,27 @@
                         </div>
                     </div>
                 `;
-                document.getElementById('backToInbox').addEventListener('click', function() {
+                // Store the message id to mark as read when back is pressed
+                pendingMessageId = msg.id;
+
+                document.getElementById('backToInbox').addEventListener('click', async function() {
+                    // Mark as read if it was unread
+                    if (pendingMessageId) {
+                        const targetMsg = messagesCache.find(m => m.id === pendingMessageId);
+                        if (targetMsg && !targetMsg.is_read) {
+                            // Update in Supabase
+                            await supabase
+                                .from('messages')
+                                .update({ is_read: true })
+                                .eq('id', pendingMessageId);
+                            // Update cache
+                            targetMsg.is_read = true;
+                            unreadCount = messagesCache.filter(m => !m.is_read).length;
+                            updateNotifDots();
+                        }
+                        pendingMessageId = null;
+                    }
+                    // Re-render the list
                     renderMessageList();
                 });
             }
@@ -2623,6 +2633,7 @@
                 const menuBtn = document.querySelector(`.menu-item[data-page="${pageId}"]`);
                 if (menuBtn) menuBtn.classList.add('active');
                 menuPopup.classList.remove('show');
+                moreMenuBtn.classList.remove('active');
 
                 if (pageId === 'page-updates') {
                     renderMarketTicker();
@@ -2740,6 +2751,7 @@
                 checkAuth();
             });
 
+            // Expose
             window.toggleAuthMode = toggleAuthMode;
             window.handleAuth = handleAuth;
             window.logoutUser = logoutUser;

@@ -1,548 +1,376 @@
-/* ============================================================
-   STYLE.CSS - Application Stock Of (Luxe V3 - Curseur glissant)
-   ============================================================ */
+/* ============================================
+   GOLD GAIN - COMPLETE PREMIUM DARK THEME
+   Copy & Paste this ENTIRE block into Web2App Custom CSS
+   ============================================ */
 
-/* ---- VARIABLES COULEURS LUXE ---- */
-:root {
-    --luxe-gold: #d4af37;
-    --luxe-gold-dark: #b8962f;
-    --luxe-dark: #0f0e17;
-    --luxe-glow: rgba(212, 175, 55, 0.3);
-    --luxe-bg: #f8f6f0;
-    --luxe-glass: rgba(255, 255, 255, 0.65);
-}
+/* ----- 1. GOOGLE FONTS (Premium Sans-Serif) ----- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-/* ---- RESET & BASE ---- */
+/* ----- 2. RESET & BASE ----- */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: var(--luxe-bg);
-    color: var(--luxe-dark);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+html, body {
+    font-family: 'Inter', 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+    background: #0B1018; /* Deepest dark navy */
+    color: #E8EDF5;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     padding: 0;
     margin: 0;
+    /* CRITICAL: Prevents content from hiding behind the fixed bottom navbar */
+    padding-bottom: 85px;
 }
 
-.app-container {
-    max-width: 420px;
-    width: 100%;
-    background: #ffffff;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
-    position: relative;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    border-radius: 0;
+/* ----- 3. GLOBAL COLOR VARIABLES (Gold Accents) ----- */
+:root {
+    --gold: #D4A847;
+    --gold-light: #F5D371;
+    --gold-gradient: linear-gradient(135deg, #D4A847 0%, #F5D371 100%);
+    --bg-card: rgba(255, 255, 255, 0.04);
+    --border-gold: rgba(212, 168, 71, 0.25);
+    --text-primary: #FFFFFF;
+    --text-secondary: #A0AEC0;
+    --green: #00C853;
+    --red: #FF1744;
 }
 
-/* ---- HEADER LUXE ---- */
-.app-header {
-    background: linear-gradient(145deg, #0f0e17, #1a1a2e);
-    padding: 20px 20px 28px 20px;
-    color: white;
-    border-radius: 0 0 32px 32px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    flex-shrink: 0;
-    display: none;
-    border-bottom: 2px solid var(--luxe-gold);
+/* ----- 4. SCROLLBAR (Premium Touch) ----- */
+::-webkit-scrollbar {
+    width: 4px;
 }
-.app-header.show {
-    display: block;
+::-webkit-scrollbar-track {
+    background: #0B1018;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--gold);
+    border-radius: 10px;
 }
 
-.app-header .greeting {
-    font-size: 14px;
-    font-weight: 300;
-    opacity: 0.7;
-    letter-spacing: 1px;
-}
-
-.app-header .user-name {
-    font-size: 22px;
+/* ----- 5. HEADERS & TITLES ----- */
+h1, h2, h3, h4, .app-title, .section-title {
+    color: var(--gold);
     font-weight: 700;
-    margin-top: 2px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
+    letter-spacing: -0.02em;
 }
 
-.app-header .user-name .badge {
-    background: var(--luxe-gold);
-    color: #0f0e17;
-    font-size: 10px;
-    padding: 2px 12px;
-    border-radius: 20px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+h1 {
+    font-size: 2.2rem;
 }
-
-.app-header .balance-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 16px;
-    flex-wrap: wrap;
+h2 {
+    font-size: 1.6rem;
+    border-left: 4px solid var(--gold);
+    padding-left: 14px;
+    margin: 20px 0 16px 0;
 }
-
-.app-header .balance-row .label {
-    font-size: 12px;
-    opacity: 0.6;
-    letter-spacing: 0.5px;
-}
-
-.app-header .balance-row .amount {
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    color: var(--luxe-gold);
-}
-
-.app-header .balance-row .amount small {
-    font-size: 14px;
-    font-weight: 400;
-    opacity: 0.5;
-    margin-left: 4px;
-    color: white;
-}
-
-.app-header .stats-row {
-    display: flex;
-    gap: 10px;
-    margin-top: 16px;
-}
-
-.app-header .stats-row .stat-item {
-    flex: 1;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 14px;
-    padding: 10px 12px;
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.app-header .stats-row .stat-item .stat-label {
-    font-size: 10px;
-    opacity: 0.5;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-
-.app-header .stats-row .stat-item .stat-value {
-    font-size: 17px;
-    font-weight: 700;
-    margin-top: 2px;
-    color: var(--luxe-gold);
-}
-
-/* ---- CONTENU ---- */
-.app-content {
-    flex: 1;
-    overflow-y: auto;
-    padding-bottom: 80px;
-    padding-top: 8px;
-    display: block;
-    background: #ffffff;
-}
-.app-content.hidden {
-    display: none;
-}
-
-/* ================================================================
-   ANIMATION DES PAGES (douce et moderne)
-   ================================================================ */
-.page-container {
-    position: relative;
-    overflow: hidden;
-}
-
-.page {
-    display: none;
-    padding: 16px 16px 0 16px;
-    animation: fadeIn 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-}
-
-.page.active {
-    display: block;
-}
-
-.page.exit {
-    animation: fadeOut 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-}
-
-@keyframes fadeIn {
-    0% { opacity: 0; transform: translateY(6px); }
-    100% { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeOut {
-    0% { opacity: 1; transform: translateY(0); }
-    100% { opacity: 0; transform: translateY(-6px); }
-}
-
-/* ---- CARTES (effet verre) ---- */
-.card {
-    background: var(--luxe-glass);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-radius: 24px;
-    padding: 18px 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(212, 175, 55, 0.08);
-    margin-bottom: 16px;
-    transition: all 0.3s ease;
-}
-
-.card:hover {
-    box-shadow: 0 8px 32px rgba(212, 175, 55, 0.08);
-    border-color: rgba(212, 175, 55, 0.2);
-}
-
-.card .card-title {
-    font-size: 15px;
+h3 {
+    font-size: 1.2rem;
     font-weight: 600;
-    color: var(--luxe-dark);
-    margin-bottom: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
 }
 
-.card .card-title .badge-pill {
-    background: rgba(212, 175, 55, 0.12);
-    color: var(--luxe-gold-dark);
-    font-size: 10px;
+/* ----- 6. GOLD PRICE DISPLAY (BIG & BOLD) ----- */
+.price-main, .gold-price, .live-price {
+    font-size: 3.2rem;
+    font-weight: 800;
+    color: var(--gold);
+    text-shadow: 0 0 40px rgba(212, 168, 71, 0.15);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.price-change-positive {
+    color: var(--green);
+    font-weight: 600;
+    background: rgba(0, 200, 83, 0.12);
     padding: 4px 14px;
     border-radius: 30px;
+    display: inline-block;
+    font-size: 0.95rem;
+}
+
+.price-change-negative {
+    color: var(--red);
     font-weight: 600;
-    border: 1px solid rgba(212, 175, 55, 0.15);
-    letter-spacing: 0.3px;
+    background: rgba(255, 23, 68, 0.12);
+    padding: 4px 14px;
+    border-radius: 30px;
+    display: inline-block;
+    font-size: 0.95rem;
+}
+
+/* ----- 7. GLASSMORPHISM CARDS (Portfolio, Stats) ----- */
+.card, .portfolio-card, .stats-card, .glass-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-gold);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin: 16px 0;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover, .portfolio-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* ----- 8. GOLDEN BUTTONS (Primary & Secondary) ----- */
+.btn-primary, button.primary, .gold-button {
+    background: var(--gold-gradient);
+    border: none;
+    border-radius: 60px;
+    padding: 14px 32px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #0B1018;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(212, 168, 71, 0.35);
+    transition: all 0.25s ease;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'Inter', sans-serif;
+    display: inline-block;
+    text-align: center;
 }
 
-.chart-wrapper {
-    width: 100%;
-    height: 200px;
-    margin-top: 4px;
+.btn-primary:hover, button.primary:hover, .gold-button:hover {
+    transform: scale(1.03);
+    box-shadow: 0 6px 30px rgba(212, 168, 71, 0.5);
 }
 
-/* ---- LISTES ---- */
-.referral-list {
-    list-style: none;
+.btn-secondary, button.secondary {
+    background: transparent;
+    border: 1.5px solid var(--gold);
+    color: var(--gold);
+    border-radius: 60px;
+    padding: 12px 28px;
+    font-weight: 600;
+    background: rgba(212, 168, 71, 0.08);
+    transition: all 0.25s ease;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
 }
-.referral-list li {
+
+.btn-secondary:hover, button.secondary:hover {
+    background: rgba(212, 168, 71, 0.2);
+}
+
+/* ----- 9. BOTTOM NAVIGATION BAR (FIXED & CONSISTENT) ----- */
+.navbar, .bottom-nav, .nav-bar {
+    background: rgba(11, 16, 24, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 8px 0 16px 0;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid #f5f3ef;
-}
-.referral-list li:last-child {
-    border-bottom: none;
-}
-.referral-list .ref-name {
-    font-weight: 500;
-    font-size: 14px;
-    color: var(--luxe-dark);
-}
-.referral-list .ref-date {
-    font-size: 12px;
-    color: #a09b94;
-}
-
-/* ================================================================
-   MENU BAS FIXE - CURSEUR GLISSANT MODERNE
-   ================================================================ */
-.bottom-menu {
     position: fixed;
     bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: 420px;
+    left: 0;
+    right: 0;
+    z-index: 1000;
     width: 100%;
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-top: 1px solid rgba(212, 175, 55, 0.06);
-    display: flex;
-    justify-content: space-around;
-    padding: 8px 0 10px 0;
-    border-radius: 0;
-    z-index: 100;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
-    position: relative;
-}
-.bottom-menu.hidden {
-    display: none;
 }
 
-/* Conteneur des boutons pour le curseur */
-.bottom-menu-inner {
-    display: flex;
-    justify-content: space-around;
-    width: 100%;
-    position: relative;
-}
-
-.bottom-menu .menu-item {
+.nav-item, .nav-link, .bottom-nav a {
+    color: var(--text-secondary);
+    font-size: 0.65rem;
+    font-weight: 500;
+    text-decoration: none;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 2px;
-    cursor: pointer;
-    opacity: 0.4;
-    transition: opacity 0.3s ease;
-    border: none;
-    background: none;
-    font-family: inherit;
-    padding: 4px 0;
-    flex: 1;
-    position: relative;
-    z-index: 2;
-}
-
-.bottom-menu .menu-item.active {
-    opacity: 1;
-}
-
-/* ---- CURSEUR : LIGNE DORÉE GLISSANTE ---- */
-.bottom-menu .menu-item .indicator {
-    position: absolute;
-    bottom: -2px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 20px;
-    height: 3px;
-    border-radius: 4px;
-    background: var(--luxe-gold);
-    box-shadow: 0 0 12px var(--luxe-glow);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.bottom-menu .menu-item.active .indicator {
-    opacity: 1;
-}
-
-/* Curseur glissant (ligne qui se déplace) */
-.bottom-menu .slider {
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 20px;
-    height: 3px;
-    border-radius: 4px;
-    background: var(--luxe-gold);
-    box-shadow: 0 0 14px var(--luxe-glow);
-    transition: left 0.35s cubic-bezier(0.23, 1, 0.32, 1);
-    z-index: 1;
-}
-
-/* ---- ICÔNES ---- */
-.bottom-menu .menu-item .icon {
-    font-size: 24px;
-    line-height: 1;
-    transition: transform 0.2s ease;
-}
-
-.bottom-menu .menu-item.active .icon {
-    transform: scale(1.05);
-}
-
-.bottom-menu .menu-item .label {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--luxe-dark);
-    transition: color 0.3s ease;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-}
-
-.bottom-menu .menu-item.active .label {
-    color: var(--luxe-gold);
-}
-
-/* ---- BOUTONS ---- */
-.btn-primary {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(145deg, var(--luxe-gold), var(--luxe-gold-dark));
-    color: #0f0e17;
-    border: none;
-    border-radius: 16px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 4px 16px rgba(212, 175, 55, 0.2);
-    letter-spacing: 0.5px;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(212, 175, 55, 0.3);
-}
-
-.btn-primary:active {
-    transform: scale(0.97);
-}
-
-.btn-outline {
-    width: 100%;
-    padding: 14px;
+    transition: color 0.2s;
+    padding: 4px 8px;
+    border-bottom: 3px solid transparent;
     background: transparent;
-    color: var(--luxe-dark);
-    border: 2px solid #e2ddd6;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.nav-item.active, .nav-link.active, .bottom-nav a.active {
+    color: var(--gold);
+    border-bottom: 3px solid var(--gold);
+}
+
+/* Nav Icon Placeholders (if your nav uses icons like FontAwesome or emojis) */
+.nav-item i, .nav-link i, .bottom-nav i {
+    font-size: 1.5rem;
+    margin-bottom: 2px;
+}
+.nav-item .nav-icon, .nav-link .nav-icon {
+    font-size: 1.5rem;
+    margin-bottom: 2px;
+}
+
+/* ----- 10. REFERRAL CODE (Highlighted Box) ----- */
+.referral-code, .code-box {
+    background: rgba(212, 168, 71, 0.08);
+    border: 2px dashed var(--gold);
     border-radius: 16px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.25s ease;
-    margin-top: 8px;
-}
-
-.btn-outline:hover {
-    border-color: var(--luxe-gold);
-    color: var(--luxe-gold-dark);
-}
-
-/* ---- AUTH ---- */
-.auth-box {
-    padding: 30px 20px 20px 20px;
-}
-.auth-box h2 {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 6px;
-    color: var(--luxe-dark);
-}
-.auth-box h2 span {
-    color: var(--luxe-gold);
-}
-.auth-box p.sub {
-    color: #a09b94;
-    font-size: 14px;
-    margin-bottom: 24px;
-}
-.auth-box input {
-    width: 100%;
-    padding: 14px 16px;
-    border-radius: 16px;
-    border: 2px solid #e2ddd6;
-    font-size: 15px;
-    margin-bottom: 12px;
-    background: #faf9f7;
-    transition: 0.2s;
-    color: var(--luxe-dark);
-}
-.auth-box input:focus {
-    outline: none;
-    border-color: var(--luxe-gold);
-    background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.08);
-}
-.auth-box .switch-link {
-    text-align: center;
-    margin-top: 16px;
-    font-size: 14px;
-    color: #a09b94;
-}
-.auth-box .switch-link span {
-    color: var(--luxe-gold);
-    font-weight: 700;
-    cursor: pointer;
-}
-
-/* ---- TOAST ---- */
-.toast {
-    position: fixed;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--luxe-dark);
-    color: white;
-    padding: 14px 28px;
-    border-radius: 40px;
-    font-size: 14px;
-    font-weight: 500;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    z-index: 999;
-    display: none;
-    max-width: 90%;
-    text-align: center;
-    border: 1px solid rgba(212, 175, 55, 0.15);
-}
-.toast.show {
-    display: block;
-    animation: toastIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes toastIn {
-    0% { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.95); }
-    100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-}
-
-/* ---- UTILITAIRES ---- */
-.text-muted {
-    color: #a09b94;
-    font-size: 13px;
-}
-
-/* ---- RESPONSIVE ---- */
-@media (max-width: 480px) {
-    .app-container {
-        border-radius: 0;
-        min-height: 100vh;
-    }
-    .app-header {
-        border-radius: 0 0 28px 28px;
-        padding: 16px 16px 24px 16px;
-    }
-    .app-header .balance-row .amount {
-        font-size: 24px;
-    }
-    .bottom-menu {
-        padding: 6px 0 8px 0;
-    }
-    .bottom-menu .menu-item .icon {
-        font-size: 20px;
-    }
-    .bottom-menu .menu-item .label {
-        font-size: 9px;
-    }
-    .bottom-menu .slider {
-        width: 16px;
-        height: 2.5px;
-    }
-}
-
-/* ---- AUTH CONTAINER ---- */
-#authContainer {
-    display: none;
-    flex: 1;
-    align-items: center;
-    justify-content: center;
     padding: 20px;
-    min-height: 100vh;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 4px;
+    color: var(--gold);
+    font-family: 'Courier New', monospace;
+    margin: 20px 0;
 }
-#authContainer.show {
+
+/* ----- 11. MARKET UPDATES / NEWS ITEMS ----- */
+.news-item, .alert-item, .update-item {
+    background: rgba(255, 255, 255, 0.03);
+    border-left: 4px solid var(--gold);
+    padding: 14px 18px;
+    margin: 10px 0;
+    border-radius: 0 12px 12px 0;
+    transition: background 0.2s;
+}
+.news-item:hover, .alert-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.news-time, .alert-time {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    float: right;
+    font-weight: 500;
+}
+
+/* ----- 12. CHART / GRAPH CONTAINER ----- */
+.chart-container, .graph-container {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin: 16px 0;
+}
+
+/* ----- 13. TIME FILTER BUTTONS (1D, 1W, 1M) ----- */
+.filter-group, .time-filters {
     display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 12px 0;
 }
-#appHeader {
-    display: none;
+
+.filter-group button, .time-filters button {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: none;
+    text-transform: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Inter', sans-serif;
 }
-#appHeader.show {
-    display: block;
-   }
+
+.filter-group button.active, .time-filters button.active {
+    background: var(--gold-gradient);
+    color: #0B1018;
+    box-shadow: 0 2px 12px rgba(212, 168, 71, 0.3);
+    border-color: transparent;
+}
+
+.filter-group button:hover:not(.active), .time-filters button:hover:not(.active) {
+    border-color: var(--gold);
+    color: #fff;
+}
+
+/* ----- 14. STATS ROW (Total Invested / Portfolio Value) ----- */
+.stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: space-between;
+    margin: 16px 0;
+}
+.stat-item {
+    flex: 1;
+    min-width: 100px;
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    text-align: center;
+}
+.stat-item .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+}
+.stat-item .value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 4px;
+}
+.stat-item .value.gold {
+    color: var(--gold);
+}
+
+/* ----- 15. RESPONSIVE TWEAKS (Mobile First) ----- */
+@media (max-width: 480px) {
+    .price-main, .gold-price, .live-price {
+        font-size: 2.2rem;
+    }
+    h1 {
+        font-size: 1.6rem;
+    }
+    h2 {
+        font-size: 1.3rem;
+    }
+    .card, .portfolio-card {
+        padding: 14px 16px;
+    }
+    .referral-code, .code-box {
+        font-size: 1.4rem;
+        letter-spacing: 2px;
+        padding: 14px;
+    }
+    .stat-item .value {
+        font-size: 1.2rem;
+    }
+    .nav-item, .nav-link, .bottom-nav a {
+        font-size: 0.55rem;
+    }
+    .btn-primary, button.primary {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+    }
+    .filter-group button, .time-filters button {
+        padding: 4px 12px;
+        font-size: 0.7rem;
+    }
+}
+
+/* ----- 16. UTILITY CLASSES (Quick Helpers) ----- */
+.text-gold { color: var(--gold); }
+.text-green { color: var(--green); }
+.text-red { color: var(--red); }
+.text-muted { color: var(--text-secondary); }
+.bg-dark { background: #0B1018; }
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mt-3 { margin-top: 24px; }
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }
+.text-center { text-align: center; }

@@ -1817,7 +1817,7 @@
             }
 
             // =============================================================
-            // INVESTMENT LIST
+            // INVESTMENT LIST – FIXED PORTFOLIO VALUE
             // =============================================================
             function updateInvestmentList() {
                 const list = investmentList;
@@ -1846,11 +1846,18 @@
                 list.innerHTML = html;
                 totalInvestment.textContent = `$${total.toFixed(2)}`;
 
-                const currentPrice = goldPrices.length > 0 ? goldPrices[goldPrices.length - 1].price : lastGoldPrice;
+                // ✅ FIX: convert price from USD/oz to USD/gram
+                const OUNCE_TO_GRAM = 31.1035;
+                const currentPricePerOunce = goldPrices.length > 0 ? goldPrices[goldPrices.length - 1].price : lastGoldPrice;
+                const currentPricePerGram = currentPricePerOunce / OUNCE_TO_GRAM;
+
                 let portfolioTotal = 0;
                 investments.forEach(inv => {
-                    if (inv.gold_weight) portfolioTotal += inv.gold_weight * currentPrice;
+                    if (inv.gold_weight) {
+                        portfolioTotal += parseFloat(inv.gold_weight) * currentPricePerGram;
+                    }
                 });
+                // fallback to total invested if no gold_weight
                 const val = portfolioTotal || total;
                 portfolioValue.textContent = `$${val.toFixed(2)}`;
                 referralPortfolioValue.textContent = `$${val.toFixed(2)}`;
@@ -1927,11 +1934,10 @@
                 const tree = buildTree(currentUser.id);
                 const total = countNodes(tree);
                 referralCount.textContent = total;
-                // totals already updated in updateInvestmentList
             }
 
             // =============================================================
-            // CHARTS
+            // CHARTS (unchanged – they use price per ounce which is fine)
             // =============================================================
             function renderAllCharts() {
                 if (typeof Chart === 'undefined') {
@@ -2099,7 +2105,7 @@
             }
 
             // =============================================================
-            // INVESTMENT (STRIPE)
+            // INVESTMENT (STRIPE) – unchanged
             // =============================================================
             async function addInvestment() {
                 if (!currentUser) { showToast('Please log in.'); return; }

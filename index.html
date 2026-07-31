@@ -23,7 +23,7 @@
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
-            padding: 12px 12px 90px 12px;
+            padding: 12px 12px 0 12px; /* no bottom padding */
         }
         .container {
             max-width: 420px;
@@ -32,7 +32,7 @@
             border-radius: 28px;
             padding: 16px 16px 8px 16px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-            margin-bottom: 20px;
+            margin-bottom: 0; /* no margin */
         }
 
         /* ========== SCROLLBAR ========== */
@@ -150,6 +150,23 @@
         .field input::placeholder {
             color: #666;
         }
+
+        /* ---- Remember me ---- */
+        .remember-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0 12px 0;
+            color: #888;
+            font-size: 14px;
+        }
+        .remember-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #d4af37;
+            cursor: pointer;
+        }
+
         .btn {
             width: 100%;
             padding: 14px;
@@ -612,7 +629,7 @@
             padding: 6px 0 10px 0;
             z-index: 100;
             box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
-            border-radius: 24px 24px 0 0;
+            /* no border-radius -> no white gap */
         }
         .bottom-menu.show {
             display: flex;
@@ -1085,6 +1102,11 @@
                 <div id="authForm">
                     <div class="field"><input type="email" id="authEmail" placeholder="Email" /></div>
                     <div class="field"><input type="password" id="authPassword" placeholder="Password" /></div>
+                    <!-- Remember me checkbox -->
+                    <div class="remember-row">
+                        <input type="checkbox" id="rememberMe" />
+                        <label for="rememberMe">Remember me</label>
+                    </div>
                     <div id="extra">
                         <div class="field"><input type="password" id="authConfirm" placeholder="Confirm password" /></div>
                         <div class="name-row">
@@ -1106,7 +1128,6 @@
 
         <!-- ===== DASHBOARD ===== -->
         <div id="dashboard">
-
             <!-- HEADER -->
             <div class="app-header">
                 <div class="logo">Gold Gain</div>
@@ -1157,7 +1178,6 @@
 
             <!-- PAGES -->
             <div id="page-dashboard" class="page active">
-                <!-- Charts -->
                 <div class="card">
                     <div class="card-title">📈 Price History</div>
                     <div class="chart-wrapper"><canvas id="chartInvest"></canvas></div>
@@ -1180,7 +1200,6 @@
                 </div>
             </div>
 
-            <!-- INVESTMENTS -->
             <div id="page-investments" class="page">
                 <div class="card">
                     <div class="card-title">My Investments</div>
@@ -1243,7 +1262,6 @@
                 </div>
             </div>
 
-            <!-- REFERRALS -->
             <div id="page-referrals" class="page">
                 <div class="card" style="text-align:center;">
                     <div class="card-title">📣 Referral Program</div>
@@ -1270,7 +1288,6 @@
                 </div>
             </div>
 
-            <!-- PROFILE -->
             <div id="page-profile" class="page">
                 <div class="card">
                     <div class="card-title">👤 Profile Settings</div>
@@ -1286,23 +1303,17 @@
                 <button class="logout-btn" id="logoutBtn">🚪 Logout</button>
             </div>
 
-            <!-- UPDATES (hidden page, shown via More) -->
             <div id="page-updates" class="page">
                 <div class="card">
                     <div class="card-title">📰 Market Updates &amp; Alerts</div>
                     <p style="color:#888;font-size:13px;margin-bottom:12px;">Real-time prices, market moves, and breaking news</p>
-                    <div class="market-ticker" id="marketTicker">
-                        <!-- Populated by JS -->
-                    </div>
+                    <div class="market-ticker" id="marketTicker"></div>
                 </div>
                 <div class="card">
                     <div class="card-title">🔔 Recent Market Alerts</div>
-                    <div id="marketAlerts">
-                        <!-- Populated by JS -->
-                    </div>
+                    <div id="marketAlerts"></div>
                 </div>
             </div>
-
         </div><!-- /dashboard -->
 
         <div id="errorMsg">
@@ -1317,9 +1328,7 @@
 
     <!-- ===== OVERLAY ===== -->
     <div class="overlay" id="overlay">
-        <div class="modal modal-relative" id="modalContent">
-            <!-- dynamic -->
-        </div>
+        <div class="modal modal-relative" id="modalContent"></div>
     </div>
 
     <!-- ===== MENU POPUP ===== -->
@@ -1385,7 +1394,7 @@
             document.getElementById('errorMsg').classList.remove('show');
 
             // =============================================================
-            // STRIPE (LIVE)
+            // STRIPE
             // =============================================================
             const stripe = Stripe('pk_live_Z3DOEXDkQ29anfNUNNsk2XNb');
             const elements = stripe.elements();
@@ -1498,6 +1507,7 @@
             const referralPortfolioValue = $('referralPortfolioValue');
             const marketTicker = $('marketTicker');
             const marketAlerts = $('marketAlerts');
+            const rememberCheckbox = $('rememberMe');
 
             const canvasInvest = $('chartInvest');
             const canvasForecast = $('chartForecast');
@@ -1515,6 +1525,17 @@
             let messagesCache = [];
             let messagesLastFetch = 0;
             const CACHE_DURATION = 5 * 60 * 1000;
+
+            // =============================================================
+            // AUTOFILL
+            // =============================================================
+            const savedEmail = localStorage.getItem('goldgain_email');
+            const savedPassword = localStorage.getItem('goldgain_password');
+            if (savedEmail && savedPassword) {
+                authEmail.value = savedEmail;
+                authPassword.value = savedPassword;
+                rememberCheckbox.checked = true;
+            }
 
             // =============================================================
             // TOAST
@@ -1586,6 +1607,14 @@
                         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                         if (error) throw error;
                         showToast('Welcome back!');
+                        // Save credentials if "Remember me" is checked
+                        if (rememberCheckbox.checked) {
+                            localStorage.setItem('goldgain_email', email);
+                            localStorage.setItem('goldgain_password', password);
+                        } else {
+                            localStorage.removeItem('goldgain_email');
+                            localStorage.removeItem('goldgain_password');
+                        }
                         await loadUserData(data.user);
                     } else {
                         const firstName = authFirstName.value.trim();
@@ -1846,7 +1875,7 @@
                 list.innerHTML = html;
                 totalInvestment.textContent = `$${total.toFixed(2)}`;
 
-                // ✅ FIX: convert price from USD/oz to USD/gram
+                // ✅ Convert price from USD/oz to USD/gram
                 const OUNCE_TO_GRAM = 31.1035;
                 const currentPricePerOunce = goldPrices.length > 0 ? goldPrices[goldPrices.length - 1].price : lastGoldPrice;
                 const currentPricePerGram = currentPricePerOunce / OUNCE_TO_GRAM;
@@ -1857,7 +1886,6 @@
                         portfolioTotal += parseFloat(inv.gold_weight) * currentPricePerGram;
                     }
                 });
-                // fallback to total invested if no gold_weight
                 const val = portfolioTotal || total;
                 portfolioValue.textContent = `$${val.toFixed(2)}`;
                 referralPortfolioValue.textContent = `$${val.toFixed(2)}`;
@@ -1937,7 +1965,7 @@
             }
 
             // =============================================================
-            // CHARTS (unchanged – they use price per ounce which is fine)
+            // CHARTS
             // =============================================================
             function renderAllCharts() {
                 if (typeof Chart === 'undefined') {
@@ -2105,7 +2133,7 @@
             }
 
             // =============================================================
-            // INVESTMENT (STRIPE) – unchanged
+            // INVESTMENT (STRIPE)
             // =============================================================
             async function addInvestment() {
                 if (!currentUser) { showToast('Please log in.'); return; }
@@ -2311,7 +2339,7 @@
             window.closeModal = function() { closeAllPopups(); };
 
             // =============================================================
-            // MESSAGES
+            // MESSAGES (fixed: unread → instantly marked read, list refreshes)
             // =============================================================
             async function loadMessages(force = false) {
                 if (!currentUser) return;
@@ -2406,6 +2434,7 @@
 
             function openMessageDetail(msg) {
                 const wasUnread = !msg.is_read;
+                // Mark as read immediately
                 if (wasUnread) {
                     supabase
                         .from('messages')
@@ -2415,7 +2444,11 @@
                             if (!error) {
                                 await loadMessages(true);
                                 updateNotifDots();
-                                renderMessageList();
+                                // Instead of re-rendering the list, just update the cache and refresh the list when user goes back
+                                // We'll just re-render the list after marking read.
+                                renderMessageList(); // refresh the list
+                            } else {
+                                console.error('Error marking message as read:', error);
                             }
                         });
                 }
@@ -2692,7 +2725,6 @@
             profileSaveBtn.addEventListener('click', updateProfile);
             withdrawBtn.addEventListener('click', submitWithdraw);
 
-            // Time tabs (visual only)
             document.querySelectorAll('#timeTabs button').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.querySelectorAll('#timeTabs button').forEach(b => b.classList.remove('active'));
@@ -2708,7 +2740,6 @@
                 checkAuth();
             });
 
-            // Expose
             window.toggleAuthMode = toggleAuthMode;
             window.handleAuth = handleAuth;
             window.logoutUser = logoutUser;

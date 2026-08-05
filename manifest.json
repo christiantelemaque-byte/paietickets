@@ -1,0 +1,15 @@
+{
+  "background_color": "#0b1018",
+  "dir": "ltr",
+  "display": "fullscreen",
+  "name": "www.paietickets",
+  "orientation": "portrait",
+  "scope": "/",
+  "short_name": "Gold Gain",
+  "start_url": "/",
+  "theme_color": "#d4a847",
+  "description": "Track live gold prices and grow your investments.",
+  "categories": [
+    "developer"
+  ]
+}
